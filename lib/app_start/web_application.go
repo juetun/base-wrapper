@@ -11,8 +11,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/juetun/base-wrapper/lib/middlewares"
-	"github.com/juetun/base-wrapper/web/router"
 )
+
+// 路由注册函数
+type HandleRouter func(c *gin.Engine, urlPrefix string)
+
+// 路由函数数组
+var HandleFunc = make([]HandleRouter, 0)
 
 type WebApplication struct {
 	GinEngine *gin.Engine
@@ -20,7 +25,7 @@ type WebApplication struct {
 }
 
 func NewWebApplication() *WebApplication {
-	if false&&common.GetAppConfig().AppEnv == "release" {
+	if false && common.GetAppConfig().AppEnv == "release" {
 		gin.SetMode(gin.ReleaseMode)
 	} else {
 		gin.SetMode(gin.DebugMode)
@@ -34,10 +39,23 @@ func NewWebApplication() *WebApplication {
 	webApp.GinEngine.Use(middlewares.MiddleWareComponent...)
 	return webApp
 }
+func RunLoadRouter(c *gin.Engine) (err error) {
+	appConfig := common.GetAppConfig()
+	var UrlPrefix = appConfig.AppName + "/" + appConfig.AppApiVersion
+	io := common.NewSystemOut().SetInfoType(common.LogLevelInfo)
+	io.SystemOutPrintf("Start load route config.... %s", UrlPrefix)
+	defer func() {
+		io.SystemOutPrintln("Load route finished")
+	}()
+	for _, router := range HandleFunc {
+		router(c, UrlPrefix)
+	}
 
+	return
+}
 func (r *WebApplication) LoadRouter() *WebApplication {
 
-	err := router.RunLoadRouter(r.GinEngine) // 注册Gin路由组件
+	err := RunLoadRouter(r.GinEngine) // 注册Gin路由组件
 	if err != nil {
 		r.syslog.SetInfoType(common.LogLevelError).
 			SystemOutPrintf("Load router err  %s", err.Error())

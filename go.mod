@@ -1,0 +1,18 @@
+module github.com/juetun/base-wrapper
+
+go 1.13
+
+require (
+	github.com/astaxie/beego v1.12.1
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/fsnotify/fsnotify v1.4.9
+	github.com/gin-gonic/gin v1.6.2
+	github.com/go-errors/errors v1.0.1
+	github.com/go-redis/redis v6.15.7+incompatible
+	github.com/go-sql-driver/mysql v1.5.0
+	github.com/jinzhu/gorm v1.9.12
+	github.com/satori/go.uuid v1.2.0
+	github.com/sirupsen/logrus v1.5.0
+	github.com/speps/go-hashids v2.0.0+incompatible
+	github.com/spf13/viper v1.6.2
+)
