@@ -1,9 +1,9 @@
 package init
 
 import (
-	"github.com/juetun/app-web/lib/app_start"
-	"github.com/juetun/app-web/lib/common"
-	"github.com/juetun/app-web/lib/plugins"
+	"github.com/juetun/base-wrapper/lib/app_start"
+	"github.com/juetun/base-wrapper/lib/common"
+	"github.com/juetun/base-wrapper/lib/plugins"
 )
 
 // 初始化加载内容

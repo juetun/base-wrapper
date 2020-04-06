@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/juetun/app-web/lib/app_log"
-	"github.com/juetun/app-web/lib/app_obj"
-	utils2 "github.com/juetun/app-web/lib/utils"
+	"github.com/juetun/base-wrapper/lib/app_log"
+	"github.com/juetun/base-wrapper/lib/app_obj"
+	utils2 "github.com/juetun/base-wrapper/lib/utils"
 )
 
 func CreateToken(userIdString string) (tokenString string, err error) {

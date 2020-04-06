@@ -10,8 +10,8 @@ package base
 import (
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
-	"github.com/juetun/app-web/lib/app_log"
-	"github.com/juetun/app-web/lib/app_obj"
+	"github.com/juetun/base-wrapper/lib/app_log"
+	"github.com/juetun/base-wrapper/lib/app_obj"
 )
 
 type Context struct {

@@ -13,8 +13,8 @@ import (
 
 	"github.com/astaxie/beego/validation"
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/app-web/lib/app_log"
-	"github.com/juetun/app-web/lib/base"
+	"github.com/juetun/base-wrapper/lib/app_log"
+	"github.com/juetun/base-wrapper/lib/base"
 )
 
 type ValidationMessage struct {

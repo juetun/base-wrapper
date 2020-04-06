@@ -3,7 +3,7 @@ package app_start
 import (
 	stytemLog "log"
 
-	"github.com/juetun/app-web/lib/common"
+	"github.com/juetun/base-wrapper/lib/common"
 )
 
 type PluginHandleFunction func() (err error)

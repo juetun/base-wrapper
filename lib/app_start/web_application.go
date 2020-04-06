@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/app-web/lib/common"
-	"github.com/juetun/app-web/lib/middlewares"
-	"github.com/juetun/app-web/web/router"
+	"github.com/juetun/base-wrapper/lib/common"
+	"github.com/juetun/base-wrapper/lib/middlewares"
+	"github.com/juetun/base-wrapper/web/router"
 )
 
 type WebApplication struct {

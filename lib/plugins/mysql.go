@@ -8,8 +8,8 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/jinzhu/gorm"
-	"github.com/juetun/app-web/lib/app_obj"
-	"github.com/juetun/app-web/lib/common"
+	"github.com/juetun/base-wrapper/lib/app_obj"
+	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/spf13/viper"
 )
 

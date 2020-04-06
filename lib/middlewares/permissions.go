@@ -13,8 +13,8 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/app-web/lib/app_log"
-	"github.com/juetun/app-web/lib/common"
+	"github.com/juetun/base-wrapper/lib/app_log"
+	"github.com/juetun/base-wrapper/lib/common"
 )
 
 // 加载权限验证Gin中间件

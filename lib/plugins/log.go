@@ -1,8 +1,8 @@
 package plugins
 
 import (
-	"github.com/juetun/app-web/lib/app_log"
-	"github.com/juetun/app-web/lib/common"
+	"github.com/juetun/base-wrapper/lib/app_log"
+	"github.com/juetun/base-wrapper/lib/common"
 )
 
 func PluginLog() (err error) {
