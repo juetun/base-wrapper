@@ -12,7 +12,11 @@ import (
 
 	"github.com/go-redis/redis"
 )
-
+// 当前请求上下文存储使用的KEY
+const (
+	ContextUserObjectKey = "jwt_user" // 用户信息
+	ContextUserTokenKey  = "token"    // 存储token的KEY
+)
 var jwtParam *JwtParam
 
 func NewJwtParam() *JwtParam {
@@ -31,6 +35,12 @@ type JwtParam struct {
 	TokenKey        string
 	TokenLife       time.Duration
 	RedisCache      *redis.Client
+}
+type JwtUserMessage struct {
+	UserId string `json:"user_hid"` // 用户ID
+	Name   string `json:"name"`     // 用户昵称
+	// Portrait string `json:"portrait"` // 头像
+	Status int `json:"status"` // '用户状态 0创建,1正常',
 }
 
 func (jp *JwtParam) SetTokenKey(tk string) func(jp *JwtParam) interface{} {

@@ -13,14 +13,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app_log"
+	"github.com/juetun/base-wrapper/lib/app_obj"
 	"github.com/juetun/base-wrapper/lib/common"
 )
 
-// 当前请求上下文存储使用的KEY
-const (
-	ContextUserObjectKey = "jwt_user" // 用户信息
-	ContextUserTokenKey  = "token"    // 存储token的KEY
-)
+
 
 // 加载权限验证Gin中间件
 func Permission() gin.HandlerFunc {
@@ -106,9 +103,8 @@ func Auth(c *gin.Context) (exit bool) {
 		exit = true
 		return
 	}
-	c.Set(ContextUserObjectKey, jwtUser)
-	c.Set(ContextUserTokenKey, token)
-
+	c.Set(app_obj.ContextUserObjectKey, jwtUser)
+	c.Set(app_obj.ContextUserTokenKey, token)
 	return
 }
 
@@ -123,36 +119,27 @@ func cors(c *gin.Context) (exitStatus bool) {
 }
 
 // 用户信息获取
-func UserMessageSet(c *gin.Context, routerAsName string) (code int, res interface{}) {
-	token := c.GetHeader("x-auth-token")
-	if routerAsName == "console.post.imgUpload" { // 如果是上传图片，则用的POST获取用户信息
-		token = c.PostForm("upload-token")
-	}
+// func UserMessageSet(c *gin.Context, routerAsName string) (code int, res interface{}) {
+// 	token := c.GetHeader("x-auth-token")
+// 	if routerAsName == "console.post.imgUpload" { // 如果是上传图片，则用的POST获取用户信息
+// 		token = c.PostForm("upload-token")
+// 	}
+//
+// 	if token == "" {
+// 		app_log.GetLog().Errorln("method", "middleware.Permission", "info", "token null")
+// 		return 400001005, nil
+// 	}
+//
+// 	jwtUser, err := common.ParseToken(token)
+// 	if err != nil {
+// 		app_log.GetLog().Errorln("method", "middleware.Permission", "info", "parse token error")
+// 		return 400001005, nil
+// 	}
+// 	c.Set(app_obj.ContextUserObjectKey, jwtUser)
+// 	c.Set("token", token)
+// 	return
+// }
 
-	if token == "" {
-		app_log.GetLog().Errorln("method", "middleware.Permission", "info", "token null")
-		return 400001005, nil
-	}
-
-	jwtUser, err := common.ParseToken(token)
-	if err != nil {
-		app_log.GetLog().Errorln("method", "middleware.Permission", "info", "parse token error")
-		return 400001005, nil
-	}
-	c.Set(ContextUserObjectKey, jwtUser)
-	c.Set("token", token)
-	return
-}
-
-// 当前登录用户的信息
-func UserMessageGet(c *gin.Context) (jwtUser common.JwtUserMessage) {
-	jwtUser = common.JwtUserMessage{}
-	v, e := c.Get(ContextUserObjectKey)
-	if e {
-		jwtUser = v.(common.JwtUserMessage)
-	}
-	return
-}
 
 func GetRUri(c *gin.Context) string {
 	uri := strings.TrimLeft(c.Request.RequestURI, common.GetAppConfig().AppName+"/"+common.GetAppConfig().AppApiVersion)

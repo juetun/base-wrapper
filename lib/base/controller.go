@@ -6,8 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app_log"
-	"github.com/juetun/base-wrapper/lib/common"
-	"github.com/juetun/base-wrapper/lib/middlewares"
+	"github.com/juetun/base-wrapper/lib/app_obj"
 )
 
 type ControllerBase struct {
@@ -25,8 +24,16 @@ func (r *ControllerBase) GetOperateUser(c *gin.Context) string {
 func (r *ControllerBase) GetAdminUserName(c *gin.Context) string {
 	return r.GetUser(c).Name
 }
-func (r *ControllerBase) GetUser(c *gin.Context) (user common.JwtUserMessage) {
-	return middlewares.UserMessageGet(c)
+
+// 当前登录用户的信息
+func (r *ControllerBase) GetUser(c *gin.Context) (jwtUser app_obj.JwtUserMessage) {
+	jwtUser = app_obj.JwtUserMessage{}
+	v, e := c.Get(app_obj.ContextUserObjectKey)
+	if e {
+		jwtUser = v.(app_obj.JwtUserMessage)
+	}
+
+	return jwtUser
 }
 
 type Result struct {

@@ -18,14 +18,8 @@ import (
 	utils2 "github.com/juetun/base-wrapper/lib/utils"
 )
 
-type JwtUserMessage struct {
-	UserId string `json:"user_hid"` // 用户ID
-	Name   string `json:"name"`     // 用户昵称
-	// Portrait string `json:"portrait"` // 头像
-	Status int `json:"status"` // '用户状态 0创建,1正常',
-}
 
-func CreateToken(user JwtUserMessage) (tokenString string, err error) {
+func CreateToken(user app_obj.JwtUserMessage) (tokenString string, err error) {
 	//	iss: jwt签发者
 	//	sub: jwt所面向的用户
 	//	aud: 接收jwt的一方
@@ -75,7 +69,7 @@ func CreateToken(user JwtUserMessage) (tokenString string, err error) {
 	return
 }
 
-func ParseToken(myToken string) (jwtUser JwtUserMessage, err error) {
+func ParseToken(myToken string) (jwtUser app_obj.JwtUserMessage, err error) {
 	jwtParam := app_obj.GetJwtParam()
 
 	token, err := jwt.Parse(myToken, func(token *jwt.Token) (interface{}, error) {
