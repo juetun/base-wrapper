@@ -16,7 +16,11 @@ import (
 	"github.com/juetun/base-wrapper/lib/common"
 )
 
-const ContextUserObjectKey = "jwt_user"
+// 当前请求上下文存储使用的KEY
+const (
+	ContextUserObjectKey = "jwt_user" // 用户信息
+	ContextUserTokenKey  = "token"    // 存储token的KEY
+)
 
 // 加载权限验证Gin中间件
 func Permission() gin.HandlerFunc {
@@ -103,6 +107,8 @@ func Auth(c *gin.Context) (exit bool) {
 		return
 	}
 	c.Set(ContextUserObjectKey, jwtUser)
+	c.Set(ContextUserTokenKey, token)
+
 	return
 }
 
@@ -135,6 +141,16 @@ func UserMessageSet(c *gin.Context, routerAsName string) (code int, res interfac
 	}
 	c.Set(ContextUserObjectKey, jwtUser)
 	c.Set("token", token)
+	return
+}
+
+// 当前登录用户的信息
+func UserMessageGet(c *gin.Context) (jwtUser common.JwtUserMessage) {
+	jwtUser = common.JwtUserMessage{}
+	v, e := c.Get(ContextUserObjectKey)
+	if e {
+		jwtUser = v.(common.JwtUserMessage)
+	}
 	return
 }
 

@@ -19,8 +19,8 @@ import (
 )
 
 type JwtUserMessage struct {
-	UserId string `json:"user_id"` // 用户ID
-	Name   string `json:"name"`    // 用户昵称
+	UserId string `json:"user_hid"` // 用户ID
+	Name   string `json:"name"`     // 用户昵称
 	// Portrait string `json:"portrait"` // 头像
 	Status int `json:"status"` // '用户状态 0创建,1正常',
 }

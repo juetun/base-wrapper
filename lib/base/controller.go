@@ -6,6 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app_log"
+	"github.com/juetun/base-wrapper/lib/common"
+	"github.com/juetun/base-wrapper/lib/middlewares"
 )
 
 type ControllerBase struct {
@@ -17,6 +19,16 @@ func (r *ControllerBase) Init() *ControllerBase {
 	return r
 }
 
+func (r *ControllerBase) GetOperateUser(c *gin.Context) string {
+	return r.GetUser(c).Name
+}
+func (r *ControllerBase) GetAdminUserName(c *gin.Context) string {
+	return r.GetUser(c).Name
+}
+func (r *ControllerBase) GetUser(c *gin.Context) (user common.JwtUserMessage) {
+	return middlewares.UserMessageGet(c)
+}
+
 type Result struct {
 	Code int         `json:"code"`
 	Data interface{} `json:"data"`
@@ -26,6 +38,7 @@ type Result struct {
 func NewResult() *Result {
 	return &Result{}
 }
+
 func (r *ControllerBase) Response(c *gin.Context, code int, data interface{}, msg ...string) {
 	c.JSON(http.StatusOK, Result{Code: code, Data: data, Msg: strings.Join(msg, ",")})
 }
