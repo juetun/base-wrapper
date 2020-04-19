@@ -6,12 +6,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var MiddleWareComponent = make([]gin.HandlerFunc, 0)
+var MiddleWareComponent = []gin.HandlerFunc{
+	Permission(),
+}
 
 // 加载权限验证Gin中间件
-func LoadMiddleWare() {
+func LoadMiddleWare(privateMiddleWares ...gin.HandlerFunc) {
 	fmt.Println("Load gin middleWare start")
-	MiddleWareComponent = append(MiddleWareComponent, Permission(), )
+	MiddleWareComponent = append(MiddleWareComponent, privateMiddleWares...)
 	fmt.Println("Load gin middleWare over")
 
 }

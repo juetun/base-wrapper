@@ -76,7 +76,7 @@ func Permission() gin.HandlerFunc {
 }
 
 // 用户登录逻辑处理
-func auth(c *gin.Context) (exit bool) {
+func Auth(c *gin.Context) (exit bool) {
 	token := c.Request.Header.Get("x-auth-token")
 	if token == "" {
 		msg := "token is null"
@@ -106,19 +106,17 @@ func auth(c *gin.Context) (exit bool) {
 }
 
 func cors(c *gin.Context) (exitStatus bool) {
-	fmt.Println("设置跨域")
 	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	c.Writer.Header().Set("Access-Control-Max-Age", "86400")
 	c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE,PATCH")
 	c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-Auth-Token, X-Auth-UUID, X-Auth-Openid, referrer, Authorization, x-client-id, x-client-version, x-client-type")
 	c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length")
 	c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-
 	return
 }
 
 // 用户信息获取
-func userMessageSet(c *gin.Context, routerAsName string) (code int, res interface{}) {
+func UserMessageSet(c *gin.Context, routerAsName string) (code int, res interface{}) {
 	token := c.GetHeader("x-auth-token")
 	if routerAsName == "console.post.imgUpload" { // 如果是上传图片，则用的POST获取用户信息
 		token = c.PostForm("upload-token")
@@ -145,7 +143,7 @@ func userMessageSet(c *gin.Context, routerAsName string) (code int, res interfac
 	return
 }
 
-func getRUri(c *gin.Context) string {
+func GetRUri(c *gin.Context) string {
 	uri := strings.TrimLeft(c.Request.RequestURI, common.GetAppConfig().AppName+"/"+common.GetAppConfig().AppApiVersion)
 	if uri == "" { // 如果是默认页 ，则直接让过
 		return "default"

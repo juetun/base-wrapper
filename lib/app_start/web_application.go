@@ -24,7 +24,7 @@ type WebApplication struct {
 	syslog    *common.SystemOut
 }
 
-func NewWebApplication() *WebApplication {
+func NewWebApplication(privateMiddleWares ...gin.HandlerFunc) *WebApplication {
 	if false && common.GetAppConfig().AppEnv == "release" {
 		gin.SetMode(gin.ReleaseMode)
 	} else {
@@ -35,7 +35,8 @@ func NewWebApplication() *WebApplication {
 		syslog:    common.NewSystemOut(),
 	}
 	// 加载GIN框架 中间件
-	middlewares.LoadMiddleWare()
+	middlewares.LoadMiddleWare(privateMiddleWares...)
+
 	webApp.GinEngine.Use(middlewares.MiddleWareComponent...)
 	return webApp
 }
