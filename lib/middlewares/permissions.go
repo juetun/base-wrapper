@@ -9,13 +9,14 @@ package middlewares
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app_log"
 	"github.com/juetun/base-wrapper/lib/common"
 )
+
+const ContextUserObjectKey = "jwt_user"
 
 // 加载权限验证Gin中间件
 func Permission() gin.HandlerFunc {
@@ -89,7 +90,7 @@ func Auth(c *gin.Context) (exit bool) {
 		exit = true
 		return
 	}
-	userId, err := common.ParseToken(token)
+	jwtUser, err := common.ParseToken(token)
 	if err != nil {
 		app_log.GetLog().Error(map[string]string{
 			"method": "zgh.ginmiddleware.auth",
@@ -101,7 +102,7 @@ func Auth(c *gin.Context) (exit bool) {
 		exit = true
 		return
 	}
-	c.Set("userId", userId)
+	c.Set(ContextUserObjectKey, jwtUser)
 	return
 }
 
@@ -127,18 +128,12 @@ func UserMessageSet(c *gin.Context, routerAsName string) (code int, res interfac
 		return 400001005, nil
 	}
 
-	userId, err := common.ParseToken(token)
+	jwtUser, err := common.ParseToken(token)
 	if err != nil {
 		app_log.GetLog().Errorln("method", "middleware.Permission", "info", "parse token error")
 		return 400001005, nil
 	}
-
-	userIdInt, err := strconv.Atoi(userId)
-	if err != nil {
-		app_log.GetLog().Errorln("method", "middleware.Permission", "info", "strconv token error")
-		return 400001005, nil
-	}
-	c.Set("userId", userIdInt)
+	c.Set(ContextUserObjectKey, jwtUser)
 	c.Set("token", token)
 	return
 }

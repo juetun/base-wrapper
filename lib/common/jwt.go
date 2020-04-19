@@ -7,6 +7,7 @@
 package common
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -17,7 +18,14 @@ import (
 	utils2 "github.com/juetun/base-wrapper/lib/utils"
 )
 
-func CreateToken(userIdString string) (tokenString string, err error) {
+type JwtUserMessage struct {
+	UserId string `json:"user_id"` // 用户ID
+	Name   string `json:"name"`    // 用户昵称
+	// Portrait string `json:"portrait"` // 头像
+	Status int `json:"status"` // '用户状态 0创建,1正常',
+}
+
+func CreateToken(user JwtUserMessage) (tokenString string, err error) {
 	//	iss: jwt签发者
 	//	sub: jwt所面向的用户
 	//	aud: 接收jwt的一方
@@ -31,11 +39,12 @@ func CreateToken(userIdString string) (tokenString string, err error) {
 	// claims["exp"] = time.Now().Add(time.Hour * time.Duration(72)).Unix()
 	claims["iat"] = time.Now().Unix()
 	claims["iss"] = jwtParam.DefaultIss
+	s, _ := json.Marshal(user)
+	userIdString := string(s)
 	claims["sub"] = userIdString
 	claims["aud"] = jwtParam.DefaultAudience
 	claims["jti"] = utils2.Md5(jwtParam.DefaultJti + jwtParam.DefaultIss)
 	tk.Claims = claims
-
 	SecretKey := jwtParam.SecretKey
 	tokenString, err = tk.SignedString([]byte(SecretKey))
 	if err != nil {
@@ -66,7 +75,7 @@ func CreateToken(userIdString string) (tokenString string, err error) {
 	return
 }
 
-func ParseToken(myToken string) (userId string, err error) {
+func ParseToken(myToken string) (jwtUser JwtUserMessage, err error) {
 	jwtParam := app_obj.GetJwtParam()
 
 	token, err := jwt.Parse(myToken, func(token *jwt.Token) (interface{}, error) {
@@ -77,7 +86,7 @@ func ParseToken(myToken string) (userId string, err error) {
 			"content": "parse token has error",
 			"error":   err.Error(),
 		})
-		return "", err
+		return
 	}
 
 	if !token.Valid {
@@ -85,7 +94,7 @@ func ParseToken(myToken string) (userId string, err error) {
 			"content": fmt.Sprintf("token is invalid(%s)", myToken),
 			"error":   err.Error(),
 		})
-		return "", err
+		return
 	}
 	claims := token.Claims.(jwt.MapClaims)
 
@@ -95,7 +104,8 @@ func ParseToken(myToken string) (userId string, err error) {
 			"content": "claims duan yan is error",
 			"error":   err.Error(),
 		})
-		return "", errors.New("claims duan yan is error")
+		err = fmt.Errorf("claims duan yan is error")
+		return
 	}
 	if jwtParam.RedisCache == nil {
 		msg := "Redis connect is null"
@@ -103,7 +113,8 @@ func ParseToken(myToken string) (userId string, err error) {
 			"content": "common/jwt.go",
 			"error":   msg,
 		})
-		return "", errors.New(msg)
+		err = fmt.Errorf(msg)
+		return
 	}
 	res, err := jwtParam.RedisCache.
 		Get(jwtParam.TokenKey + sub).
@@ -114,7 +125,7 @@ func ParseToken(myToken string) (userId string, err error) {
 			"content": "get token from redis error",
 			"error":   err.Error(),
 		})
-		return "", err
+		return
 	}
 
 	if res == "" || res != myToken {
@@ -122,7 +133,8 @@ func ParseToken(myToken string) (userId string, err error) {
 			"content": "token is invalid",
 			"error":   myToken,
 		})
-		return "", errors.New("token is invalid")
+		err = fmt.Errorf("token is invalid")
+		return
 	}
 
 	// refresh the token life time
@@ -132,10 +144,16 @@ func ParseToken(myToken string) (userId string, err error) {
 			"content": "token create error",
 			"error":   err.Error(),
 		})
-		return "", err
+		return
 	}
-
-	return sub, nil
+	err = json.Unmarshal([]byte(sub), &jwtUser)
+	if err != nil {
+		app_log.GetLog().Error(map[string]string{
+			"content": "sub is error may be is not a json string",
+			"error":   err.Error(),
+		})
+	}
+	return
 }
 
 func UnsetToken(myToken string) (bool, error) {
