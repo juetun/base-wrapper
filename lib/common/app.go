@@ -41,7 +41,7 @@ func (r *Application) ToString() string {
 }
 
 func GetEnv() string {
-	return os.Getenv("APP_ENV")
+	return os.Getenv("GO_ENV")
 }
 
 // 获取当前应用的基本配置
