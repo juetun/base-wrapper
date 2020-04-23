@@ -2,6 +2,7 @@ package base
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -53,6 +54,11 @@ func (r *ControllerBase) Response(c *gin.Context, code int, data interface{}, ms
 func (r *ControllerBase) ResponseHtml(c *gin.Context, tpl string, data gin.H) {
 	c.HTML(http.StatusOK, tpl, data)
 }
-func (r *ControllerBase) ResponseCommonHtml(c *gin.Context, code int, data gin.H) {
-	c.HTML(http.StatusOK, "4xx.tmpl", data)
+func (r *ControllerBase) ResponseCommonHtml(c *gin.Context, code int, data gin.H, extName ...string) {
+	defaultExt := "tmpl"
+	if len(extName) > 0 {
+		defaultExt = extName[0]
+	}
+	codeString := strconv.Itoa(code)
+	c.HTML(http.StatusOK, codeString[0:1]+"xx."+defaultExt, data)
 }
