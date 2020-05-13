@@ -18,7 +18,6 @@ import (
 	utils2 "github.com/juetun/base-wrapper/lib/utils"
 )
 
-
 func CreateToken(user app_obj.JwtUserMessage) (tokenString string, err error) {
 	//	iss: jwt签发者
 	//	sub: jwt所面向的用户
@@ -79,6 +78,7 @@ func ParseToken(myToken string) (jwtUser app_obj.JwtUserMessage, err error) {
 		app_log.GetLog().Error(map[string]string{
 			"content": "parse token has error",
 			"error":   err.Error(),
+			"token":   "'" + myToken + "'",
 		})
 		return
 	}
@@ -160,6 +160,7 @@ func UnsetToken(myToken string) (bool, error) {
 		app_log.GetLog().Error(map[string]string{
 			"content": "parse token has error",
 			"error":   err.Error(),
+			"token":   "'" + myToken + "'",
 		})
 		return false, err
 	}
