@@ -27,6 +27,7 @@ var app *Application
 
 // 应用基本的配置结构体
 type Application struct {
+	AppSystemName  string `json:"app_system_name"`
 	AppEnv         string `json:"app_env"`
 	AppName        string `json:"app_name"`        // 应用名称
 	AppVersion     string `json:"app_version"`     // 应用版本以前缀v 开头
@@ -77,6 +78,7 @@ func PluginsApp() (err error) {
 	app.AppPort = viper.GetInt("app.port")
 	app.AppName = viper.GetString("app.name")
 	app.AppGraceReload = viper.GetBool("app.grace_reload")
+	app.AppSystemName = viper.GetString("app.system_name")
 	return
 }
 
@@ -89,7 +91,6 @@ func GetConfigFileDirectory() string {
 	return "./config/" + env
 }
 
-
 // 初始化应用信息
 func NewApplication() *Application {
 	var env = GetEnv()
@@ -99,6 +100,7 @@ func NewApplication() *Application {
 	var io = NewSystemOut().SetInfoType(LogLevelInfo)
 	io.SystemOutPrintf("Env is: '%s'", env)
 	return &Application{
+		AppSystemName:  "",
 		AppName:        "app",
 		AppVersion:     "v1.0",
 		AppApiVersion:  "v1",
