@@ -10,6 +10,7 @@ require (
 	github.com/go-errors/errors v1.0.1
 	github.com/go-redis/redis v6.15.7+incompatible
 	github.com/go-sql-driver/mysql v1.5.0
+	github.com/google/uuid v1.1.1
 	github.com/jinzhu/gorm v1.9.12
 	github.com/satori/go.uuid v1.2.0
 	github.com/sirupsen/logrus v1.5.0

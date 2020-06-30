@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/jinzhu/gorm"
-	"github.com/juetun/dashboard-api-car/basic/utils/hashid"
+	"github.com/juetun/base-wrapper/lib/hashid"
 )
 
 type HashModel interface {
