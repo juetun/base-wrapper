@@ -10,6 +10,7 @@ package utils
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"strings"
 )
 
 func Md5(s string) string {
@@ -71,4 +72,19 @@ func MyPaginate(count int64, limit int, page int) Paginate {
 		Current: currentPage,
 		Next:    nextPage,
 	}
+}
+
+//汉字截取
+func SubString(s string, num int, suffix ...string) (res string) {
+	var b []int32
+	var i = 0
+	for _, value := range s {
+		if i >= num {
+			break
+		}
+		b = append(b, value)
+		i++
+	}
+	res = string(b) + strings.Join(suffix, "")
+	return
 }
