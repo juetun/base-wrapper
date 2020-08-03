@@ -16,8 +16,8 @@ import (
 type Mysql struct {
 	NameSpace    string `json:"name_space"`
 	Addr         string `json:"addr" yaml:"addr"`
-	MaxIdleConns int    `json:"max_idle_conns" yaml:"max_idle_conns"`
-	MaxOpenConns int    `json:"max_open_conns" yaml:"max_open_conns"`
+	MaxIdleConns int    `json:"max_idle_conns" yaml:"maxidleconns"`
+	MaxOpenConns int    `json:"max_open_conns" yaml:"maxopenconns"`
 }
 
 func PluginMysql() (err error) {

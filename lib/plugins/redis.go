@@ -77,13 +77,12 @@ type Redis struct {
 	Addr         string `json:"addr" yaml:"addr"`
 	DB           int    `json:"db" yaml:"db"`
 	Password     string `json:"password" yaml:"password"`
-	PoolSize     int    `json:"pool_size" yaml:"pool_size"`
-	MinIdleConns int    `json:"min_idle_conns" yaml:"min_idle_conns"`
+	PoolSize     int    `json:"pool_size" yaml:"poolsize"`
+	MinIdleConns int    `json:"min_idle_conns" yaml:"minidleconns"`
 }
 
 func RedisOptionToString(opt *redis.Options) string {
 	type redisOption struct {
-
 		// host:port address.
 		Addr string `json:"addr"`
 
@@ -106,7 +105,6 @@ func RedisOptionToString(opt *redis.Options) string {
 
 		// Enables read only queries on slave nodes.
 		readOnly bool `json:"read_only"`
-
 	}
 	var dta = redisOption{
 		Addr:         opt.Addr,
