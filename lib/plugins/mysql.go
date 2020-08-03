@@ -65,7 +65,7 @@ func databaseFileChange(e fsnotify.Event) { // 热加载
 	fmt.Println("Database config file changed:", e.Name)
 }
 func initMysql(nameSpace string, config *Mysql) {
-	db := getMysql(nameSpace, config.Addr)
+	db := getMysql(nameSpace, config)
 
 	// 开启 Logger, 以展示详细的日志
 	db.LogMode(true)
@@ -79,10 +79,10 @@ func initMysql(nameSpace string, config *Mysql) {
 	}
 
 }
-func getMysql(nameSpace, addr string) *gorm.DB {
+func getMysql(nameSpace string, addr *Mysql) *gorm.DB {
 	io.SetInfoType(common.LogLevelInfo).
-		SystemOutPrintf("init mysql %s", addr)
-	db, err := gorm.Open("mysql", addr)
+		SystemOutPrintf("init mysql :%#v", addr)
+	db, err := gorm.Open("mysql", addr.Addr)
 	if err != nil {
 		panic(err)
 	}
