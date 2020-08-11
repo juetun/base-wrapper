@@ -22,6 +22,8 @@ type Mysql struct {
 
 func PluginMysql() (err error) {
 	loadMysqlConfig()
+
+
 	return
 }
 
@@ -52,7 +54,7 @@ func loadMysqlConfig() (err error) {
 	for key, value := range mysqlConfig {
 		initMysql(key, &value)
 	}
-
+	// 监听配置变动
 	viper.WatchConfig()
 	viper.OnConfigChange(databaseFileChange)
 	io.SetInfoType(common.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("Database load config finished \n"))
@@ -61,8 +63,9 @@ func loadMysqlConfig() (err error) {
 
 // 数据库配置文件改变了加载动作
 func databaseFileChange(e fsnotify.Event) { // 热加载
-
 	fmt.Println("Database config file changed:", e.Name)
+	// 重新加载数据库配置
+	loadMysqlConfig()
 }
 func initMysql(nameSpace string, config *Mysql) {
 	db := getMysql(nameSpace, config)

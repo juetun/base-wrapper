@@ -6,6 +6,7 @@ require (
 	github.com/astaxie/beego v1.12.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fsnotify/fsnotify v1.4.9
+	github.com/gin-contrib/pprof v1.3.0
 	github.com/gin-gonic/gin v1.6.2
 	github.com/go-errors/errors v1.0.1
 	github.com/go-redis/redis v6.15.7+incompatible

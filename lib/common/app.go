@@ -34,6 +34,7 @@ type Application struct {
 	AppApiVersion  string `json:"app_api_version"` // 应用的API的版本号，用于api接口路由参数拼接
 	AppPort        int    `json:"app_port"`        // 应用监听的端口
 	AppGraceReload bool   `json:"grace_reload"`    // 应用是否支持优雅重启
+	AppNeedPProf   bool   `json:"app_need_p_prof"` // 是否需要内存分析
 }
 
 func (r *Application) ToString() string {
@@ -79,6 +80,7 @@ func PluginsApp() (err error) {
 	app.AppName = viper.GetString("app.name")
 	app.AppGraceReload = viper.GetBool("app.grace_reload")
 	app.AppSystemName = viper.GetString("app.system_name")
+	app.AppNeedPProf = viper.GetBool("app.app_need_p_prof")
 	return
 }
 
@@ -107,5 +109,6 @@ func NewApplication() *Application {
 		AppPort:        8080,
 		AppEnv:         env,
 		AppGraceReload: false,
+		AppNeedPProf:   false,
 	}
 }
