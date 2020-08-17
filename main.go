@@ -25,8 +25,8 @@ func main() {
 	).LoadPlugins() // 加载插件动作
 
 	// 启动GIN服务
-	app_start.NewWebApplication().LoadRouter(). // 记载gin 路由配置
+	app_start.NewWebApplication().
+		LoadRouter(). // 记载gin 路由配置
 		Run()
-
 
 }

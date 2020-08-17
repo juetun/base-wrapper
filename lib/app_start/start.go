@@ -44,7 +44,7 @@ func (r *PluginsOperate) LoadPlugins() *PluginsOperate {
 	return r
 }
 
-// 加载插件
+// 注册系统插件
 func (r *PluginsOperate) Use(pluginFunc ...PluginHandleFunction) *PluginsOperate {
 	for _, value := range pluginFunc {
 		*PluginsHandleStruct = append(*PluginsHandleStruct, PluginHandleStruct{

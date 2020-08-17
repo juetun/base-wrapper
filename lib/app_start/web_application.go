@@ -68,15 +68,17 @@ func (r *WebApplication) LoadRouter() *WebApplication {
 // 开始加载Gin 服务
 func (r *WebApplication) Run() (err error) {
 	appConfig := common.GetAppConfig()
+	if appConfig.AppNeedPProf { // pprof开启后，每隔一段时间(10ms)就会收集当前的堆栈信息，获取各个函数占用的CPU以及内存资源，然后通过对这些采样数据进行分析，形成一个性能分析报告
+		r.syslog.SetInfoType(common.LogLevelInfo).
+			SystemOutPrintln("开启性能分析 ")
+		pprof.Register(r.GinEngine) // 性能分析用代码
+	}
 	defaultEngine(r.GinEngine)
 
 	// // 如果支持优雅重启
 	if appConfig.AppGraceReload {
 		r.start()
 		return
-	}
-	if appConfig.AppNeedPProf { // pprof开启后，每隔一段时间(10ms)就会收集当前的堆栈信息，获取各个函数占用的CPU以及内存资源，然后通过对这些采样数据进行分析，形成一个性能分析报告
-		pprof.Register(r.GinEngine) // 性能分析用代码
 	}
 	r.syslog.SetInfoType(common.LogLevelInfo).
 		SystemOutPrintln("General start ")
