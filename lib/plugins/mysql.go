@@ -5,6 +5,7 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/juetun/base-wrapper/lib/app_log"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/jinzhu/gorm"
@@ -22,7 +23,6 @@ type Mysql struct {
 
 func PluginMysql() (err error) {
 	loadMysqlConfig()
-
 
 	return
 }
@@ -72,7 +72,7 @@ func initMysql(nameSpace string, config *Mysql) {
 
 	// 开启 Logger, 以展示详细的日志
 	db.LogMode(true)
-
+	db.SetLogger(app_log.GetLog())
 	db.SingularTable(true)
 	db.DB().SetMaxIdleConns(config.MaxIdleConns)
 	db.DB().SetMaxOpenConns(config.MaxOpenConns)

@@ -2,10 +2,12 @@ package app_start
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-contrib/pprof"
@@ -26,41 +28,54 @@ type WebApplication struct {
 }
 
 func NewWebApplication(privateMiddleWares ...gin.HandlerFunc) *WebApplication {
-	if false && common.GetAppConfig().AppEnv == "release" {
+	switch strings.ToLower(common.GetAppConfig().AppEnv) {
+	case "release":
 		gin.SetMode(gin.ReleaseMode)
-	} else {
+	case "test":
+		gin.SetMode(gin.TestMode)
+	default:
 		gin.SetMode(gin.DebugMode)
 	}
 	webApp := &WebApplication{
-		GinEngine: gin.Default(),
+		GinEngine: gin.New(),
 		syslog:    common.NewSystemOut(),
 	}
+
 	// 加载GIN框架 中间件
 	middlewares.LoadMiddleWare(privateMiddleWares...)
-
 	webApp.GinEngine.Use(middlewares.MiddleWareComponent...)
+
+	// 日志对象获取
+	webApp.GinEngine.Use(middlewares.GinLogCollect())
 	return webApp
 }
-func RunLoadRouter(c *gin.Engine) (err error) {
+
+// 加载API路由
+func (r *WebApplication) LoadRouter() *WebApplication {
+	var err error
+	defer func() {
+		if err != nil {
+			r.syslog.SetInfoType(common.LogLevelError).
+				SystemOutPrintf("Load router err  %s", err.Error())
+		}
+	}()
 	appConfig := common.GetAppConfig()
 	var UrlPrefix = appConfig.AppName + "/" + appConfig.AppApiVersion
-	io := common.NewSystemOut().SetInfoType(common.LogLevelInfo)
-	io.SystemOutPrintf("Start load route config.... %s", UrlPrefix)
+	io := common.
+		NewSystemOut().
+		SetInfoType(common.LogLevelInfo)
+
+	io.SystemOutPrintf("Start route(app_name:%s) register url config.... ", UrlPrefix)
 	defer func() {
-		io.SystemOutPrintln("Load route finished")
+		io.SystemOutPrintln("Load route register url finished")
 	}()
+
+	// 工具路由注册（心跳检测、性能分析等）
+	r.toolRouteRegister(appConfig, UrlPrefix)
+
+	// URL路由注册操作
 	for _, router := range HandleFunc {
-		router(c, UrlPrefix)
-	}
-
-	return
-}
-func (r *WebApplication) LoadRouter() *WebApplication {
-
-	err := RunLoadRouter(r.GinEngine) // 注册Gin路由组件
-	if err != nil {
-		r.syslog.SetInfoType(common.LogLevelError).
-			SystemOutPrintf("Load router err  %s", err.Error())
+		router(r.GinEngine, UrlPrefix)
 	}
 	return r
 }
@@ -68,12 +83,6 @@ func (r *WebApplication) LoadRouter() *WebApplication {
 // 开始加载Gin 服务
 func (r *WebApplication) Run() (err error) {
 	appConfig := common.GetAppConfig()
-	if appConfig.AppNeedPProf { // pprof开启后，每隔一段时间(10ms)就会收集当前的堆栈信息，获取各个函数占用的CPU以及内存资源，然后通过对这些采样数据进行分析，形成一个性能分析报告
-		r.syslog.SetInfoType(common.LogLevelInfo).
-			SystemOutPrintln("开启性能分析 ")
-		pprof.Register(r.GinEngine) // 性能分析用代码
-	}
-	defaultEngine(r.GinEngine)
 
 	// // 如果支持优雅重启
 	if appConfig.AppGraceReload {
@@ -82,6 +91,7 @@ func (r *WebApplication) Run() (err error) {
 	}
 	r.syslog.SetInfoType(common.LogLevelInfo).
 		SystemOutPrintln("General start ")
+
 	r.GinEngine.Run(r.getListenPortString()) // listen and serve on 0.0.0.0:8080
 	return
 }
@@ -117,9 +127,32 @@ func (r *WebApplication) getListenPortString() string {
 	return ":" + strconv.Itoa(common.GetAppConfig().AppPort)
 }
 
-func defaultEngine(r *gin.Engine) {
-	r.GET("/index", func(c *gin.Context) {
-		// time.Sleep(5 * time.Second)
-		c.String(http.StatusOK, "Welcome Gin Server")
+// 工具路由注册（心跳检测、性能分析等）
+func (r *WebApplication) toolRouteRegister(appConfig *common.Application, UrlPrefix string) {
+	r.syslog.SetInfoType(common.LogLevelInfo).
+		SystemOutPrintln("******************注册健康检查路由******************")
+	// 注册健康检查请求地址
+	r.GinEngine.GET("/health", func(c *gin.Context) {
+		c.String(http.StatusOK, "success")
 	})
+	// 注册默认路径
+	r.GinEngine.GET("/index", func(c *gin.Context) {
+		// time.Sleep(5 * time.Second)
+		c.String(http.StatusOK, fmt.Sprintf("Welcome \"%s\" Server", UrlPrefix))
+	})
+	// 是否开启性能分析工具
+	r.pProf(appConfig)
+}
+
+// 是否开启性能分析工具
+func (r *WebApplication) pProf(appConfig *common.Application) {
+	if !appConfig.AppNeedPProf {
+		return
+	}
+	// pprof开启后，每隔一段时间(10ms)就会收集当前的堆栈信息，获取各个函数占用的CPU以及内存资源，然后通过对这些采样数据进行分析，形成一个性能分析报告
+	r.syslog.SetInfoType(common.LogLevelInfo).
+		SystemOutPrintln("******************注册性能分析路由******************")
+	pprof.Register(r.GinEngine) // 性能分析用代码
+	r.syslog.SetInfoType(common.LogLevelInfo).
+		SystemOutPrintln("******************注册性能分析路由******************")
 }
