@@ -12,36 +12,43 @@ import (
 	"time"
 
 	"github.com/go-sql-driver/mysql"
+	"github.com/jinzhu/gorm"
+	"github.com/juetun/base-wrapper/lib/app_obj"
 	"github.com/sirupsen/logrus"
 )
 
 type GOrmLog struct {
 	logger *AppLog
+	Db     *gorm.DB
 }
 
-func NewGOrmLog() (res *GOrmLog) {
+func NewGOrmLog(db *gorm.DB) (res *GOrmLog) {
 	// app_log.GetLog().Logger
 	return &GOrmLog{
+		Db:     db,
 		logger: GetLog(),
 	}
 }
 func (r GOrmLog) Print(v ...interface{}) () {
-	trace_id := ""
+
+	traceId := ""
+	if a, ok := r.Db.Get(app_obj.TRACE_ID); ok {
+		traceId = fmt.Sprintf("%v", a)
+	}
 	switch v[0] {
 	case "sql":
 		fields := logrus.Fields{
-			"trace_id":      trace_id,
+			"trace_id":      traceId,
 			"type":          "GORM_SQL",
 			"rows_returned": v[5],
 			"src":           v[1],
 			"values":        v[4],
 			"duration":      fmt.Sprintf("%dms", v[2].(time.Duration)/1e6),
 		}
-
 		r.logger.InfoFields(fields, v[3].(string))
 	case "log":
 		fields := logrus.Fields{
-			"trace_id": trace_id,
+			"trace_id": traceId,
 			"type":     "GORM_SQL",
 			"src":      v[1],
 		}

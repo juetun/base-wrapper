@@ -72,8 +72,8 @@ func initMysql(nameSpace string, config *Mysql) {
 	db.LogMode(true)
 
 	// mysql 日志处理
-	db.SetLogger(app_log.NewGOrmLog())
-
+	db.SetLogger(app_log.NewGOrmLog(db))
+	
 	db.SingularTable(true)
 	db.DB().SetMaxIdleConns(config.MaxIdleConns)
 	db.DB().SetMaxOpenConns(config.MaxOpenConns)

@@ -20,6 +20,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const TRACE_ID = "trace_id"
+
 var logConfig *LogConfig
 
 type LogConfig struct {
@@ -52,7 +54,7 @@ func InitConfig() {
 				LogFileName: "log.log",
 				LogIsCut:    false,
 			},
-			Format:          "json",
+			Format: "json",
 			// LogCollectLevel: logrus.WarnLevel,
 			LogCollectLevel: logrus.InfoLevel,
 		}
