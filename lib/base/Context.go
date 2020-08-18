@@ -15,9 +15,10 @@ import (
 )
 
 type Context struct {
-	Log         *app_log.AppLog
-	Db          *gorm.DB
-	CacheClient *redis.Client
+	Log         *app_log.AppLog `json:"log"`
+	TraceId     string          `json:"trace_id"`
+	Db          *gorm.DB        `json:"db"`
+	CacheClient *redis.Client   `json:"cache_client"`
 }
 
 func NewContext() *Context {

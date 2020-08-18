@@ -53,7 +53,8 @@ func InitConfig() {
 				LogIsCut:    false,
 			},
 			Format:          "json",
-			LogCollectLevel: logrus.WarnLevel,
+			// LogCollectLevel: logrus.WarnLevel,
+			LogCollectLevel: logrus.InfoLevel,
 		}
 		systemLog.Printf("【INFO】log config: %#v", logConfig)
 	})

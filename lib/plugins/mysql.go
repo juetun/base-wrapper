@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/juetun/base-wrapper/lib/app_log"
-
 	"github.com/fsnotify/fsnotify"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
+	"github.com/juetun/base-wrapper/lib/app_log"
 	"github.com/juetun/base-wrapper/lib/app_obj"
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/spf13/viper"
@@ -23,7 +22,6 @@ type Mysql struct {
 
 func PluginMysql() (err error) {
 	loadMysqlConfig()
-
 	return
 }
 
@@ -72,7 +70,10 @@ func initMysql(nameSpace string, config *Mysql) {
 
 	// 开启 Logger, 以展示详细的日志
 	db.LogMode(true)
-	db.SetLogger(app_log.GetLog().Logger)
+
+	// mysql 日志处理
+	db.SetLogger(app_log.NewGOrmLog())
+
 	db.SingularTable(true)
 	db.DB().SetMaxIdleConns(config.MaxIdleConns)
 	db.DB().SetMaxOpenConns(config.MaxOpenConns)
@@ -80,7 +81,6 @@ func initMysql(nameSpace string, config *Mysql) {
 	if err := createTable(db); err != nil {
 		panic(err)
 	}
-
 }
 func getMysql(nameSpace string, addr *Mysql) *gorm.DB {
 	io.SetInfoType(common.LogLevelInfo).

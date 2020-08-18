@@ -43,14 +43,36 @@ type Result struct {
 	Msg  string      `json:"message"`
 }
 
+func (r *Result) SetErrorMsg(err error) (res *Result) {
+	r.Code = -1
+	r.Msg = err.Error()
+	return r
+}
+
 func NewResult() *Result {
-	return &Result{}
+	return &Result{
+		Code: 0,
+		Msg:  "",
+	}
 }
 
 func (r *ControllerBase) Response(c *gin.Context, code int, data interface{}, msg ...string) {
 	c.JSON(http.StatusOK, Result{Code: code, Data: data, Msg: strings.Join(msg, ",")})
 }
 
+// 处理正常结果集
+func (r *ControllerBase) ResponseResult(c *gin.Context, result *Result) {
+	c.JSON(http.StatusOK, result)
+	return
+}
+
+// 处理错误信息句柄
+func (r *ControllerBase) ResponseError(c *gin.Context, err error) {
+	result := NewResult().
+		SetErrorMsg(err)
+	c.JSON(http.StatusOK, result)
+	return
+}
 func (r *ControllerBase) ResponseHtml(c *gin.Context, tpl string, data gin.H) {
 	c.HTML(http.StatusOK, tpl, data)
 }

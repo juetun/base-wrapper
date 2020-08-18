@@ -50,6 +50,7 @@ func NewWebApplication(privateMiddleWares ...gin.HandlerFunc) *WebApplication {
 	webApp.GinEngine.Use(middlewares.MiddleWareComponent...)
 
 	logger := app_log.GetLog()
+
 	// 日志对象获取
 	webApp.GinEngine.Use(middlewares.GinLogCollect(logger))
 

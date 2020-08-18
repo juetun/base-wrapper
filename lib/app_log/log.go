@@ -45,7 +45,7 @@ func (r *AppLog) ErrorFields(fields logrus.Fields, message ...string) {
 	r.Logger.WithFields(fields).Error(message)
 }
 func (r *AppLog) InfoFields(fields logrus.Fields, message ...string) {
-	r.Logger.WithFields(fields).Error(message)
+	r.Logger.WithFields(fields).Info(message)
 }
 func (r *AppLog) Info(data map[string]string, message ...string) {
 	fields := logrus.Fields{}
