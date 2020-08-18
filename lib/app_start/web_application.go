@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
+	"github.com/juetun/base-wrapper/lib/app_log"
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/juetun/base-wrapper/lib/middlewares"
 )
@@ -27,6 +28,7 @@ type WebApplication struct {
 	syslog    *common.SystemOut
 }
 
+// privateMiddleWares 项目自定义的GIN中间件
 func NewWebApplication(privateMiddleWares ...gin.HandlerFunc) *WebApplication {
 	switch strings.ToLower(common.GetAppConfig().AppEnv) {
 	case "release":
@@ -43,10 +45,14 @@ func NewWebApplication(privateMiddleWares ...gin.HandlerFunc) *WebApplication {
 
 	// 加载GIN框架 中间件
 	middlewares.LoadMiddleWare(privateMiddleWares...)
+
+	// gin加载中间件
 	webApp.GinEngine.Use(middlewares.MiddleWareComponent...)
 
+	logger := app_log.GetLog()
 	// 日志对象获取
-	webApp.GinEngine.Use(middlewares.GinLogCollect())
+	webApp.GinEngine.Use(middlewares.GinLogCollect(logger))
+
 	return webApp
 }
 

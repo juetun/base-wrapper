@@ -49,7 +49,7 @@ func (hd *HashIdParams) HashIdInit(options ...func(*HashIdParams) interface{}) (
 	hds.MinLength = hashIdParams.MinLength
 	h, err := hashids.NewWithData(hds)
 	if err != nil {
-		app_log.GetLog().Errorln("content", "hash new with data is error", "error", err.Error())
+		app_log.GetLog().Logger.Errorln("content", "hash new with data is error", "error", err.Error())
 		return nil, err
 	}
 	return h, nil

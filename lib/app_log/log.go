@@ -14,7 +14,7 @@ import (
 var logApp *AppLog
 
 type AppLog struct {
-	*logrus.Logger
+	Logger	*logrus.Logger
 }
 
 func newAppLog() (res *AppLog) {
@@ -39,7 +39,13 @@ func (r *AppLog) Error(data map[string]string, message ...string) {
 			fields[key] = value
 		}
 	}
-	r.WithFields(fields).Error(message)
+	r.Logger.WithFields(fields).Error(message)
+}
+func (r *AppLog) ErrorFields(fields logrus.Fields, message ...string) {
+	r.Logger.WithFields(fields).Error(message)
+}
+func (r *AppLog) InfoFields(fields logrus.Fields, message ...string) {
+	r.Logger.WithFields(fields).Error(message)
 }
 func (r *AppLog) Info(data map[string]string, message ...string) {
 	fields := logrus.Fields{}
@@ -48,7 +54,7 @@ func (r *AppLog) Info(data map[string]string, message ...string) {
 			fields[key] = value
 		}
 	}
-	r.WithFields(fields).Error(message)
+	r.Logger.WithFields(fields).Error(message)
 }
 
 // 初始化日志操作对象
@@ -66,6 +72,7 @@ func InitAppLog() {
 	outputWriter(logConfig, logApp.Logger)
 	// 日志收集等级
 	logApp.Logger.SetLevel(logConfig.LogCollectLevel)
+
 	systemLog.Printf("【INFO】初始化日志操作对象操作完成 对象内容为:%#v \n", logApp)
 }
 func logFormatter(logConfig *app_obj.LogConfig, log *logrus.Logger) {
@@ -85,8 +92,10 @@ func outputWriter(config *app_obj.LogConfig, log *logrus.Logger) {
 			ioWriter = append(ioWriter, os.Stdout)
 		case "file":
 			if file, err := config.GetFileWriter(); err != nil {
+				fmt.Printf("Get log handler err (%#v)", err)
 				return
 			} else {
+				fmt.Printf("输出到文件", )
 				ioWriter = append(ioWriter, file)
 			}
 		default:

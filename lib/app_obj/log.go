@@ -46,12 +46,13 @@ func InitConfig() {
 		dir, _ := os.Getwd()
 		logConfig = &LogConfig{
 			// Outputs: []string{"stdout"},
-			Outputs: []string{"file"},
+			Outputs: []string{"file", "stdout"},
 			LogFileConfig: LogFileConfig{
 				LogFilePath: dir,
 				LogFileName: "log.log",
 				LogIsCut:    false,
 			},
+			Format:          "json",
 			LogCollectLevel: logrus.WarnLevel,
 		}
 		systemLog.Printf("【INFO】log config: %#v", logConfig)

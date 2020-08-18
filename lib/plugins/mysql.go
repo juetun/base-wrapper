@@ -72,7 +72,7 @@ func initMysql(nameSpace string, config *Mysql) {
 
 	// 开启 Logger, 以展示详细的日志
 	db.LogMode(true)
-	db.SetLogger(app_log.GetLog())
+	db.SetLogger(app_log.GetLog().Logger)
 	db.SingularTable(true)
 	db.DB().SetMaxIdleConns(config.MaxIdleConns)
 	db.DB().SetMaxOpenConns(config.MaxOpenConns)

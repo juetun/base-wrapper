@@ -41,7 +41,7 @@ func (r *Gin) Validate(obj validate) bool {
 	valid := validation.Validation{}
 	b, err := valid.Valid(obj)
 	if err != nil {
-		app_log.GetLog().Errorln("message", "valid error", "err", err.Error())
+		app_log.GetLog().Logger.Errorln("message", "valid error", "err", err.Error())
 		r.C.JSON(http.StatusOK, base.Result{Data: nil, Code: 400000000, Msg: err.Error()})
 		return false
 	}
