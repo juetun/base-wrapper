@@ -28,7 +28,10 @@ func GinLogCollect(logger *app_log.AppLog) gin.HandlerFunc {
 		// }
 
 		start := time.Now()
-		defer delayExecGinLogCollect(start, c, c.Request.URL, logger)
+		defer func() { // 异步操作写日志
+			go delayExecGinLogCollect(start, c, c.Request.URL, logger)
+		}()
+		// defer delayExecGinLogCollect(start, c, c.Request.URL, logger)
 		c.Next()
 
 	}
@@ -42,12 +45,12 @@ func delayExecGinLogCollect(start time.Time, c *gin.Context, path *url.URL, logg
 		// c.Set("body", string(bodyBytes))
 	}
 	fields := logrus.Fields{
-		"status":  c.Writer.Status(),
-		"method":  c.Request.Method,
-		"path":    path.String(),
-		"ip":      c.ClientIP(),
-		"latency": time.Now().Sub(start).String(),
-		"request": string(bodyBytes),
+		"status":   c.Writer.Status(),
+		"method":   c.Request.Method,
+		"path":     path.String(),
+		"ip":       c.ClientIP(),
+		"duration": float64(time.Now().Sub(start) / 1e3), // 时长单位微秒
+		"request":  string(bodyBytes),
 		// "response": blw.body.String(),
 		"header": c.Request.Header,
 		// "header_version": c.GetHeader("version"),
@@ -60,6 +63,7 @@ func delayExecGinLogCollect(start time.Time, c *gin.Context, path *url.URL, logg
 		blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
 		c.Writer = blw
 		fields["response"] = blw.body.String()
+
 	}
 
 	if len(c.Request.Form) > 0 {

@@ -7,7 +7,6 @@
 package middlewares
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -148,6 +147,6 @@ func GetRUri(c *gin.Context) string {
 	}
 	s1 := strings.Split(uri, "?")
 	s2 := strings.TrimRight(s1[0], "/")
-	fmt.Printf("Uri is :'%v'", s2)
+	// fmt.Printf("Uri is :'%v'", s2)
 	return s2
 }

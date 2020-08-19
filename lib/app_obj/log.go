@@ -13,7 +13,6 @@ import (
 	systemLog "log"
 	"os"
 	"strings"
-	"sync"
 	"time"
 
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
@@ -22,55 +21,96 @@ import (
 
 const TRACE_ID = "trace_id"
 
-var logConfig *LogConfig
+var logConfig *OptionLog
 
-type LogConfig struct {
-	Outputs         []string     `json:"outputs"`           // []string{"stdout","file"}
-	LogFileConfig                                           // 配置文件信息. 当Outputs值中有输入出到文件标记"file"时有效.
-	Format          string       `json:"format"`            // 日志格式 "json"
-	LogCollectLevel logrus.Level `json:"log_collect_level"` // 日志收集等级
+type OptionLog struct {
+	Outputs         []string     `json:"outputs" yml:"outputs"`                   // []string{"stdout","file"}
+	LogFileConfig                                                                 // 配置文件信息. 当Outputs值中有输入出到文件标记"file"时有效.
+	Format          string       `json:"format" yml:"format"`                     // 日志格式 "json"
+	LogCollectLevel logrus.Level `json:"log_collect_level" yml:"logcollectlevel"` // 日志收集等级
 }
 
 // 如果是
 type LogFileConfig struct {
-	LogFilePath string `json:"log_file_path"` // 日志文件输出路径，空 不输出
-	LogFileName string `json:"log_file_name"` // 日志文件名(或文件名前缀)，空 不输出
-	LogIsCut    bool   `json:"log_is_cut"`    // 日志文件是否切割
+	LogFilePath string `json:"log_file_path" yml:"logfilepath"` // 日志文件输出路径，空 不输出
+	LogFileName string `json:"log_file_name" yml:"logfilename"` // 日志文件名(或文件名前缀)，空 不输出
+	LogIsCut    bool   `json:"log_is_cut" yml:"logiscut"`       // 日志文件是否切割
 }
 
-func GetLogConfig() (config *LogConfig) {
+type SetOption func(opt *OptionLog)
+
+func NewOption(setOption ...SetOption) {
+	opt := &OptionLog{}
+	for _, setOpt := range setOption {
+		setOpt(opt)
+	}
+}
+func Outputs(outPuts []string) SetOption {
+	return func(opt *OptionLog) {
+		opt.Outputs = outPuts
+	}
+}
+func Format(format string) SetOption {
+	return func(opt *OptionLog) {
+		opt.Format = format
+	}
+}
+
+func LogCollectLevel(arg logrus.Level) SetOption {
+	return func(opt *OptionLog) {
+		opt.LogCollectLevel = arg
+	}
+}
+func LogFilePath(arg string) SetOption {
+	return func(opt *OptionLog) {
+		opt.LogFilePath = arg
+	}
+}
+func LogFileName(arg string) SetOption {
+	return func(opt *OptionLog) {
+		opt.LogFileName = arg
+	}
+}
+func LogIsCut(arg bool) SetOption {
+	return func(opt *OptionLog) {
+		opt.LogIsCut = arg
+	}
+}
+
+func GetLogConfig() (config *OptionLog) {
 	return logConfig
 }
-func InitConfig() {
-	var once sync.Once
-	// 只初始化一次
-	once.Do(func() {
+
+func InitConfig(config *OptionLog) {
+	logConfig = config
+	if len(logConfig.Outputs) == 0 {
+		logConfig.Outputs = []string{"file", "stdout"}
+	}
+	if logConfig.LogFilePath == "" {
 		dir, _ := os.Getwd()
-		logConfig = &LogConfig{
-			// Outputs: []string{"stdout"},
-			Outputs: []string{"file", "stdout"},
-			LogFileConfig: LogFileConfig{
-				LogFilePath: dir,
-				LogFileName: "log.log",
-				LogIsCut:    false,
-			},
-			Format: "json",
-			// LogCollectLevel: logrus.WarnLevel,
-			LogCollectLevel: logrus.InfoLevel,
-		}
-		systemLog.Printf("【INFO】log config: %#v", logConfig)
-	})
+		logConfig.LogFilePath = dir
+	}
+	if logConfig.LogFileName == "" {
+		logConfig.LogFileName = "log.log"
+	}
+	if logConfig.Format == "" {
+		logConfig.Format = "json"
+	}
+
+	//
+	systemLog.Printf("【INFO】log config: %#v", logConfig)
+
 	return
 }
 
 // 拼接日志文件字符串
-func (r *LogConfig) GetFileName(suffix ...string) (res string) {
+func (r *OptionLog) GetFileName(suffix ...string) (res string) {
 	res = fmt.Sprintf("%s/%s%s.log", r.LogFilePath, strings.TrimSuffix(r.LogFileName, ".log"), strings.Join(suffix, ""))
 	systemLog.Printf("【INFO】log file Name is '%s' ", res)
 	return
 }
 
-func (r *LogConfig) GetFileWriter() (file io.Writer, err error) {
+func (r *OptionLog) GetFileWriter() (file io.Writer, err error) {
 	logFile := r.GetFileName()
 	if logFile == "" {
 		systemLog.Printf("【WARN】log file Name is empty! ")

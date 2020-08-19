@@ -13,7 +13,7 @@ const (
 	LogLevelError = "ERROR"
 	LogLevelInfo  = "INFO"
 	LogLevelDebug = "DEBUG"
-	LogLevelFatal = "fatal"
+	LogLevelFatal = "FATAL"
 )
 
 func NewSystemOut() *SystemOut {

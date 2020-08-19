@@ -14,7 +14,7 @@ import (
 var logApp *AppLog
 
 type AppLog struct {
-	Logger	*logrus.Logger
+	Logger *logrus.Logger
 }
 
 func newAppLog() (res *AppLog) {
@@ -75,7 +75,7 @@ func InitAppLog() {
 
 	systemLog.Printf("【INFO】初始化日志操作对象操作完成 对象内容为:%#v \n", logApp)
 }
-func logFormatter(logConfig *app_obj.LogConfig, log *logrus.Logger) {
+func logFormatter(logConfig *app_obj.OptionLog, log *logrus.Logger) {
 	switch strings.ToLower(logConfig.Format) { // 日志格式
 	case "json":
 		log.SetFormatter(&logrus.JSONFormatter{})
@@ -84,7 +84,7 @@ func logFormatter(logConfig *app_obj.LogConfig, log *logrus.Logger) {
 	}
 
 }
-func outputWriter(config *app_obj.LogConfig, log *logrus.Logger) {
+func outputWriter(config *app_obj.OptionLog, log *logrus.Logger) {
 	var ioWriter []io.Writer
 	for _, value := range config.Outputs {
 		switch strings.ToLower(value) {
@@ -92,10 +92,8 @@ func outputWriter(config *app_obj.LogConfig, log *logrus.Logger) {
 			ioWriter = append(ioWriter, os.Stdout)
 		case "file":
 			if file, err := config.GetFileWriter(); err != nil {
-				fmt.Printf("Get log handler err (%#v)", err)
 				return
 			} else {
-				fmt.Printf("输出到文件", )
 				ioWriter = append(ioWriter, file)
 			}
 		default:

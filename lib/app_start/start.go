@@ -25,10 +25,14 @@ func NewPluginsOperate() *PluginsOperate {
 }
 
 // 执行加载插件过程
-func (r *PluginsOperate) LoadPlugins() *PluginsOperate {
+func (r *PluginsOperate) LoadPlugins() (res *PluginsOperate) {
+	res = r
+	if len(*PluginsHandleStruct) == 0 {
+		return
+	}
 	var io = common.NewSystemOut().SetInfoType(common.LogLevelInfo)
 	stytemLog.Printf("")
-	stytemLog.Printf("------------ Start load plugins-----------------------")
+	stytemLog.Printf("----开始加载插 ----")
 	stytemLog.Printf("")
 	var err error
 	for _, handle := range *PluginsHandleStruct {
@@ -39,9 +43,9 @@ func (r *PluginsOperate) LoadPlugins() *PluginsOperate {
 	}
 	io.SystemOutPrintf("Start load plugins finished \n")
 	stytemLog.Printf("")
-	stytemLog.Printf("-------------Load plugins finished----------------------")
+	stytemLog.Printf("----插件加载完成----")
 	stytemLog.Printf("")
-	return r
+	return
 }
 
 // 注册系统插件

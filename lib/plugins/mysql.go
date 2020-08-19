@@ -73,7 +73,8 @@ func initMysql(nameSpace string, config *Mysql) {
 
 	// mysql 日志处理
 	db.SetLogger(app_log.NewGOrmLog(db))
-	
+
+	// 全局禁用表名复数
 	db.SingularTable(true)
 	db.DB().SetMaxIdleConns(config.MaxIdleConns)
 	db.DB().SetMaxOpenConns(config.MaxOpenConns)
