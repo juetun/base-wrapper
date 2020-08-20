@@ -109,9 +109,9 @@ func Auth(c *gin.Context) (exit bool) {
 
 func cors(c *gin.Context) (exitStatus bool) {
 	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-	c.Writer.Header().Set("Access-Control-Max-Age", "86400")
+	c.Writer.Header().Set("Access-Control-Max-Age", "1800")
 	c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE,PATCH")
-	c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-Auth-Token, X-Auth-UUID, X-Auth-Openid, referrer, Authorization, x-client-id, x-client-version, x-client-type")
+	c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Content-Length, Accept-Encoding,referrer, Authorization, X-*")
 	c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length")
 	c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 	return
