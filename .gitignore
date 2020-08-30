@@ -1,5 +1,4 @@
 config
 basic
-web
 main.go
 /log.log
