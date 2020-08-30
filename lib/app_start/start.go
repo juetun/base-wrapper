@@ -3,7 +3,7 @@ package app_start
 import (
 	stytemLog "log"
 
-	"github.com/juetun/base-wrapper/lib/common"
+	"github.com/juetun/base-wrapper/lib/base"
 )
 
 type PluginHandleFunction func() (err error)
@@ -30,7 +30,7 @@ func (r *PluginsOperate) LoadPlugins() (res *PluginsOperate) {
 	if len(*PluginsHandleStruct) == 0 {
 		return
 	}
-	var io = common.NewSystemOut().SetInfoType(common.LogLevelInfo)
+	var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
 	stytemLog.Printf("")
 	stytemLog.Printf("----开始加载插 ----")
 	stytemLog.Printf("")

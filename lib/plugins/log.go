@@ -5,6 +5,7 @@ import (
 
 	"github.com/juetun/base-wrapper/lib/app_log"
 	"github.com/juetun/base-wrapper/lib/app_obj"
+	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/spf13/viper"
 )
@@ -37,12 +38,12 @@ func loadLogConfig() (mysqlConfig app_obj.OptionLog, err error) {
 
 	err = configSource.ReadInConfig() // Find and read the config file
 	if err != nil {                   // Handle errors reading the config file
-		io.SetInfoType(common.LogLevelError).SystemOutPrintf(fmt.Sprintf("Fatal error database file: %v \n", err))
+		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("Fatal error database file: %v \n", err))
 		return
 	}
 
 	if err = configSource.Unmarshal(&mysqlConfig); err != nil {
-		io.SetInfoType(common.LogLevelInfo).
+		io.SetInfoType(base.LogLevelInfo).
 			SystemOutPrintf("Load database config failure  '%v' ", mysqlConfig)
 		panic(err)
 	}

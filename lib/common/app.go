@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/spf13/viper"
 )
 
@@ -53,10 +54,10 @@ func GetAppConfig() *Application {
 
 func PluginsApp() (err error) {
 	app = NewApplication()
-	var io = NewSystemOut().SetInfoType(LogLevelInfo)
+	var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
 	io.SystemOutPrintln("Load app config start")
 	defer func() {
-		io.SetInfoType(LogLevelInfo).SystemOutPrintf("app config is: '%v' \n", app.ToString())
+		io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("app config is: '%v' \n", app.ToString())
 		io.SystemOutPrintf("load app config finished \n")
 	}()
 	viper.SetConfigName("app")  // name of config file (without extension)
@@ -66,7 +67,7 @@ func PluginsApp() (err error) {
 	viper.AddConfigPath(dir + "/../") // path to look for the config file in
 	err = viper.ReadInConfig()        // Find and read the config file
 	if err != nil {                   // Handle errors reading the config file
-		io.SetInfoType(LogLevelError).SystemOutPrintf(fmt.Sprintf("Fatal error config file: %s \n", err))
+		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("Fatal error config file: %s \n", err))
 		return
 	}
 	viper.WatchConfig()
@@ -99,7 +100,7 @@ func NewApplication() *Application {
 	if env == "" { // 默认环境为线上环境
 		env = ENV_RELEASE
 	}
-	var io = NewSystemOut().SetInfoType(LogLevelInfo)
+	var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
 	io.SystemOutPrintf("Env is: '%s'", env)
 	return &Application{
 		AppSystemName:  "",

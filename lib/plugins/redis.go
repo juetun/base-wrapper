@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/juetun/base-wrapper/lib/app_obj"
+	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/spf13/viper"
 )
@@ -26,14 +27,14 @@ func loadRedisConfig() (err error) {
 	configSource.AddConfigPath(dir)   // path to look for the config file in
 	err = configSource.ReadInConfig() // Find and read the config file
 	if err != nil {                   // Handle errors reading the config file
-		io.SetInfoType(common.LogLevelError).SystemOutPrintf(fmt.Sprintf("Fatal error redis file: %v \n", err))
+		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("Fatal error redis file: %v \n", err))
 		return
 	}
 	// 数据库配置信息存储对象
 	var config = make(map[string]Redis)
 
 	if err = configSource.Unmarshal(&config); err != nil {
-		io.SetInfoType(common.LogLevelInfo).
+		io.SetInfoType(base.LogLevelInfo).
 			SystemOutPrintf("Load redis config failure  '%v' ", config)
 		panic(err)
 	}
@@ -43,7 +44,7 @@ func loadRedisConfig() (err error) {
 
 	viper.WatchConfig()
 	viper.OnConfigChange(databaseFileChange)
-	io.SetInfoType(common.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("redis load config finished \n"))
+	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("redis load config finished \n"))
 	return
 }
 
@@ -57,7 +58,7 @@ func initRedis(nameSpace string, configs *Redis) {
 		Password:     configs.Password,
 	}
 
-	io.SetInfoType(common.LogLevelInfo).
+	io.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintf("Init redis is  '%s'", RedisOptionToString(&conf))
 	// 初始化Redis连接信息
 	app_obj.DbRedis[nameSpace] = redis.NewClient(&conf)
@@ -65,10 +66,10 @@ func initRedis(nameSpace string, configs *Redis) {
 	_, err = app_obj.DbRedis[nameSpace].Ping().Result()
 
 	if err != nil {
-		io.SetInfoType(common.LogLevelError).SystemOutPrintf(fmt.Sprintf("Load  redis config is error \n"))
+		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("Load  redis config is error \n"))
 		panic(err)
 	}
-	io.SetInfoType(common.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("Load  redis config is finished \n"))
+	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("Load  redis config is finished \n"))
 
 }
 

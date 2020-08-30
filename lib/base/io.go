@@ -1,4 +1,4 @@
-package common
+package base
 
 import (
 	"fmt"
@@ -34,6 +34,7 @@ func (r *SystemOut) SystemOutFatalf(format string, v ...interface{}) *SystemOut 
 	systemLog.Fatalf(r.InfoType+format, v...)
 	return r
 }
+
 func (r *SystemOut) SystemOutPrintf(format string, v ...interface{}) *SystemOut {
 	systemLog.Printf(r.InfoType+format, v...)
 	return r

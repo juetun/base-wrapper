@@ -2,13 +2,13 @@ package middlewares
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/base-wrapper/lib/common"
+	"github.com/juetun/base-wrapper/lib/base"
 )
 
 var MiddleWareComponent = []gin.HandlerFunc{
 	Permission(),
 }
-var io = common.NewSystemOut().SetInfoType(common.LogLevelInfo)
+var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
 
 // 加载权限验证Gin中间件
 func LoadMiddleWare(privateMiddleWares ...gin.HandlerFunc) {

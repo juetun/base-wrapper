@@ -9,6 +9,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/juetun/base-wrapper/lib/app_log"
 	"github.com/juetun/base-wrapper/lib/app_obj"
+	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/spf13/viper"
 )
@@ -25,7 +26,7 @@ func PluginMysql() (err error) {
 	return
 }
 
-var io = common.NewSystemOut().SetInfoType(common.LogLevelInfo)
+var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
 
 func loadMysqlConfig() (err error) {
 
@@ -38,14 +39,14 @@ func loadMysqlConfig() (err error) {
 	configSource.AddConfigPath(dir)   // path to look for the config file in
 	err = configSource.ReadInConfig() // Find and read the config file
 	if err != nil {                   // Handle errors reading the config file
-		io.SetInfoType(common.LogLevelError).SystemOutPrintf(fmt.Sprintf("Fatal error database file: %v \n", err))
+		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("Fatal error database file: %v \n", err))
 		return
 	}
 	// 数据库配置信息存储对象
 	var mysqlConfig = make(map[string]Mysql)
 
 	if err = configSource.Unmarshal(&mysqlConfig); err != nil {
-		io.SetInfoType(common.LogLevelInfo).
+		io.SetInfoType(base.LogLevelInfo).
 			SystemOutPrintf("Load database config failure  '%v' ", mysqlConfig)
 		panic(err)
 	}
@@ -55,7 +56,7 @@ func loadMysqlConfig() (err error) {
 	// 监听配置变动
 	viper.WatchConfig()
 	viper.OnConfigChange(databaseFileChange)
-	io.SetInfoType(common.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("Database load config finished \n"))
+	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("Database load config finished \n"))
 	return
 }
 
@@ -84,7 +85,7 @@ func initMysql(nameSpace string, config *Mysql) {
 	}
 }
 func getMysql(nameSpace string, addr *Mysql) *gorm.DB {
-	io.SetInfoType(common.LogLevelInfo).
+	io.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintf("init mysql :%#v", addr)
 	db, err := gorm.Open("mysql", addr.Addr)
 	if err != nil {
