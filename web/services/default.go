@@ -19,7 +19,7 @@ type ServiceDefault struct {
 
 func NewServiceDefault(context ...*base.Context) (p *ServiceDefault) {
 	p = &ServiceDefault{}
-	p.SetContext(context)
+	p.SetContext(context...)
 	return
 }
 func (r *ServiceDefault) Index(arg *pojos.ArgumentDefault) (res *pojos.ResultDefault, err error) {

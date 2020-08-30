@@ -19,7 +19,7 @@ type DaoUser struct {
 
 func NewDaoUser(context ...*base.Context) (p *DaoUser) {
 	p = &DaoUser{}
-	p.SetContext(context)
+	p.SetContext(context...)
 	return
 }
 
