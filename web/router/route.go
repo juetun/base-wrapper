@@ -18,6 +18,6 @@ func init() {
 		func(r *gin.Engine, urlPrefix string) {
 			c := controllers.NewControllerDefault()
 			p := r.Group(urlPrefix)
-			p.GET("/index", c.Index)
+			p.GET("/test", c.Index)
 		}, )
 }

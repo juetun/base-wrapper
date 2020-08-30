@@ -69,28 +69,26 @@ func (r *WebApplication) LoadRouter() *WebApplication {
 	}()
 	appConfig := common.GetAppConfig()
 	var UrlPrefix = appConfig.AppName + "/" + appConfig.AppApiVersion
-	io := base.NewSystemOut().
-		SetInfoType(base.LogLevelInfo)
 
-	io.SystemOutPrintf("Start route(app_name:%s) register url config.... ", UrlPrefix)
-	defer func() {
-		io.SystemOutPrintln("Load route register url finished")
-	}()
+	fmt.Printf("\n\n")
 	r.syslog.SetInfoType(base.LogLevelInfo).
-		SystemOutPrintln("开始注册路由...")
+		SystemOutPrintf("***********************开始注册路由(app_name:%s)*****************", UrlPrefix)
+	defer func() {
+		fmt.Printf("\n\n")
+		r.syslog.SetInfoType(base.LogLevelInfo).
+			SystemOutPrintf("***********************注册路由结束(app_name:%s)***********************", UrlPrefix)
+	}()
 
 	// 工具路由注册（心跳检测、性能分析等）
 	r.toolRouteRegister(appConfig, UrlPrefix)
 
 	r.syslog.SetInfoType(base.LogLevelInfo).
-		SystemOutPrintln("***********************注册业务路由***********************\n\n")
+		SystemOutPrintln("注册业务路由....\n\n")
+
 	// URL路由注册操作
 	for _, router := range HandleFunc {
 		router(r.GinEngine, UrlPrefix)
 	}
-	fmt.Printf("\n\n")
-	r.syslog.SetInfoType(base.LogLevelInfo).
-		SystemOutPrintln("***********************注册路由结束***********************")
 
 	return r
 }
@@ -145,7 +143,7 @@ func (r *WebApplication) getListenPortString() string {
 // 工具路由注册（心跳检测、性能分析等）
 func (r *WebApplication) toolRouteRegister(appConfig *common.Application, UrlPrefix string) {
 	r.syslog.SetInfoType(base.LogLevelInfo).
-		SystemOutPrintln("-注册健康检查路由-")
+		SystemOutPrintln("1、注册健康检查路由...")
 	// 注册健康检查请求地址
 	r.GinEngine.GET("/health", func(c *gin.Context) {
 		c.String(http.StatusOK, "success")
@@ -166,8 +164,11 @@ func (r *WebApplication) pProf(appConfig *common.Application) {
 	}
 	// pprof开启后，每隔一段时间(10ms)就会收集当前的堆栈信息，获取各个函数占用的CPU以及内存资源，然后通过对这些采样数据进行分析，形成一个性能分析报告
 	r.syslog.SetInfoType(base.LogLevelInfo).
-		SystemOutPrintln("-注册性能分析路由-")
+		SystemOutPrintln("-注册性能分析路由开始-")
+	defer func() {
+		r.syslog.SetInfoType(base.LogLevelInfo).
+			SystemOutPrintln("-注册性能分析路由结束-")
+	}()
 	pprof.Register(r.GinEngine) // 性能分析用代码
-	r.syslog.SetInfoType(base.LogLevelInfo).
-		SystemOutPrintln("-注册性能分析路由-")
+
 }

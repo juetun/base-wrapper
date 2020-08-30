@@ -38,19 +38,19 @@ func (r GOrmLog) Print(v ...interface{}) () {
 	switch v[0] {
 	case "sql":
 		fields := logrus.Fields{
-			"trace_id":      traceId,
-			"type":          "GORM_SQL",
-			"rows_returned": v[5],
-			"src":           v[1],
-			"values":        v[4],
-			"duration":      float64(v[2].(time.Duration) / 1e3), // 时长单位微秒
+			app_obj.TRACE_ID: traceId,
+			"type":           "GORM_SQL",
+			"rows_returned":  v[5],
+			"src":            v[1],
+			"values":         v[4],
+			"duration":       float64(v[2].(time.Duration) / 1e3), // 时长单位微秒
 		}
 		r.logger.InfoFields(fields, v[3].(string))
 	case "log":
 		fields := logrus.Fields{
-			"trace_id": traceId,
-			"type":     "GORM_SQL",
-			"src":      v[1],
+			app_obj.TRACE_ID: traceId,
+			"type":           "GORM_SQL",
+			"src":            v[1],
 		}
 		for _, value := range v[2:] {
 			switch value.(type) {

@@ -22,14 +22,12 @@ func GetControllerBaseContext(controller *ControllerBase, c *gin.Context) (res *
 }
 func NewContext(contextOption ...ContextOption) *Context {
 	context := &Context{}
-
-	// 初始化默认值
-	context.Init()
-
 	// 为数据指定初始化值
 	for _, option := range contextOption {
 		option(context)
 	}
+	// 初始化默认值 为空数据初始化值
+	context.Init()
 	return context
 }
 
@@ -65,17 +63,17 @@ func (r *Context) Init() (c *Context) {
 	if r.Log == nil {
 		r.Log = app_log.GetLog()
 	}
+	s := ""
+	if nil == r.GinContext {
+		var io = NewSystemOut().SetInfoType(LogLevelInfo)
+		io.SetInfoType("WARN").SystemOutPrintf("您没有设置上下文 gin.context的值，将无法记录日志trace_id")
+	} else {
+		if tp, ok := r.GinContext.Get(app_obj.TRACE_ID); ok {
+			s = fmt.Sprintf("%v", tp)
+		}
+	}
 	if r.Db == nil {
 		r.Db = app_obj.GetDbClient()
-		s := ""
-		if nil == r.GinContext {
-			var io = NewSystemOut().SetInfoType(LogLevelInfo)
-			io.SetInfoType("WARN").SystemOutPrintf("您没有设置上下文 gin.context的值，将无法记录日志trace_id")
-		} else {
-			if tp, ok := r.GinContext.Get(app_obj.TRACE_ID); ok {
-				s = fmt.Sprintf("%v", tp)
-			}
-		}
 		r.Db.InstantSet(app_obj.TRACE_ID, s)
 	}
 	if r.CacheClient == nil {

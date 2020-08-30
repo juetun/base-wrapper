@@ -15,25 +15,18 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app_log"
+	"github.com/juetun/base-wrapper/lib/app_obj"
 	"github.com/sirupsen/logrus"
 )
 
 // gin框架日志收集
 func GinLogCollect(logger *app_log.AppLog) gin.HandlerFunc {
-
 	return func(c *gin.Context) {
-		// if c.Request.Method != "POST" && c.Request.Method != "GET" || c.Request.URL.String() == "/metrics" {
-		// 	c.Next()
-		// 	return
-		// }
-
 		start := time.Now()
 		defer func() { // 异步操作写日志
 			go delayExecGinLogCollect(start, c, c.Request.URL, logger)
 		}()
-		// defer delayExecGinLogCollect(start, c, c.Request.URL, logger)
 		c.Next()
-
 	}
 }
 func delayExecGinLogCollect(start time.Time, c *gin.Context, path *url.URL, logger *app_log.AppLog) {
@@ -45,25 +38,20 @@ func delayExecGinLogCollect(start time.Time, c *gin.Context, path *url.URL, logg
 		// c.Set("body", string(bodyBytes))
 	}
 	fields := logrus.Fields{
-		"status":   c.Writer.Status(),
-		"method":   c.Request.Method,
-		"path":     path.String(),
-		"ip":       c.ClientIP(),
-		"duration": float64(time.Now().Sub(start) / 1e3), // 时长单位微秒
-		"request":  string(bodyBytes),
-		// "response": blw.body.String(),
-		"header": c.Request.Header,
-		// "header_version": c.GetHeader("version"),
-		// "header_build":   c.GetHeader("build"),
-		// "header_user_id": c.GetHeader("user_id"),
-		// "header_userid":  c.GetHeader("userid"),
-		// "header_token":   c.GetHeader("token"),
+		"status":         c.Writer.Status(),
+		"method":         c.Request.Method,
+		"path":           path.String(),
+		"ip":             c.ClientIP(),
+		"duration":       float64(time.Now().Sub(start) / 1e3), // 时长单位微秒
+		"request":        string(bodyBytes),
+		app_obj.TRACE_ID: c.GetHeader(app_obj.HTTP_TRACE_ID),
+		"header":         c.Request.Header,
 	}
+	// 只收集 http code>400的错误日志
 	if c.Writer.Status() > 400 {
 		blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
 		c.Writer = blw
 		fields["response"] = blw.body.String()
-
 	}
 
 	if len(c.Request.Form) > 0 {
@@ -71,11 +59,10 @@ func delayExecGinLogCollect(start time.Time, c *gin.Context, path *url.URL, logg
 	}
 	if len(c.Errors) > 0 {
 		logger.ErrorFields(fields, c.Errors.String())
-		// logger.Logger.WithFields(fields).Error()
-		// Append error field if this is an erroneous request.
-	} else {
-		logger.InfoFields(fields, c.Errors.String())
+		return
 	}
+	logger.InfoFields(fields, c.Errors.String())
+	return
 }
 
 type bodyLogWriter struct {

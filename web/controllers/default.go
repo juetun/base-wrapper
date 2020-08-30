@@ -24,8 +24,6 @@ func NewControllerDefault() (p *ControllerDefault) {
 	return p
 }
 func (r *ControllerDefault) Index(c *gin.Context) {
-	c.Set("trace_id", "b6b200e0-2271-42fa-957d-340cfcf65f08")
-
 	var err error
 	var arg pojos.ArgumentDefault
 	var result = base.NewResult()
