@@ -27,7 +27,7 @@ func NewContext(contextOption ...ContextOption) *Context {
 		option(context)
 	}
 	// 初始化默认值 为空数据初始化值
-	context.initContext()
+	context.InitContext()
 	return context
 }
 
@@ -59,7 +59,7 @@ func GinContext(opt *gin.Context) ContextOption {
 		context.GinContext = opt
 	}
 }
-func (r *Context) initContext() (c *Context) {
+func (r *Context) InitContext() (c *Context) {
 	if r.Log == nil {
 		r.Log = app_log.GetLog()
 	}
