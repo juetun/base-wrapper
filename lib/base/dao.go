@@ -12,13 +12,16 @@ type ServiceDao struct {
 }
 
 func (r *ServiceDao) SetContext(context ...*Context) (s *ServiceDao) {
+	for _, cont := range context {
+		cont.InitContext()
+	}
 	switch len(context) {
 	case 0:
 		r.Context = NewContext()
 		break
 	case 1:
 		r.Context = context[0]
-		break
+ 		break
 	default:
 		panic("你传递的参数当前不支持")
 	}
