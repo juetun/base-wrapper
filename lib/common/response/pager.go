@@ -11,8 +11,10 @@ import (
 	"strconv"
 )
 
+const DefaultPageSize = 15
+
 type BaseQuery struct {
-	Page     int    `form:"page_no" json:"page_no"`
+	PageNo   int    `form:"page_no" json:"page_no"`
 	PageSize int    `form:"page_size" json:"page_size"`
 	Order    string `form:"order" json:"order"`
 	Select   string `form:"select" json:"select"`
@@ -20,11 +22,11 @@ type BaseQuery struct {
 }
 
 func (r *BaseQuery) DefaultPage() {
-	if r.Page < 1 {
-		r.Page = 1
+	if r.PageNo < 1 {
+		r.PageNo = 1
 	}
 	if r.PageSize == 0 {
-		r.PageSize = 10
+		r.PageSize = DefaultPageSize
 	}
 }
 
@@ -39,10 +41,26 @@ type Pager struct {
 func NewPager() *Pager {
 	return &Pager{
 		TotalCount: 0,
-		PageSize:   10,
+		PageSize:   DefaultPageSize,
 		PageNo:     1,
 		List:       []interface{}{},
 	}
+}
+func NewPagerAndDefault(arg *BaseQuery) (pager *Pager) {
+	pager = NewPager()
+	pager.InitPager(arg)
+	return
+}
+
+func (p *Pager) InitPager(arg *BaseQuery) {
+	if arg.PageNo == 0 {
+		arg.PageNo = 1
+	}
+	p.PageNo = arg.PageNo
+	if arg.PageSize == 0 {
+		arg.PageSize = DefaultPageSize
+	}
+	p.PageSize = arg.PageSize
 }
 
 // InitPageNoAndPageSize 初始化PageNo 和PageSize
