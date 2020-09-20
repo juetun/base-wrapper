@@ -9,6 +9,7 @@ package base
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
@@ -36,6 +37,7 @@ type Context struct {
 	Db          *gorm.DB        `json:"db"`
 	CacheClient *redis.Client   `json:"cache_client"`
 	GinContext  *gin.Context
+	syncLog     sync.Mutex
 }
 type ContextOption func(context *Context)
 
@@ -60,6 +62,8 @@ func GinContext(opt *gin.Context) ContextOption {
 	}
 }
 func (r *Context) InitContext() (c *Context) {
+	r.syncLog.Lock()
+	defer r.syncLog.Unlock()
 	if r.Log == nil {
 		r.Log = app_log.GetLog()
 	}
@@ -79,5 +83,6 @@ func (r *Context) InitContext() (c *Context) {
 	if r.CacheClient == nil {
 		r.CacheClient = app_obj.GetRedisClient()
 	}
+
 	return r
 }
