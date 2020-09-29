@@ -30,5 +30,5 @@ func GetRedisClient(nameSpace ...string) *redis.Client {
 	if _, ok := DbRedis[s]; ok {
 		return DbRedis[s]
 	}
-	panic(fmt.Sprintf("the Database connect(%s) is not exist", s))
+	panic(fmt.Sprintf("the Redis connect(%s) is not exist", s))
 }

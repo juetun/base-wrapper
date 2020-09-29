@@ -3,6 +3,7 @@ package plugins
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	"github.com/go-redis/redis"
 	"github.com/juetun/base-wrapper/lib/app_obj"
@@ -12,6 +13,9 @@ import (
 )
 
 func PluginRedis() (err error) {
+	var syncLock sync.Mutex
+	syncLock.Lock()
+	defer syncLock.Unlock()
 	loadRedisConfig()
 	return
 }

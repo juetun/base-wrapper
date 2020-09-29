@@ -23,6 +23,27 @@ func NewControllerDefault() (p *ControllerDefault) {
 	p.ControllerBase.Init()
 	return p
 }
+func  (r *ControllerDefault)TestEs(c *gin.Context)  {
+	var err error
+	var arg pojos.ArgumentDefault
+	var result = base.NewResult()
+
+	err = c.ShouldBind(&arg)
+
+	// 处理错误信息
+	if err != nil {
+		r.ResponseError(c, err)
+		return
+	}
+	srv := services.NewServiceDefault(base.GetControllerBaseContext(&r.ControllerBase, c))
+	result.Data, err = srv.TestEs(&arg) 
+	if err != nil {
+		r.ResponseError(c, err)
+		return
+	}
+
+	r.ResponseResult(c, result)
+}
 func (r *ControllerDefault) Index(c *gin.Context) {
 	var err error
 	var arg pojos.ArgumentDefault

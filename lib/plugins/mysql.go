@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -22,6 +23,9 @@ type Mysql struct {
 }
 
 func PluginMysql() (err error) {
+	var syncLock sync.Mutex
+	syncLock.Lock()
+	defer syncLock.Unlock()
 	loadMysqlConfig()
 	return
 }

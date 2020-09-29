@@ -4,6 +4,7 @@ type ServiceBase struct {
 	Context *Context
 }
 
+
 func (r *ServiceBase) SetContext(context ...*Context) (s *ServiceBase) {
 	for _, cont := range context {
 		cont.InitContext()

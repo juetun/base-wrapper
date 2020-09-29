@@ -19,5 +19,6 @@ func init() {
 			c := controllers.NewControllerDefault()
 			p := r.Group(urlPrefix)
 			p.GET("/test", c.Index)
+			p.GET("/test_es", c.TestEs)
 		}, )
 }

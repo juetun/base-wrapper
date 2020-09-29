@@ -3,6 +3,7 @@ package common
 import (
 	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/speps/go-hashids"
+	"sync"
 )
 
 var (
@@ -10,6 +11,9 @@ var (
 )
 
 func PluginsHashId() (err error) {
+	var syncLock sync.Mutex
+	syncLock.Lock()
+	defer syncLock.Unlock()
 
 	hd := new(utils.HashIdParams)
 	salt := hd.SetHashIdSalt("i must add a salt what is only for me")

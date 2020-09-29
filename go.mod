@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/astaxie/beego v1.12.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/elastic/go-elasticsearch/v7 v7.0.0-20200918151340-1d70361c6ce4
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/gin-contrib/pprof v1.3.0
 	github.com/gin-gonic/gin v1.6.2

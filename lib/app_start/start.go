@@ -2,6 +2,7 @@ package app_start
 
 import (
 	stytemLog "log"
+	"strings"
 
 	"github.com/juetun/base-wrapper/lib/base"
 )
@@ -36,6 +37,7 @@ func (r *PluginsOperate) LoadPlugins() (res *PluginsOperate) {
 	stytemLog.Printf("")
 	var err error
 	for _, handle := range *PluginsHandleStruct {
+		io.SystemOutPrintf(strings.Repeat("-", 30) + "\n")
 		err = handle.FuncHandler()
 		if err != nil {
 			panic(err)

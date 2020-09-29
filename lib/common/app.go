@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/juetun/base-wrapper/lib/base"
@@ -53,6 +54,10 @@ func GetAppConfig() *Application {
 }
 
 func PluginsApp() (err error) {
+	var syncLock sync.Mutex
+	syncLock.Lock()
+	defer syncLock.Unlock()
+
 	app = NewApplication()
 	var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
 	io.SystemOutPrintln("Load app config start")
@@ -66,7 +71,7 @@ func PluginsApp() (err error) {
 	io.SystemOutPrintf("config directory is : '%s' ", dir)
 	viper.AddConfigPath(dir + "/../") // path to look for the config file in
 	err = viper.ReadInConfig()        // Find and read the config file
-	if err != nil {                   // Handle errors reading the config file
+	if err != nil { // Handle errors reading the config file
 		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("Fatal error config file: %s \n", err))
 		return
 	}
@@ -78,6 +83,9 @@ func PluginsApp() (err error) {
 	version := viper.GetString("app.version")
 	app.AppVersion = "v" + version
 	app.AppPort = viper.GetInt("app.port")
+	if app.AppPort == 0 { //默认80端口
+		app.AppPort = 80
+	}
 	app.AppName = viper.GetString("app.name")
 	app.AppGraceReload = viper.GetBool("app.grace_reload")
 	app.AppSystemName = viper.GetString("app.system_name")

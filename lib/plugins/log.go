@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/juetun/base-wrapper/lib/app_log"
 	"github.com/juetun/base-wrapper/lib/app_obj"
@@ -11,6 +12,10 @@ import (
 )
 
 func PluginLog() (err error) {
+	var syncLock sync.Mutex
+	syncLock.Lock()
+	defer syncLock.Unlock()
+
 	io.SystemOutPrintln("init log system")
 
 	// 读取配置文件初始化日志配置数据
