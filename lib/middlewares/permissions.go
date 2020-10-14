@@ -19,14 +19,14 @@ import (
 // 加载权限验证Gin中间件
 func Permission() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		status := cors(c)
 		if c.Request.Method == "OPTIONS" {
 			c.JSON(http.StatusOK, "Options Request!")
 			c.Next()
 			return
 		}
+
 		// 跨域配置
-		if status {
+		if cors(c) {
 			return
 		}
 		c.Next()
@@ -35,11 +35,15 @@ func Permission() gin.HandlerFunc {
 
 // 用户登录逻辑处理
 func Auth(c *gin.Context) (exit bool) {
-	token := c.Request.Header.Get("x-auth-token")
+
+	token := c.Request.Header.Get(app_obj.HTTP_USER_TOKEN)
+	traceId := c.GetHeader(app_obj.HTTP_TRACE_ID)
+	c.Set(app_obj.TRACE_ID, traceId)
+
 	if token == "" {
 		msg := "token is null"
 		app_log.GetLog().Error(map[string]string{
-			app_obj.TRACE_ID:    c.GetString(app_obj.HTTP_TRACE_ID),
+			app_obj.TRACE_ID:    traceId,
 			app_obj.APP_LOG_KEY: common.GetAppConfig().AppName,
 			"method":            "zgh.ginmiddleware.auth",
 			"error":             msg,
@@ -49,6 +53,7 @@ func Auth(c *gin.Context) (exit bool) {
 		exit = true
 		return
 	}
+
 	jwtUser, err := common.ParseToken(token)
 	if err != nil {
 		app_log.GetLog().Error(map[string]string{
@@ -65,6 +70,7 @@ func Auth(c *gin.Context) (exit bool) {
 	}
 	c.Set(app_obj.ContextUserObjectKey, jwtUser)
 	c.Set(app_obj.ContextUserTokenKey, token)
+
 	return
 }
 
