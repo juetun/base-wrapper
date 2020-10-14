@@ -14,6 +14,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	"github.com/juetun/base-wrapper/lib/app_obj"
+	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/sirupsen/logrus"
 )
 
@@ -36,9 +37,10 @@ func (r GOrmLog) Print(v ...interface{}) () {
 		traceId = fmt.Sprintf("%v", a)
 	}
 	fields := logrus.Fields{
-		app_obj.TRACE_ID: traceId,
-		"type":           "GORM_SQL",
-		"src":            v[1],
+		app_obj.APP_LOG_KEY: common.GetAppConfig().AppName,
+		app_obj.TRACE_ID:    traceId,
+		"type":              "GORM_SQL",
+		"src":               v[1],
 	}
 	switch v[0] {
 	case "sql":
