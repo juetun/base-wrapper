@@ -16,6 +16,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app_log"
 	"github.com/juetun/base-wrapper/lib/app_obj"
+	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/sirupsen/logrus"
 )
 
@@ -38,6 +39,7 @@ func delayExecGinLogCollect(start time.Time, c *gin.Context, path *url.URL, logg
 		// c.Set("body", string(bodyBytes))
 	}
 	fields := logrus.Fields{
+		"app":            common.GetAppConfig().AppName,
 		"status":         c.Writer.Status(),
 		"method":         c.Request.Method,
 		"path":           path.String(),
