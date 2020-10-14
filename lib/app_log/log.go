@@ -31,9 +31,13 @@ func GetLog() *AppLog {
 	}
 	return logApp
 }
+func (r *AppLog) getFields() (res logrus.Fields) {
+	res = logrus.Fields{}
+	return
+}
 
 func (r *AppLog) Error(data map[string]string, message ...string) {
-	fields := logrus.Fields{}
+	fields := r.getFields()
 	if len(data) > 0 {
 		for key, value := range data {
 			fields[key] = value
@@ -48,7 +52,7 @@ func (r *AppLog) InfoFields(fields logrus.Fields, message ...string) {
 	r.Logger.WithFields(fields).Info(message)
 }
 func (r *AppLog) Info(data map[string]string, message ...string) {
-	fields := logrus.Fields{}
+	fields := r.getFields()
 	if len(data) > 0 {
 		for key, value := range data {
 			fields[key] = value

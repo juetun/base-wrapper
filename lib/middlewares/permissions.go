@@ -16,8 +16,6 @@ import (
 	"github.com/juetun/base-wrapper/lib/common"
 )
 
-
-
 // 加载权限验证Gin中间件
 func Permission() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -31,47 +29,6 @@ func Permission() gin.HandlerFunc {
 		if status {
 			return
 		}
-
-		// var res bool
-		// apiG := common.NewGin(c)
-		// s := getRUri(c)
-		// // 如果是白名单的链接，则直接让过(用户不需要登录就让访问的URL)
-		// res = web.CheckWhite(c, s)
-		// if res {
-		// 	c.Next()
-		// 	return
-		// }
-		//
-		// // 用户登录信息验证
-		// if exitStatus := auth(c); exitStatus {
-		// 	return
-		// }
-		// // 用户登录了的验证权限
-		// res = web.CheckPermissions(c, s)
-		//
-		// // 如果不在白名单范围内，则让过
-		// if !res {
-		// 	app_log.GetLog().Error(map[string]string{
-		// 		"method":      "middleware.Permission",
-		// 		"info":        "router permission",
-		// 		"router name": c.Request.RequestURI,
-		// 		"httpMethod":  c.Request.Method,
-		// 	})
-		// 	obj := base.NewResult()
-		// 	obj.Code = http.StatusForbidden
-		// 	obj.Msg = fmt.Sprintf("no auth(%s)",s)
-		// 	c.JSON(http.StatusOK, obj)
-		// 	c.Abort()
-		// 	return
-		// }
-		//
-		// // 获取当前登录用户信息
-		// code, rd := userMessageSet(c, c.Request.RequestURI)
-		// if code > 0 {
-		// 	apiG.Response(code, rd)
-		// 	return
-		// }
-		//
 		c.Next()
 	}
 }
@@ -82,8 +39,10 @@ func Auth(c *gin.Context) (exit bool) {
 	if token == "" {
 		msg := "token is null"
 		app_log.GetLog().Error(map[string]string{
-			"method": "zgh.ginmiddleware.auth",
-			"error":  msg,
+			app_obj.TRACE_ID:    c.GetString(app_obj.HTTP_TRACE_ID),
+			app_obj.APP_LOG_KEY: common.GetAppConfig().AppName,
+			"method":            "zgh.ginmiddleware.auth",
+			"error":             msg,
 		})
 		c.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusUnauthorized).SetMessage(msg))
 		c.Abort()
@@ -93,9 +52,11 @@ func Auth(c *gin.Context) (exit bool) {
 	jwtUser, err := common.ParseToken(token)
 	if err != nil {
 		app_log.GetLog().Error(map[string]string{
-			"method": "zgh.ginmiddleware.auth",
-			"token":  token,
-			"error":  err.Error(),
+			app_obj.TRACE_ID:    c.GetString(app_obj.HTTP_TRACE_ID),
+			app_obj.APP_LOG_KEY: common.GetAppConfig().AppName,
+			"method":            "zgh.ginmiddleware.auth",
+			"token":             token,
+			"error":             err.Error(),
 		})
 		c.JSON(http.StatusOK, common.NewHttpResult().SetCode(403).SetMessage(err.Error()))
 		c.Abort()
@@ -117,29 +78,6 @@ func cors(c *gin.Context) (exitStatus bool) {
 	c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 	return
 }
-
-// 用户信息获取
-// func UserMessageSet(c *gin.Context, routerAsName string) (code int, res interface{}) {
-// 	token := c.GetHeader("x-auth-token")
-// 	if routerAsName == "console.post.imgUpload" { // 如果是上传图片，则用的POST获取用户信息
-// 		token = c.PostForm("upload-token")
-// 	}
-//
-// 	if token == "" {
-// 		app_log.GetLog().Errorln("method", "middleware.Permission", "info", "token null")
-// 		return 400001005, nil
-// 	}
-//
-// 	jwtUser, err := common.ParseToken(token)
-// 	if err != nil {
-// 		app_log.GetLog().Errorln("method", "middleware.Permission", "info", "parse token error")
-// 		return 400001005, nil
-// 	}
-// 	c.Set(app_obj.ContextUserObjectKey, jwtUser)
-// 	c.Set("token", token)
-// 	return
-// }
-
 
 func GetRUri(c *gin.Context) string {
 	uri := strings.TrimLeft(c.Request.RequestURI, common.GetAppConfig().AppName+"/"+common.GetAppConfig().AppApiVersion)

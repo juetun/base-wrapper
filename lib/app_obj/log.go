@@ -20,6 +20,7 @@ import (
 )
 
 const TRACE_ID = "trace_id"
+const APP_LOG_KEY = "app"
 const HTTP_TRACE_ID = "x_trace_id" // 页面请求时的 传参或者nginx生成的trace_id的key
 
 var logConfig *OptionLog
