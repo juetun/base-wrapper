@@ -30,7 +30,7 @@ var app *Application
 // 应用基本的配置结构体
 type Application struct {
 	AppSystemName  string `json:"app_system_name"`
-	AppEnv         string `json:"app_env"`
+	AppEnv         string `json:"app_env"`         // 当前运行环境
 	AppName        string `json:"app_name"`        // 应用名称
 	AppVersion     string `json:"app_version"`     // 应用版本以前缀v 开头
 	AppApiVersion  string `json:"app_api_version"` // 应用的API的版本号，用于api接口路由参数拼接
@@ -71,7 +71,7 @@ func PluginsApp() (err error) {
 	io.SystemOutPrintf("config directory is : '%s' ", dir)
 	viper.AddConfigPath(dir + "/../") // path to look for the config file in
 	err = viper.ReadInConfig()        // Find and read the config file
-	if err != nil { // Handle errors reading the config file
+	if err != nil {                   // Handle errors reading the config file
 		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("Fatal error config file: %s \n", err))
 		return
 	}
@@ -83,7 +83,7 @@ func PluginsApp() (err error) {
 	version := viper.GetString("app.version")
 	app.AppVersion = "v" + version
 	app.AppPort = viper.GetInt("app.port")
-	if app.AppPort == 0 { //默认80端口
+	if app.AppPort == 0 { // 默认80端口
 		app.AppPort = 80
 	}
 	app.AppName = viper.GetString("app.name")

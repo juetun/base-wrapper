@@ -8,7 +8,6 @@ import (
 	"github.com/fsnotify/fsnotify"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
-	"github.com/juetun/base-wrapper/lib/app_log"
 	"github.com/juetun/base-wrapper/lib/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
@@ -77,7 +76,7 @@ func initMysql(nameSpace string, config *Mysql) {
 	db.LogMode(true)
 
 	// mysql 日志处理
-	db.SetLogger(app_log.NewGOrmLog(db))
+	db.SetLogger(common.NewGOrmLog(db))
 
 	// 全局禁用表名复数
 	db.SingularTable(true)

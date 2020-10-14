@@ -5,7 +5,7 @@
 * @Version: 1.0.0
 * @Date 2020/8/18 7:49 下午
  */
-package app_log
+package common
 
 import (
 	"fmt"
@@ -13,13 +13,13 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
+	"github.com/juetun/base-wrapper/lib/app_log"
 	"github.com/juetun/base-wrapper/lib/app_obj"
-	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/sirupsen/logrus"
 )
 
 type GOrmLog struct {
-	logger *AppLog
+	logger *app_log.AppLog
 	Db     *gorm.DB
 }
 
@@ -27,7 +27,7 @@ func NewGOrmLog(db *gorm.DB) (res *GOrmLog) {
 	// app_log.GetLog().Logger
 	return &GOrmLog{
 		Db:     db,
-		logger: GetLog(),
+		logger: app_log.GetLog(),
 	}
 }
 func (r GOrmLog) Print(v ...interface{}) () {
@@ -37,7 +37,7 @@ func (r GOrmLog) Print(v ...interface{}) () {
 		traceId = fmt.Sprintf("%v", a)
 	}
 	fields := logrus.Fields{
-		app_obj.APP_LOG_KEY: common.GetAppConfig().AppName,
+		app_obj.APP_LOG_KEY: app.AppName,
 		app_obj.TRACE_ID:    traceId,
 		"type":              "GORM_SQL",
 		"src":               v[1],
