@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"fmt"
+
 	"github.com/juetun/base-wrapper/lib/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
@@ -9,7 +10,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-//短信插件初始化
+// 短信插件初始化
 func PluginShortMessage() (err error) {
 
 	io.SystemOutPrintln("Load short message start")
@@ -20,7 +21,7 @@ func PluginShortMessage() (err error) {
 
 	configSource.AddConfigPath(dir)   // path to look for the config file in
 	err = configSource.ReadInConfig() // Find and read the config file
-	if err != nil { // Handle errors reading the config file
+	if err != nil {                   // Handle errors reading the config file
 		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("Fatal error  short message file: %v \n", err))
 		return
 	}
@@ -32,7 +33,7 @@ func PluginShortMessage() (err error) {
 			SystemOutPrintf("Load  short message config failure  '%v' ", configs)
 		panic(err)
 	}
-	//初始化短信通道
+	// 初始化短信通道
 	shortHandle := map[string]app_obj.ShortMessageInter{}
 	for nameSpace, value := range configs {
 		shortHandle[nameSpace] = initShortMessage(nameSpace, &value)
@@ -47,7 +48,7 @@ func PluginShortMessage() (err error) {
 
 }
 func initShortMessage(nameSpace string, shortMessageConfig *ShortMessageConfig) (res app_obj.ShortMessageInter) {
-	switch nameSpace { //短信通道配置 结构体映射
+	switch nameSpace { // 短信通道配置 结构体映射
 	case "100sms":
 		res = short_message_impl.NewSms100()
 	default:

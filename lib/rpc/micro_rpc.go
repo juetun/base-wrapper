@@ -18,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/juetun/base-wrapper/lib/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 )
 
@@ -27,9 +28,33 @@ type RequestOptions struct {
 	URI            string        `json:"uri"`
 	Header         http.Header   `json:"header"`
 	Value          url.Values    `json:"value"`
+	PathVersion    string        `json:"path_version"`
+	NotMicro       bool          `json:"not_micro"`        // 不是微服务应用
 	Context        *base.Context `json:"context"`          // 上下文传参 操作日志对象
 	ConnectTimeOut time.Duration `json:"connect_time_out"` // 请求连接超时时长 默认300毫秒(建立HTTP请求的时长)
 	RequestTimeOut time.Duration `json:"request_time_out"` // 获取请求时长 默认5秒(获取数据的时长)
+}
+
+// 请求操作结构体
+type httpRpc struct {
+	Request *RequestOptions `json:"request"` // 请求参数
+	Error   error           `json:"error"`   //
+	body    []byte          `json:"-"`
+	BaseUrl string          `json:"base_url"`
+	resp    *http.Response
+	client  *http.Client
+}
+
+// 请求入口
+func NewHttpRpc(params *RequestOptions) (r *httpRpc) {
+	r = &httpRpc{}
+	r.Error = params.validateParams()
+	if r.Error != nil {
+		return
+	}
+	params.initDefault()
+	r.Request = params
+	return
 }
 
 // 初始化默认参数
@@ -43,8 +68,19 @@ func (r *RequestOptions) initDefault() {
 	if r.RequestTimeOut == 0 {
 		r.RequestTimeOut = 5 * time.Second
 	}
+	traceId := ""
+	if nil != r.Context {
+		r.Context.GinContext.GetHeader(app_obj.HTTP_TRACE_ID)
+	}
 	if r.Header == nil {
-		r.Header = http.Header{}
+		r.Header = http.Header{
+			app_obj.HTTP_TRACE_ID: []string{traceId},
+		}
+	} else {
+		r.Header.Add(app_obj.HTTP_TRACE_ID, traceId)
+	}
+	if !r.NotMicro && r.PathVersion == "" {
+		r.PathVersion = "v1"
 	}
 }
 
@@ -61,29 +97,13 @@ func (r *RequestOptions) validateParams() (err error) {
 	return
 }
 
-// 请求操作结构体
-type httpRpc struct {
-	Request RequestOptions `json:"request"` // 请求参数
-	Error   error          `json:"error"`   //
-	body    []byte         `json:"-"`
-	resp    *http.Response
-	client  *http.Client
-}
-
-// 请求入口
-func NewHttpRpc(params *RequestOptions) (r *httpRpc) {
-	r = &httpRpc{}
-	r.Error = params.validateParams()
-	if r.Error != nil {
-		return
-	}
-	params.initDefault()
-	return
-}
-
 // 发送请求
 func (r *httpRpc) Send() (res *httpRpc) {
 	res = r
+	if r.Error != nil {
+		return
+	}
+	r.DefaultBaseUrl()
 	if r.Error != nil {
 		return
 	}
@@ -120,34 +140,52 @@ func (r *httpRpc) initClient() (res *httpRpc) {
 	}
 	return
 }
+func (r *httpRpc) DefaultBaseUrl() {
+	if _, ok := app_obj.AppMap[r.Request.AppName]; !ok {
+		r.Error = fmt.Errorf("base url config is not exists(%s)", r.Request.AppName)
+		return
+	}
+	if !r.Request.NotMicro { // 如果不是微服务应用
+		r.BaseUrl = fmt.Sprintf("%s/%s/%s", app_obj.AppMap[r.Request.AppName], r.Request.AppName, r.Request.PathVersion)
+	}
+}
+
+func (r *httpRpc) getUrl() (res string) {
+	return fmt.Sprintf("%s%s", r.BaseUrl, r.Request.URI)
+}
 
 func (r *httpRpc) get() {
 	var request *http.Request
-	request, r.Error = http.NewRequest("GET", r.Request.URI, nil)
+	url := r.getUrl()
+	request, r.Error = http.NewRequest("GET", url, nil)
 	request.Header = r.Request.Header
 	r.resp, r.Error = r.client.Do(request)
 }
 func (r *httpRpc) delete() {
 	var request *http.Request
-	request, r.Error = http.NewRequest("DELETE", r.Request.URI, nil)
+	url := r.getUrl()
+	request, r.Error = http.NewRequest("DELETE", url, nil)
 	request.Header = r.Request.Header
 	r.resp, r.Error = r.client.Do(request)
 }
 func (r *httpRpc) put() {
 	var request *http.Request
-	request, r.Error = http.NewRequest("PUT", r.Request.URI, nil)
+	url := r.getUrl()
+	request, r.Error = http.NewRequest("PUT", url, nil)
 	request.Header = r.Request.Header
 	r.resp, r.Error = r.client.Do(request)
 }
 func (r *httpRpc) patch() {
 	var request *http.Request
-	request, r.Error = http.NewRequest("PATCH", r.Request.URI, nil)
+	url := r.getUrl()
+	request, r.Error = http.NewRequest("PATCH", url, nil)
 	request.Header = r.Request.Header
 	r.resp, r.Error = r.client.Do(request)
 }
 func (r *httpRpc) post() {
 	var request *http.Request
-	request, r.Error = http.NewRequest("POST", r.Request.URI, nil)
+	url := r.getUrl()
+	request, r.Error = http.NewRequest("POST", url, nil)
 	request.Header = r.Request.Header
 	r.resp, r.Error = r.client.Do(request)
 }
@@ -176,7 +214,8 @@ func (r *httpRpc) Bind(obj interface{}) (res *httpRpc) {
 	return
 }
 
-func (r *httpRpc) GetBody() (res []byte) {
+func (r *httpRpc) GetBody() (res *httpRpc) {
+	res = r
 	if r.Error != nil {
 		return
 	}
@@ -188,7 +227,7 @@ func (r *httpRpc) GetBody() (res []byte) {
 		return
 	}
 	// 失败，返回状态
-	res, r.Error = ioutil.ReadAll(r.resp.Body)
+	r.body, r.Error = ioutil.ReadAll(r.resp.Body)
 	if r.Error != nil {
 		// 读取错误,返回异常
 		r.Error = fmt.Errorf("读取请求返回失败(%s)", r.Error.Error())

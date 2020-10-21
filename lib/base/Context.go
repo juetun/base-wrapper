@@ -68,10 +68,7 @@ func (r *Context) InitContext() (c *Context) {
 		r.Log = app_log.GetLog()
 	}
 	s := ""
-	if nil == r.GinContext {
-		var io = NewSystemOut().SetInfoType(LogLevelInfo)
-		io.SetInfoType("WARN").SystemOutPrintf("您没有设置上下文 gin.context的值，将无法记录日志trace_id")
-	} else {
+	if nil != r.GinContext {
 		if tp, ok := r.GinContext.Get(app_obj.TRACE_ID); ok {
 			s = fmt.Sprintf("%v", tp)
 		}

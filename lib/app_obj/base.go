@@ -13,3 +13,6 @@ const (
 	HTTP_TRACE_ID   = "X-Trace-Id"   // 页面请求时的 传参或者nginx生成的trace_id的key
 	HTTP_USER_TOKEN = "X-Auth-Token" // 页面请求时用户token
 )
+
+// 当前配置文件所在目录
+var BaseDirect string

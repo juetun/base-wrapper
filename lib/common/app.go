@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/juetun/base-wrapper/lib/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/spf13/viper"
 )
@@ -99,7 +100,10 @@ func GetConfigFileDirectory() string {
 	if app.AppEnv != "" {
 		env = app.AppEnv + "/"
 	}
-	return "./config/" + env
+	if app_obj.BaseDirect==""{
+		return "./config/" + env
+	}
+	return fmt.Sprintf("%s/config/%s",app_obj.BaseDirect,env)
 }
 
 // 初始化应用信息
