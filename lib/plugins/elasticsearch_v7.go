@@ -3,21 +3,24 @@ package plugins
 import (
 	"crypto/tls"
 	"fmt"
+	"net"
+	"net/http"
+	"time"
+
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/estransport"
 	"github.com/juetun/base-wrapper/lib/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/spf13/viper"
-	"net"
-	"net/http"
-	"time"
 )
 
-//ElasticSearch检索初始化入口
+// ElasticSearch检索初始化入口
 func PluginElasticSearchV7() (err error) {
 
 	io.SystemOutPrintln("Load ElasticSearch start")
+	defer io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("ElasticSearch load config finished \n"))
+
 	configSource := viper.New()
 	configSource.SetConfigName("elasticsearch") // name of config file (without extension)
 	configSource.SetConfigType("yaml")          // REQUIRED if the config file does not have the extension in the name
@@ -25,7 +28,7 @@ func PluginElasticSearchV7() (err error) {
 
 	configSource.AddConfigPath(dir)   // path to look for the config file in
 	err = configSource.ReadInConfig() // Find and read the config file
-	if err != nil { // Handle errors reading the config file
+	if err != nil {                   // Handle errors reading the config file
 		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("Fatal error elastic_search file: %v \n", err))
 		return
 	}
@@ -45,7 +48,6 @@ func PluginElasticSearchV7() (err error) {
 	// 监听配置变动
 	viper.WatchConfig()
 	viper.OnConfigChange(databaseFileChange)
-	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("ElasticSearch load config finished \n"))
 	return
 }
 
@@ -73,7 +75,7 @@ func orgConfig(config *Config) (configOption []SetElasticSearchConfigOption) {
 
 func initEs(nameSpace string, configOption []SetElasticSearchConfigOption) {
 	esConfig := NewElasticSearchConfig(configOption...)
- 	var err error
+	var err error
 	var handler *elasticsearch.Client
 
 	io.SetInfoType(base.LogLevelInfo).
@@ -94,7 +96,7 @@ type ElasticSearchConfig struct {
 func NewElasticSearchConfig(arg ...SetElasticSearchConfigOption) (elasticSearchConfig *ElasticSearchConfig) {
 	elasticSearchConfig = &ElasticSearchConfig{
 		Config: elasticsearch.Config{
-			Addresses: []string{}, //默认访问位置9200
+			Addresses: []string{}, // 默认访问位置9200
 		},
 	}
 	for _, handler := range arg {

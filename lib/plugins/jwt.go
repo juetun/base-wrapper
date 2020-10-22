@@ -13,8 +13,7 @@ import (
 
 func PluginJwt() (err error) {
 	io.SystemOutPrintln("init JWT config")
-	jwtParam := app_obj.NewJwtParam()
-	err = jwtParam.JwtInit()
-	io.SystemOutPrintln("Init JWT finished")
+	defer io.SystemOutPrintln("Init JWT finished")
+	err = app_obj.NewJwtParam().JwtInit()
 	return
 }

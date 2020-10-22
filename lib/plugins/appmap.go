@@ -19,6 +19,7 @@ import (
 func PluginAppMap() (err error) {
 	io.SystemOutPrintln("Load AppMap start")
 	defer io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("AppMap load config finished \n"))
+
 	configSource := viper.New()
 	configSource.SetConfigName("appmap") // name of config file (without extension)
 	configSource.SetConfigType("yaml")   // REQUIRED if the config file does not have the extension in the name
@@ -31,7 +32,7 @@ func PluginAppMap() (err error) {
 		return
 	}
 	// 数据库配置信息存储对象
-	 app_obj.AppMap= make(map[string]string)
+	app_obj.AppMap = make(map[string]string)
 
 	if err = configSource.Unmarshal(&app_obj.AppMap); err != nil {
 		io.SetInfoType(base.LogLevelInfo).

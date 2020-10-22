@@ -39,15 +39,15 @@ func delayExecGinLogCollect(start time.Time, c *gin.Context, path *url.URL, logg
 		// c.Set("body", string(bodyBytes))
 	}
 	fields := logrus.Fields{
-		"app":            common.GetAppConfig().AppName,
-		"status":         c.Writer.Status(),
-		"method":         c.Request.Method,
-		"path":           path.String(),
-		"ip":             c.ClientIP(),
-		"duration":       float64(time.Now().Sub(start) / 1e3), // 时长单位微秒
-		"request":        string(bodyBytes),
-		app_obj.TRACE_ID: c.GetHeader(app_obj.HTTP_TRACE_ID),
-		"header":         c.Request.Header,
+		app_obj.APP_LOG_KEY: common.GetAppConfig().AppName,
+		app_obj.TRACE_ID:    c.GetHeader(app_obj.HTTP_TRACE_ID),
+		"status":            c.Writer.Status(),
+		"method":            c.Request.Method,
+		"path":              path.String(),
+		"ip":                c.ClientIP(),
+		"duration":          float64(time.Now().Sub(start) / 1e3), // 时长单位微秒
+		"request":           string(bodyBytes),
+		"header":            c.Request.Header,
 	}
 	// 只收集 http code>400的错误日志
 	if c.Writer.Status() > 400 {

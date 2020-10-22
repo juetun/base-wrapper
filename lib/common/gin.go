@@ -14,6 +14,7 @@ import (
 	"github.com/astaxie/beego/validation"
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app_log"
+	"github.com/juetun/base-wrapper/lib/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 )
 
@@ -41,7 +42,13 @@ func (r *Gin) Validate(obj validate) bool {
 	valid := validation.Validation{}
 	b, err := valid.Valid(obj)
 	if err != nil {
-		app_log.GetLog().Logger.Errorln("message", "valid error", "err", err.Error())
+		app_log.GetLog().Error(
+			map[string]string{
+				app_obj.APP_LOG_KEY: GetAppConfig().AppName,
+				app_obj.TRACE_ID:    r.C.GetHeader(app_obj.HTTP_TRACE_ID),
+				"message":           "valid error",
+				"err":               err.Error(),
+			})
 		r.C.JSON(http.StatusOK, base.Result{Data: nil, Code: 400000000, Msg: err.Error()})
 		return false
 	}

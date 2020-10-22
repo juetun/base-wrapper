@@ -45,7 +45,7 @@ func Auth(c *gin.Context) (exit bool) {
 		app_log.GetLog().Error(map[string]string{
 			app_obj.TRACE_ID:    traceId,
 			app_obj.APP_LOG_KEY: common.GetAppConfig().AppName,
-			"method":            "zgh.ginmiddleware.auth",
+			"method":            "zgh.ginmiddleware.Auth",
 			"error":             msg,
 		})
 		c.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusUnauthorized).SetMessage(msg))
@@ -54,12 +54,12 @@ func Auth(c *gin.Context) (exit bool) {
 		return
 	}
 
-	jwtUser, err := common.ParseToken(token)
+	jwtUser, err := common.ParseToken(token, c)
 	if err != nil {
 		app_log.GetLog().Error(map[string]string{
 			app_obj.TRACE_ID:    c.GetString(app_obj.HTTP_TRACE_ID),
 			app_obj.APP_LOG_KEY: common.GetAppConfig().AppName,
-			"method":            "zgh.ginmiddleware.auth",
+			"method":            "zgh.ginmiddleware.Auth",
 			"token":             token,
 			"error":             err.Error(),
 		})
