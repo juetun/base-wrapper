@@ -25,7 +25,7 @@ func NewDaoUser(context ...*base.Context) (p *DaoUser) {
 
 func (r *DaoUser) GetUser(arg *pojos.ArgumentDefault) (res []models.User, err error) {
 	err = r.Context.Db.
-		Where("key=?", 1).
+		Where("id=?", 1).
 		Find(&res).
 		Error
 	return

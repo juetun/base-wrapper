@@ -47,7 +47,7 @@ func (r GOrmLog) Print(v ...interface{}) () {
 		fields["rows_returned"] = v[5]
 		// fields["values"] = v[4]
 		fields["duration"] = float64(v[2].(time.Duration) / 1e3) // 时长单位微秒
-		r.logger.InfoFields(fields, fmt.Sprintf("SQL:%s [BIND VALUE]:%#v", v[3].(string), v[4]))
+		r.logger.InfoFields(fields, fmt.Sprintf("SQL:%s [BIND_VALUE]:%#v", v[3].(string), v[4]))
 	case "log":
 		for _, value := range v[2:] {
 			switch value.(type) {

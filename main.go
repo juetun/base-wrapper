@@ -18,12 +18,12 @@ import (
 // https://github.com/izghua/go-blog
 func main() {
 	app_start.NewPluginsOperate().Use(
-		// PluginJwt, // 加载用户验证插件,必须放在Redis插件后
+		PluginJwt, // 加载用户验证插件,必须放在Redis插件后
 		// PluginElasticSearchV7,
 		PluginShortMessage,
 		PluginAppMap,
 		// plugins.PluginOss,
-		// plugins.PluginUser, // 用户登录,jwt等用户信息逻辑处理
+		PluginUser, // 用户登录,jwt等用户信息逻辑处理
 	).LoadPlugins() // 加载插件动作
 
 	// 启动GIN服务
