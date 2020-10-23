@@ -47,7 +47,7 @@ func Auth(c *gin.Context) (exit bool) {
 
 	if token == "" {
 		msg := "token is null"
-		app_log.GetLog().Error(map[string]string{
+		app_log.GetLog().Error(map[string]interface{}{
 			app_obj.TRACE_ID:    traceId,
 			app_obj.APP_LOG_KEY: common.GetAppConfig().AppName,
 			"method":            "zgh.ginmiddleware.Auth",
@@ -61,7 +61,7 @@ func Auth(c *gin.Context) (exit bool) {
 
 	jwtUser, err := common.ParseToken(token, c)
 	if err != nil {
-		app_log.GetLog().Error(map[string]string{
+		app_log.GetLog().Error(map[string]interface{}{
 			app_obj.TRACE_ID:    c.GetString(app_obj.HTTP_TRACE_ID),
 			app_obj.APP_LOG_KEY: common.GetAppConfig().AppName,
 			"method":            "zgh.ginmiddleware.Auth",

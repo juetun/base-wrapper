@@ -42,7 +42,7 @@ func CreateToken(user app_obj.JwtUserMessage, c *gin.Context) (tokenString strin
 	SecretKey := jwtParam.SecretKey
 	tokenString, err = tk.SignedString([]byte(SecretKey))
 	if err != nil {
-		app_log.GetLog().Error(map[string]string{
+		app_log.GetLog().Error(map[string]interface{}{
 			app_obj.APP_LOG_KEY: GetAppConfig().AppName,
 			app_obj.TRACE_ID:    c.GetHeader(app_obj.HTTP_TRACE_ID),
 			"content":           "token create error",
@@ -51,7 +51,7 @@ func CreateToken(user app_obj.JwtUserMessage, c *gin.Context) (tokenString strin
 		return
 	}
 	if jwtParam.RedisCache == nil {
-		app_log.GetLog().Error(map[string]string{
+		app_log.GetLog().Error(map[string]interface{}{
 			app_obj.APP_LOG_KEY: GetAppConfig().AppName,
 			app_obj.TRACE_ID:    c.GetHeader(app_obj.HTTP_TRACE_ID),
 			"content":           "common/jwt.go",
@@ -63,7 +63,7 @@ func CreateToken(user app_obj.JwtUserMessage, c *gin.Context) (tokenString strin
 		Set(jwtParam.TokenKey+userIdString, tokenString, jwtParam.TokenLife).
 		Err()
 	if err != nil {
-		app_log.GetLog().Error(map[string]string{
+		app_log.GetLog().Error(map[string]interface{}{
 			app_obj.APP_LOG_KEY: GetAppConfig().AppName,
 			app_obj.TRACE_ID:    c.GetHeader(app_obj.HTTP_TRACE_ID),
 			"content":           "token create error",
@@ -82,7 +82,7 @@ func ParseToken(myToken string, c *gin.Context) (jwtUser app_obj.JwtUserMessage,
 		return []byte(jwtParam.SecretKey), nil
 	})
 	if err != nil {
-		app_log.GetLog().Error(map[string]string{
+		app_log.GetLog().Error(map[string]interface{}{
 			app_obj.APP_LOG_KEY: GetAppConfig().AppName,
 			app_obj.TRACE_ID:    c.GetHeader(app_obj.HTTP_TRACE_ID),
 			"content":           "parse token has error",
@@ -93,7 +93,7 @@ func ParseToken(myToken string, c *gin.Context) (jwtUser app_obj.JwtUserMessage,
 	}
 
 	if !token.Valid {
-		app_log.GetLog().Error(map[string]string{
+		app_log.GetLog().Error(map[string]interface{}{
 			app_obj.APP_LOG_KEY: GetAppConfig().AppName,
 			app_obj.TRACE_ID:    c.GetHeader(app_obj.HTTP_TRACE_ID),
 			"content":           fmt.Sprintf("token is invalid(%s)", myToken),
@@ -105,7 +105,7 @@ func ParseToken(myToken string, c *gin.Context) (jwtUser app_obj.JwtUserMessage,
 
 	sub, ok := claims["sub"].(string)
 	if !ok {
-		app_log.GetLog().Error(map[string]string{
+		app_log.GetLog().Error(map[string]interface{}{
 			app_obj.APP_LOG_KEY: GetAppConfig().AppName,
 			app_obj.TRACE_ID:    c.GetHeader(app_obj.HTTP_TRACE_ID),
 			"content":           "claims duan yan is error",
@@ -116,7 +116,7 @@ func ParseToken(myToken string, c *gin.Context) (jwtUser app_obj.JwtUserMessage,
 	}
 	if jwtParam.RedisCache == nil {
 		msg1 := "Redis connect is null"
-		app_log.GetLog().Error(map[string]string{
+		app_log.GetLog().Error(map[string]interface{}{
 			app_obj.APP_LOG_KEY: GetAppConfig().AppName,
 			app_obj.TRACE_ID:    c.GetHeader(app_obj.HTTP_TRACE_ID),
 			"content":           "common/jwt.go",
@@ -130,7 +130,7 @@ func ParseToken(myToken string, c *gin.Context) (jwtUser app_obj.JwtUserMessage,
 		Result()
 
 	if err != nil {
-		app_log.GetLog().Error(map[string]string{
+		app_log.GetLog().Error(map[string]interface{}{
 			app_obj.APP_LOG_KEY: GetAppConfig().AppName,
 			app_obj.TRACE_ID:    c.GetHeader(app_obj.HTTP_TRACE_ID),
 			"content":           "get token from redis error",
@@ -141,7 +141,7 @@ func ParseToken(myToken string, c *gin.Context) (jwtUser app_obj.JwtUserMessage,
 
 	if res == "" || res != myToken {
 		desc := "token is invalid"
-		app_log.GetLog().Error(map[string]string{
+		app_log.GetLog().Error(map[string]interface{}{
 			app_obj.APP_LOG_KEY: GetAppConfig().AppName,
 			app_obj.TRACE_ID:    c.GetHeader(app_obj.HTTP_TRACE_ID),
 			"content":           desc,
@@ -155,7 +155,7 @@ func ParseToken(myToken string, c *gin.Context) (jwtUser app_obj.JwtUserMessage,
 	// refresh the token life time
 	err = jwtParam.RedisCache.Set(jwtParam.TokenKey+sub, myToken, jwtParam.TokenLife).Err()
 	if err != nil {
-		app_log.GetLog().Error(map[string]string{
+		app_log.GetLog().Error(map[string]interface{}{
 			app_obj.APP_LOG_KEY: GetAppConfig().AppName,
 			app_obj.TRACE_ID:    c.GetHeader(app_obj.HTTP_TRACE_ID),
 			"content":           "token create error",
@@ -165,7 +165,7 @@ func ParseToken(myToken string, c *gin.Context) (jwtUser app_obj.JwtUserMessage,
 	}
 	err = json.Unmarshal([]byte(sub), &jwtUser)
 	if err != nil {
-		app_log.GetLog().Error(map[string]string{
+		app_log.GetLog().Error(map[string]interface{}{
 			app_obj.APP_LOG_KEY: GetAppConfig().AppName,
 			app_obj.TRACE_ID:    c.GetHeader(app_obj.HTTP_TRACE_ID),
 			"content":           "sub is error may be is not a json string",
@@ -182,7 +182,7 @@ func UnsetToken(myToken string, c *gin.Context) (bool, error) {
 		return []byte(jwtParam.SecretKey), nil
 	})
 	if err != nil {
-		app_log.GetLog().Error(map[string]string{
+		app_log.GetLog().Error(map[string]interface{}{
 			app_obj.APP_LOG_KEY: GetAppConfig().AppName,
 			app_obj.TRACE_ID:    c.GetHeader(app_obj.HTTP_TRACE_ID),
 			"content":           "parse token has error",
@@ -195,7 +195,7 @@ func UnsetToken(myToken string, c *gin.Context) (bool, error) {
 
 	sub, ok := claims["sub"].(string)
 	if !ok {
-		app_log.GetLog().Error(map[string]string{
+		app_log.GetLog().Error(map[string]interface{}{
 			app_obj.APP_LOG_KEY: GetAppConfig().AppName,
 			app_obj.TRACE_ID:    c.GetHeader(app_obj.HTTP_TRACE_ID),
 			"content":           "claims duan yan is error",
@@ -205,7 +205,7 @@ func UnsetToken(myToken string, c *gin.Context) (bool, error) {
 	}
 	err = jwtParam.RedisCache.Del(jwtParam.TokenKey + sub).Err()
 	if err != nil {
-		app_log.GetLog().Error(map[string]string{
+		app_log.GetLog().Error(map[string]interface{}{
 			app_obj.APP_LOG_KEY: GetAppConfig().AppName,
 			app_obj.TRACE_ID:    c.GetHeader(app_obj.HTTP_TRACE_ID),
 			"content":           "unset token has error",

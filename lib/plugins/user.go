@@ -58,7 +58,7 @@ func RequestPathPermit(c *gin.Context, s string) (res bool) {
 	res = permissions.CheckPermissions(c, s)
 	// 如果不在白名单范围内，则让过
 	if !res {
-		app_log.GetLog().Error(map[string]string{
+		app_log.GetLog().Error(map[string]interface{}{
 			"method":      "middleware.Permission",
 			"info":        "router permission",
 			"router name": c.Request.RequestURI,

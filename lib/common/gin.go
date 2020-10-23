@@ -43,7 +43,7 @@ func (r *Gin) Validate(obj validate) bool {
 	b, err := valid.Valid(obj)
 	if err != nil {
 		app_log.GetLog().Error(
-			map[string]string{
+			map[string]interface{}{
 				app_obj.APP_LOG_KEY: GetAppConfig().AppName,
 				app_obj.TRACE_ID:    r.C.GetHeader(app_obj.HTTP_TRACE_ID),
 				"message":           "valid error",
