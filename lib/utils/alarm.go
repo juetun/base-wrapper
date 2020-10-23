@@ -8,6 +8,7 @@ package utils
  */
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -46,14 +47,14 @@ func (alarm *AlarmParam) SetType(t AlarmType) ap {
 	return func(alarm *AlarmParam) (interface{}, error) {
 		str := strings.Split(string(t), ",")
 		if len(str) == 0 {
-			alarm.Log.Logger.Errorln("content", "you must input a value")
+			alarm.Log.Error(nil, map[string]interface{}{"content": "you must input a value"})
 			return nil, errors.New("you must input a value")
 		}
 		for _, types := range str {
 			s := AlarmType(types)
 			_, err := s.IsCurrentType()
 			if err != nil {
-				alarm.Log.Logger.Errorln("content", "the value type is error")
+				alarm.Log.Error(nil, map[string]interface{}{"content": "the value type is error"})
 				return nil, err
 			}
 		}
@@ -99,18 +100,17 @@ func (t AlarmMailReceive) MustMailFormat() (AlarmMailReceive, error) {
 
 // judge it is a right type what i need
 // if is it a wrong type, i must return a panic to above
-func (at AlarmType) IsCurrentType() (AlarmType, error) {
+func (at AlarmType) IsCurrentType() (res AlarmType, err error) {
+	res = at
 	switch at {
 	case AlarmTypeOne:
-		return at, nil
 	case AlarmTypeTwo:
-		return at, nil
 	case AlarmTypeThree:
-		return at, nil
 	default:
 		app_log.GetLog().Logger.Errorln("content", "the alarm type is error")
-		return at, errors.New("the alarm type is error")
-	}
+		err = fmt.Errorf("the alarm type is error")
+ 	}
+	return
 }
 
 // implementation value

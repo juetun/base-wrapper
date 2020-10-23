@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app_obj"
 	"github.com/sirupsen/logrus"
 )
@@ -32,12 +33,17 @@ func GetLog() *AppLog {
 	return logApp
 }
 func (r *AppLog) getFields() (res logrus.Fields) {
-	res = logrus.Fields{}
+	res = logrus.Fields{
+		app_obj.APP_LOG_KEY: app_obj.App.AppName,
+	}
 	return
 }
 
-func (r *AppLog) Error(data map[string]interface{}, message ...interface{}) {
+func (r *AppLog) Error(context *gin.Context, data map[string]interface{}, message ...interface{}) {
 	fields := r.getFields()
+	if context != nil {
+		fields[app_obj.TRACE_ID] = context.GetHeader(app_obj.HTTP_TRACE_ID)
+	}
 	if len(data) > 0 {
 		for key, value := range data {
 			fields[key] = value
@@ -45,14 +51,11 @@ func (r *AppLog) Error(data map[string]interface{}, message ...interface{}) {
 	}
 	r.Logger.WithFields(fields).Error(message)
 }
-func (r *AppLog) ErrorFields(fields logrus.Fields, message ...interface{}) {
-	r.Logger.WithFields(fields).Error(message)
-}
-func (r *AppLog) InfoFields(fields logrus.Fields, message ...interface{}) {
-	r.Logger.WithFields(fields).Info(message)
-}
-func (r *AppLog) Info(data map[string]interface{}, message ...interface{}) {
+func (r *AppLog) Info(context *gin.Context, data map[string]interface{}, message ...interface{}) {
 	fields := r.getFields()
+	if context != nil {
+		fields[app_obj.TRACE_ID] = context.GetHeader(app_obj.HTTP_TRACE_ID)
+	}
 	if len(data) > 0 {
 		for key, value := range data {
 			fields[key] = value
@@ -60,10 +63,42 @@ func (r *AppLog) Info(data map[string]interface{}, message ...interface{}) {
 	}
 	r.Logger.WithFields(fields).Error(message)
 }
+func (r *AppLog) Debug(context *gin.Context, data map[string]interface{}, message ...interface{}) {
+	fields := r.getFields()
+	if context != nil {
+		fields[app_obj.TRACE_ID] = context.GetHeader(app_obj.HTTP_TRACE_ID)
+	}
+	if len(data) > 0 {
+		for key, value := range data {
+			fields[key] = value
+		}
+	}
+	r.Logger.WithFields(fields).Error(message)
+}
+func (r *AppLog) Fatal(context *gin.Context, data map[string]interface{}, message ...interface{}) {
+	fields := r.getFields()
+	if context != nil {
+		fields[app_obj.TRACE_ID] = context.GetHeader(app_obj.HTTP_TRACE_ID)
+	}
+	if len(data) > 0 {
+		for key, value := range data {
+			fields[key] = value
+		}
+	}
+	r.Logger.WithFields(fields).Error(message)
+}
+
+// func (r *AppLog) ErrorFields(fields logrus.Fields, message ...interface{}) {
+// 	r.Logger.WithFields(fields).Error(message)
+// }
+// func (r *AppLog) InfoFields(fields logrus.Fields, message ...interface{}) {
+// 	r.Logger.WithFields(fields).Info(message)
+// }
 
 // 初始化日志操作对象
 func InitAppLog() {
 	systemLog.Printf("【INFO】初始化日志操作对象")
+	defer systemLog.Printf("【INFO】初始化日志操作对象操作完成 对象内容为:%#v \n", logApp)
 	logApp = newAppLog()
 
 	// 获取日志配置
@@ -74,10 +109,10 @@ func InitAppLog() {
 
 	// 设置日志输出位置
 	outputWriter(logConfig, logApp.Logger)
+
 	// 日志收集等级
 	logApp.Logger.SetLevel(logConfig.LogCollectLevel)
 
-	systemLog.Printf("【INFO】初始化日志操作对象操作完成 对象内容为:%#v \n", logApp)
 }
 func logFormatter(logConfig *app_obj.OptionLog, log *logrus.Logger) {
 	switch strings.ToLower(logConfig.Format) { // 日志格式

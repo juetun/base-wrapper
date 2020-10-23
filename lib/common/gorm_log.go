@@ -37,25 +37,24 @@ func (r GOrmLog) Print(v ...interface{}) () {
 		traceId = fmt.Sprintf("%v", a)
 	}
 	fields := logrus.Fields{
-		app_obj.APP_LOG_KEY: app.AppName,
-		app_obj.TRACE_ID:    traceId,
-		"type":              "GORM_SQL",
-		"src":               v[1],
+		app_obj.TRACE_ID: traceId,
+		"type":           "GORMSQL",
+		"src":            v[1],
 	}
 	switch v[0] {
 	case "sql":
 		fields["rows_returned"] = v[5]
 		// fields["values"] = v[4]
 		fields["duration"] = float64(v[2].(time.Duration) / 1e3) // 时长单位微秒
-		r.logger.InfoFields(fields, fmt.Sprintf("SQL:%s [BIND_VALUE]:%#v", v[3].(string), v[4]))
+		r.logger.Info(nil, fields, fmt.Sprintf("SQL:%s [BIND_VALUE]:%#v", v[3].(string), v[4]))
 	case "log":
 		for _, value := range v[2:] {
 			switch value.(type) {
 			case *mysql.MySQLError:
 				tmp := value.(*mysql.MySQLError)
-				r.logger.ErrorFields(fields, fmt.Sprintf("%+v", *tmp))
+				r.logger.Info(nil, fields, fmt.Sprintf("%+v", *tmp))
 			default:
-				r.logger.InfoFields(fields, fmt.Sprintf("%+v", v[2]))
+				r.logger.Info(nil, fields, fmt.Sprintf("%+v", v[2]))
 			}
 		}
 

@@ -13,6 +13,7 @@ import (
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app_log"
+	"github.com/juetun/base-wrapper/lib/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/juetun/base-wrapper/lib/middlewares"
@@ -141,7 +142,7 @@ func (r *WebApplication) getListenPortString() string {
 }
 
 // 工具路由注册（心跳检测、性能分析等）
-func (r *WebApplication) toolRouteRegister(appConfig *common.Application, UrlPrefix string) {
+func (r *WebApplication) toolRouteRegister(appConfig *app_obj.Application, UrlPrefix string) {
 	r.syslog.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintln("1、注册健康检查路由...")
 	// 注册健康检查请求地址
@@ -158,7 +159,7 @@ func (r *WebApplication) toolRouteRegister(appConfig *common.Application, UrlPre
 }
 
 // 是否开启性能分析工具
-func (r *WebApplication) pProf(appConfig *common.Application) {
+func (r *WebApplication) pProf(appConfig *app_obj.Application) {
 	if !appConfig.AppNeedPProf {
 		return
 	}

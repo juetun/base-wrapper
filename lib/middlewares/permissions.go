@@ -47,11 +47,9 @@ func Auth(c *gin.Context) (exit bool) {
 
 	if token == "" {
 		msg := "token is null"
-		app_log.GetLog().Error(map[string]interface{}{
-			app_obj.TRACE_ID:    traceId,
-			app_obj.APP_LOG_KEY: common.GetAppConfig().AppName,
-			"method":            "zgh.ginmiddleware.Auth",
-			"error":             msg,
+		app_log.GetLog().Error(c, map[string]interface{}{
+			"method": "zgh.ginmiddleware.Auth",
+			"error":  msg,
 		})
 		c.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusUnauthorized).SetMessage(msg))
 		c.Abort()
@@ -61,12 +59,10 @@ func Auth(c *gin.Context) (exit bool) {
 
 	jwtUser, err := common.ParseToken(token, c)
 	if err != nil {
-		app_log.GetLog().Error(map[string]interface{}{
-			app_obj.TRACE_ID:    c.GetString(app_obj.HTTP_TRACE_ID),
-			app_obj.APP_LOG_KEY: common.GetAppConfig().AppName,
-			"method":            "zgh.ginmiddleware.Auth",
-			"token":             token,
-			"error":             err.Error(),
+		app_log.GetLog().Error(c, map[string]interface{}{
+			"method": "zgh.ginmiddleware.Auth",
+			"token":  token,
+			"error":  err.Error(),
 		})
 		c.JSON(http.StatusOK, common.NewHttpResult().SetCode(403).SetMessage(err.Error()))
 		c.Abort()
@@ -76,17 +72,6 @@ func Auth(c *gin.Context) (exit bool) {
 	c.Set(app_obj.ContextUserObjectKey, jwtUser)
 	c.Set(app_obj.ContextUserTokenKey, token)
 
-	return
-}
-
-func cors(c *gin.Context) (exitStatus bool) {
-	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-	c.Writer.Header().Set("Access-Control-Max-Age", "1800")
-	c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE,PATCH")
-	// c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Content-Length, Accept-Encoding,referrer, Authorization, x-*,X-*")
-	c.Writer.Header().Set("Access-Control-Allow-Headers", "*")
-	c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length")
-	c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 	return
 }
 
