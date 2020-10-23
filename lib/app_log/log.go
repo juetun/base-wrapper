@@ -61,7 +61,7 @@ func (r *AppLog) Info(context *gin.Context, data map[string]interface{}, message
 			fields[key] = value
 		}
 	}
-	r.Logger.WithFields(fields).Error(message)
+	r.Logger.WithFields(fields).Info(message)
 }
 func (r *AppLog) Debug(context *gin.Context, data map[string]interface{}, message ...interface{}) {
 	fields := r.getFields()
@@ -73,7 +73,7 @@ func (r *AppLog) Debug(context *gin.Context, data map[string]interface{}, messag
 			fields[key] = value
 		}
 	}
-	r.Logger.WithFields(fields).Error(message)
+	r.Logger.WithFields(fields).Debug(message)
 }
 func (r *AppLog) Fatal(context *gin.Context, data map[string]interface{}, message ...interface{}) {
 	fields := r.getFields()
@@ -85,7 +85,7 @@ func (r *AppLog) Fatal(context *gin.Context, data map[string]interface{}, messag
 			fields[key] = value
 		}
 	}
-	r.Logger.WithFields(fields).Error(message)
+	r.Logger.WithFields(fields).Fatal(message)
 }
 
 // func (r *AppLog) ErrorFields(fields logrus.Fields, message ...interface{}) {
