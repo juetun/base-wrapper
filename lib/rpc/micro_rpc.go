@@ -39,7 +39,7 @@ type RequestOptions struct {
 type httpRpc struct {
 	Request *RequestOptions `json:"request"` // 请求参数
 	Error   error           `json:"error"`   //
-	body    []byte          `json:"-"`
+	Body    []byte          `json:"-"`
 	BaseUrl string          `json:"base_url"`
 	resp    *http.Response
 	client  *http.Client
@@ -208,12 +208,17 @@ func (r *httpRpc) Bind(obj interface{}) (res *httpRpc) {
 	if r.Error != nil {
 		return
 	}
-	if len(r.body) > 0 {
-		r.Error = json.Unmarshal(r.body, obj)
+	if len(r.Body) > 0 {
+		r.Error = json.Unmarshal(r.Body, obj)
 	}
 	return
 }
-
+func (r *httpRpc) GetBodyAsString() (res string) {
+	if len(r.Body) > 0 {
+		res = string(r.Body)
+	}
+	return
+}
 func (r *httpRpc) GetBody() (res *httpRpc) {
 	res = r
 	if r.Error != nil {
@@ -227,7 +232,7 @@ func (r *httpRpc) GetBody() (res *httpRpc) {
 		return
 	}
 	// 失败，返回状态
-	r.body, r.Error = ioutil.ReadAll(r.resp.Body)
+	r.Body, r.Error = ioutil.ReadAll(r.resp.Body)
 	if r.Error != nil {
 		// 读取错误,返回异常
 		r.Error = fmt.Errorf("读取请求返回失败(%s)", r.Error.Error())
