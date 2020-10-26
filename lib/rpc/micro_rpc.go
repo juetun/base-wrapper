@@ -171,14 +171,15 @@ func (r *httpRpc) getUrl(paramString ...string) (res string) {
 func (r *httpRpc) get() {
 	var request *http.Request
 	url := r.getUrl(r.Request.Value.Encode())
-	request, r.Error = http.NewRequest("GET", url, nil)
+
+	request, r.Error = http.NewRequest(http.MethodGet, url, nil)
 	request.Header = r.Request.Header
 	r.resp, r.Error = r.client.Do(request)
 }
 func (r *httpRpc) delete() {
 	var request *http.Request
 	url := r.getUrl(r.Request.Value.Encode())
-	request, r.Error = http.NewRequest("DELETE", url, nil)
+	request, r.Error = http.NewRequest(http.MethodDelete, url, nil)
 	request.Header = r.Request.Header
 	r.resp, r.Error = r.client.Do(request)
 }
@@ -186,9 +187,10 @@ func (r *httpRpc) put() {
 	var request *http.Request
 	url := r.getUrl()
 	if len(r.Request.BodyJson) > 0 {
-		request, r.Error = http.NewRequest("PUT", url, bytes.NewReader(r.Request.BodyJson))
+		r.Request.Header.Add("Content-Type", "application/json")
+		request, r.Error = http.NewRequest(http.MethodPut, url, bytes.NewReader(r.Request.BodyJson))
 	} else {
-		request, r.Error = http.NewRequest("PUT", url, nil)
+		request, r.Error = http.NewRequest(http.MethodPut, url, nil)
 	}
 	request.Header = r.Request.Header
 	if len(r.Request.Value) > 0 {
@@ -200,9 +202,10 @@ func (r *httpRpc) patch() {
 	var request *http.Request
 	url := r.getUrl()
 	if len(r.Request.BodyJson) > 0 {
-		request, r.Error = http.NewRequest("PATCH", url, bytes.NewReader(r.Request.BodyJson))
+		r.Request.Header.Add("Content-Type", "application/json")
+		request, r.Error = http.NewRequest(http.MethodPatch, url, bytes.NewReader(r.Request.BodyJson))
 	} else {
-		request, r.Error = http.NewRequest("PATCH", url, nil)
+		request, r.Error = http.NewRequest(http.MethodPatch, url, nil)
 	}
 	request.Header = r.Request.Header
 	if len(r.Request.Value) > 0 {
@@ -214,15 +217,13 @@ func (r *httpRpc) post() {
 	var request *http.Request
 	url := r.getUrl()
 	if len(r.Request.BodyJson) > 0 {
-		request, r.Error = http.NewRequest("POST", url, bytes.NewReader(r.Request.BodyJson))
+		r.Request.Header.Add("Content-Type", "application/json")
+		request, r.Error = http.NewRequest(http.MethodPost, url, bytes.NewReader(r.Request.BodyJson))
 	} else {
-		request, r.Error = http.NewRequest("POST", url, nil)
+		r.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		request, r.Error = http.NewRequest(http.MethodPost, url, strings.NewReader(r.Request.Value.Encode()))
 	}
 	request.Header = r.Request.Header
-	if len(r.Request.Value) > 0 {
-		request.PostForm = r.Request.Value
-	}
-
 	r.resp, r.Error = r.client.Do(request)
 }
 
