@@ -52,7 +52,7 @@ func (r GOrmLog) Print(v ...interface{}) () {
 			switch value.(type) {
 			case *mysql.MySQLError:
 				tmp := value.(*mysql.MySQLError)
-				r.logger.Info(nil, fields, fmt.Sprintf("%+v", *tmp))
+				r.logger.Error(nil, fields, fmt.Sprintf("%+v", *tmp))
 			default:
 				r.logger.Info(nil, fields, fmt.Sprintf("%+v", v[2]))
 			}
