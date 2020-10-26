@@ -35,7 +35,7 @@ type RequestOptions struct {
 	BodyJson       []byte        `json:"body_json"` // json数据传递
 	PathVersion    string        `json:"path_version"`
 	NotMicro       bool          `json:"not_micro"`        // 不是微服务应用
-	Context        *base.Context `json:"context"`          // 上下文传参 操作日志对象
+	Context        *base.Context `json:"-"`                // 上下文传参 操作日志对象
 	ConnectTimeOut time.Duration `json:"connect_time_out"` // 请求连接超时时长 默认300毫秒(建立HTTP请求的时长)
 	RequestTimeOut time.Duration `json:"request_time_out"` // 获取请求时长 默认5秒(获取数据的时长)
 
