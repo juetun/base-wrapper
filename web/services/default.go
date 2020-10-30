@@ -14,7 +14,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/juetun/base-wrapper/lib/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/base-wrapper/lib/tool"
+	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/juetun/base-wrapper/web/daos"
 	"github.com/juetun/base-wrapper/web/pojos"
 	"log"
@@ -51,7 +51,7 @@ func (r *ServiceDefault) TestEs(arg *pojos.ArgumentDefault) (result interface{},
 	// An `ELASTICSEARCH_URL` environment variable will be used when exported.
 	//
 	es := app_obj.GetElasticSearchMaps()
-	opEs := tool.NewOperateElasticSearch(es)
+	opEs := common.NewOperateElasticSearch(es)
 	esInfo, err := opEs.GetClusterInfo()
 	log.Printf("%#v", esInfo)
 

@@ -5,6 +5,7 @@ import (
 	"io"
 	systemLog "log"
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -33,8 +34,14 @@ func GetLog() *AppLog {
 	return logApp
 }
 func (r *AppLog) getFields() (res logrus.Fields) {
+	var file = "-" //获取当前日志写入时的代码位置 （文件名称，函数名称）
+	// 获取上层调用者PC，文件名，所在行	// 拼接文件名与所在行
+	if pc, codePath, codeLine, ok := runtime.Caller(2); ok {
+		file = fmt.Sprintf("file:%s(func %s),line:%d", codePath, runtime.FuncForPC(pc).Name(), codeLine)
+	}
 	res = logrus.Fields{
 		app_obj.APP_LOG_KEY: app_obj.App.AppName,
+		app_obj.APP_LOG_LOC: file,
 	}
 	return
 }
@@ -44,6 +51,7 @@ func (r *AppLog) Error(context *gin.Context, data map[string]interface{}, messag
 	if context != nil {
 		fields[app_obj.TRACE_ID] = context.GetHeader(app_obj.HTTP_TRACE_ID)
 	}
+
 	if len(data) > 0 {
 		for key, value := range data {
 			fields[key] = value
