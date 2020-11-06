@@ -23,7 +23,6 @@ func main() {
 		PluginShortMessage,
 		PluginAppMap,
 		// plugins.PluginOss,
-		PluginUser, // 用户登录,jwt等用户信息逻辑处理
 	).LoadPlugins() // 加载插件动作
 
 	// 启动GIN服务

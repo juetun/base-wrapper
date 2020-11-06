@@ -30,6 +30,9 @@ func (r *operateElasticSearch) GetClusterInfo() (result EsInfo, err error) {
 	result = EsInfo{
 		ClientVersion: elasticsearch.Version,
 	}
+	if r.es==nil{
+		return
+	}
 	res, err := r.es.Info()
 	if err != nil {
 		return

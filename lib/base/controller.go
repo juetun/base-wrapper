@@ -6,16 +6,15 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/base-wrapper/lib/app_log"
 	"github.com/juetun/base-wrapper/lib/app_obj"
 )
 
 type ControllerBase struct {
-	Log *app_log.AppLog
+	Log *app_obj.AppLog
 }
 
 func (r *ControllerBase) Init() *ControllerBase {
-	r.Log = app_log.GetLog()
+	r.Log = app_obj.GetLog()
 	return r
 }
 

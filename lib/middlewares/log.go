@@ -14,12 +14,12 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/base-wrapper/lib/app_log"
+	"github.com/juetun/base-wrapper/lib/app_obj"
 	"github.com/sirupsen/logrus"
 )
 
 // gin框架日志收集
-func GinLogCollect(logger *app_log.AppLog) gin.HandlerFunc {
+func GinLogCollect(logger *app_obj.AppLog) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 		defer func() { // 异步操作写日志
@@ -28,7 +28,7 @@ func GinLogCollect(logger *app_log.AppLog) gin.HandlerFunc {
 		c.Next()
 	}
 }
-func delayExecGinLogCollect(start time.Time, c *gin.Context, path *url.URL, logger *app_log.AppLog) {
+func delayExecGinLogCollect(start time.Time, c *gin.Context, path *url.URL, logger *app_obj.AppLog) {
 	c.Request.URL.RawQuery, _ = url.QueryUnescape(c.Request.URL.RawQuery)
 	var bodyBytes []byte
 	if c.Request.Body != nil {

@@ -12,7 +12,6 @@ import (
 
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/base-wrapper/lib/app_log"
 	"github.com/juetun/base-wrapper/lib/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
@@ -51,7 +50,7 @@ func NewWebApplication(privateMiddleWares ...gin.HandlerFunc) *WebApplication {
 	// gin加载中间件
 	webApp.GinEngine.Use(middlewares.MiddleWareComponent...)
 
-	logger := app_log.GetLog()
+	logger := app_obj.GetLog()
 
 	// 日志对象获取
 	webApp.GinEngine.Use(middlewares.GinLogCollect(logger))

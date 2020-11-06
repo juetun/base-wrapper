@@ -40,6 +40,8 @@ func PluginShortMessage() (err error) {
 	}
 
 	app_obj.ShortMessageObj = app_obj.NewShortMessage(shortHandle)
+
+
 	// 监听配置变动
 	viper.WatchConfig()
 	viper.OnConfigChange(databaseFileChange)

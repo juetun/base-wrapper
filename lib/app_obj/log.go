@@ -19,11 +19,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-
 var logConfig *OptionLog
 
 type OptionLog struct {
-	Outputs         []string     `json:"outputs" yml:"outputs"`                   // []string{"stdout","file"}
+	Outputs         []string `json:"outputs" yml:"outputs"`                       // []string{"stdout","file"}
 	LogFileConfig                                                                 // 配置文件信息. 当Outputs值中有输入出到文件标记"file"时有效.
 	Format          string       `json:"format" yml:"format"`                     // 日志格式 "json"
 	LogCollectLevel logrus.Level `json:"log_collect_level" yml:"logcollectlevel"` // 日志收集等级

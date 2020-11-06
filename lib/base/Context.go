@@ -14,7 +14,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
-	"github.com/juetun/base-wrapper/lib/app_log"
 	"github.com/juetun/base-wrapper/lib/app_obj"
 )
 
@@ -33,7 +32,7 @@ func NewContext(contextOption ...ContextOption) *Context {
 }
 
 type Context struct {
-	Log         *app_log.AppLog `json:"log"`
+	Log         *app_obj.AppLog `json:"log"`
 	Db          *gorm.DB        `json:"db"`
 	CacheClient *redis.Client   `json:"cache_client"`
 	GinContext  *gin.Context
@@ -41,7 +40,7 @@ type Context struct {
 }
 type ContextOption func(context *Context)
 
-func Log(opt *app_log.AppLog) ContextOption {
+func Log(opt *app_obj.AppLog) ContextOption {
 	return func(context *Context) {
 		context.Log = opt
 	}
@@ -65,7 +64,7 @@ func (r *Context) InitContext() (c *Context) {
 	r.syncLog.Lock()
 	defer r.syncLog.Unlock()
 	if r.Log == nil {
-		r.Log = app_log.GetLog()
+		r.Log = app_obj.GetLog()
 	}
 	s := ""
 	if nil != r.GinContext {

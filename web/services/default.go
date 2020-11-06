@@ -171,3 +171,7 @@ func (r *ServiceDefault) TestEs(arg *pojos.ArgumentDefault) (result interface{},
 	log.Println(strings.Repeat("=", 37))
 	return
 }
+func (r *ServiceDefault) Tmain(arg *pojos.ArgumentDefault) (result interface{}, err error) {
+
+	return
+}

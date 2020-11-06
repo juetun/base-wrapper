@@ -15,7 +15,7 @@ import (
 	"net/smtp"
 	"strings"
 
-	"github.com/juetun/base-wrapper/lib/app_log"
+	"github.com/juetun/base-wrapper/lib/app_obj"
 )
 
 const MAIlTYPE = "html"
@@ -42,7 +42,7 @@ type EM func(*EmailParam) (interface{}, error)
 
 func (et EmailType) CheckIsNull() error {
 	if string(et) == "" {
-		app_log.GetLog().Logger.Errorln("message", "value can not be null")
+		app_obj.GetLog().Logger.Errorln("message", "value can not be null")
 		return errors.New("value can not be null")
 	}
 	return nil
@@ -75,7 +75,7 @@ func (ep *EmailParam) SetMailPwd(pwd EmailType) EM {
 func (et EmailType) IsRight() error {
 	arr := strings.Split(string(et), ":")
 	if len(arr) != 2 {
-		app_log.GetLog().Logger.Errorln("may be is not semicolon")
+		app_obj.GetLog().Logger.Errorln("may be is not semicolon")
 		return errors.New("may be is not semicolon")
 	}
 	mailAddr = arr[0]
@@ -200,11 +200,11 @@ func (ep *EmailParam) SendMail2(to string) error {
 		mime.Write(b)
 	}
 
-	app_log.GetLog().Logger.Infoln("message", "mail to the last")
+	app_obj.GetLog().Logger.Infoln("message", "mail to the last")
 	mime.WriteString("\r\n--" + boundary + "--\r\n\r\n")
 	auth := smtp.PlainAuth("", user, password, mailAddr)
 	err := smtp.SendMail(host, auth, user, sendTo, mime.Bytes())
-	app_log.GetLog().Logger.Infoln("message", "mail to the last", "last", err)
+	app_obj.GetLog().Logger.Infoln("message", "mail to the last", "last", err)
 	return err
 }
 
@@ -225,6 +225,6 @@ func SendMail(to string, subject string, body string) error {
 	msg = []byte(subject + contentType + body)
 	sendTo := strings.Split(to, ";")
 	err := smtp.SendMail(host, auth, user, sendTo, msg)
-	app_log.GetLog().Logger.Infoln("message", "SendMail", "last", err)
+	app_obj.GetLog().Logger.Infoln("message", "SendMail", "last", err)
 	return err
 }

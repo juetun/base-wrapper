@@ -148,6 +148,7 @@ func (r *httpRpc) initClient() (res *httpRpc) {
 	}
 	return
 }
+
 func (r *httpRpc) DefaultBaseUrl() {
 	if _, ok := app_obj.AppMap[r.Request.AppName]; !ok {
 		r.Error = fmt.Errorf("base url config is not exists(%s)", r.Request.AppName)
@@ -250,12 +251,14 @@ func (r *httpRpc) Bind(obj interface{}) (res *httpRpc) {
 	}
 	return
 }
+
 func (r *httpRpc) GetBodyAsString() (res string) {
 	if len(r.Body) > 0 {
 		res = string(r.Body)
 	}
 	return
 }
+
 func (r *httpRpc) GetBody() (res *httpRpc) {
 	res = r
 	if r.Error != nil {

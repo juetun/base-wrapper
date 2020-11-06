@@ -7,7 +7,7 @@
 package utils
 
 import (
-	"github.com/juetun/base-wrapper/lib/app_log"
+	"github.com/juetun/base-wrapper/lib/app_obj"
 	"github.com/speps/go-hashids"
 )
 
@@ -49,7 +49,7 @@ func (hd *HashIdParams) HashIdInit(options ...func(*HashIdParams) interface{}) (
 	hds.MinLength = hashIdParams.MinLength
 	h, err := hashids.NewWithData(hds)
 	if err != nil {
-		app_log.GetLog().Logger.Errorln("content", "hash new with data is error", "error", err.Error())
+		app_obj.GetLog().Logger.Errorln("content", "hash new with data is error", "error", err.Error())
 		return nil, err
 	}
 	return h, nil

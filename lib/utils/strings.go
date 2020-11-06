@@ -13,6 +13,7 @@ import (
 	"strings"
 )
 
+//字符串加密 md5算法
 func Md5(s string) string {
 	c := md5.New()
 	c.Write([]byte(s))
@@ -86,5 +87,16 @@ func SubString(s string, num int, suffix ...string) (res string) {
 		i++
 	}
 	res = string(b) + strings.Join(suffix, "")
+	return
+}
+
+//将字符串转换为数字
+//@param s
+//@return int64
+func GetStringUniqueNumber(s string) (num int64) {
+	sp := []rune(s)
+	for _, value := range sp {
+		num += int64(value)
+	}
 	return
 }

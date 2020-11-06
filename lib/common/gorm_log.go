@@ -13,13 +13,12 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
-	"github.com/juetun/base-wrapper/lib/app_log"
 	"github.com/juetun/base-wrapper/lib/app_obj"
 	"github.com/sirupsen/logrus"
 )
 
 type GOrmLog struct {
-	logger *app_log.AppLog
+	logger *app_obj.AppLog
 	Db     *gorm.DB
 }
 
@@ -27,7 +26,7 @@ func NewGOrmLog(db *gorm.DB) (res *GOrmLog) {
 	// app_log.GetLog().Logger
 	return &GOrmLog{
 		Db:     db,
-		logger: app_log.GetLog(),
+		logger: app_obj.GetLog(),
 	}
 }
 func (r GOrmLog) Print(v ...interface{}) () {

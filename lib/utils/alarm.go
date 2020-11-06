@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"github.com/go-errors/errors"
-	"github.com/juetun/base-wrapper/lib/app_log"
+	"github.com/juetun/base-wrapper/lib/app_obj"
 )
 
 // Define AlarmType to string
@@ -33,7 +33,7 @@ const (
 type AlarmParam struct {
 	Types  AlarmType
 	MailTo AlarmMailReceive
-	Log    *app_log.AppLog
+	Log    *app_obj.AppLog
 }
 
 var alarmParam *AlarmParam
@@ -83,7 +83,7 @@ func (alarm *AlarmParam) SetMailTo(t AlarmMailReceive) ap {
 // alarm receive account can not null
 func (t AlarmMailReceive) CheckIsNull() (AlarmMailReceive, error) {
 	if len(t) == 0 {
-		app_log.GetLog().Logger.Errorln("content", "value can not be null")
+		app_obj.GetLog().Logger.Errorln("content", "value can not be null")
 		return "", errors.New("value can not be null")
 	}
 	return t, nil
@@ -92,7 +92,7 @@ func (t AlarmMailReceive) CheckIsNull() (AlarmMailReceive, error) {
 // alarm receive account must be mail format
 func (t AlarmMailReceive) MustMailFormat() (AlarmMailReceive, error) {
 	if m, _ := regexp.MatchString("^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+", string(t)); !m {
-		app_log.GetLog().Logger.Errorln("content", "value format is not right")
+		app_obj.GetLog().Logger.Errorln("content", "value format is not right")
 		return "", errors.New("value format is not right")
 	}
 	return t, nil
@@ -107,7 +107,7 @@ func (at AlarmType) IsCurrentType() (res AlarmType, err error) {
 	case AlarmTypeTwo:
 	case AlarmTypeThree:
 	default:
-		app_log.GetLog().Logger.Errorln("content", "the alarm type is error")
+		app_obj.GetLog().Logger.Errorln("content", "the alarm type is error")
 		err = fmt.Errorf("the alarm type is error")
  	}
 	return
@@ -134,7 +134,7 @@ func Alarm(content string) {
 		switch AlarmType(a) {
 		case AlarmTypeOne:
 			if alarmParam.MailTo == "" {
-				app_log.GetLog().Logger.Errorln("content", "邮件接收者不能为空")
+				app_obj.GetLog().Logger.Errorln("content", "邮件接收者不能为空")
 				break
 			}
 			err = SendMail(string(alarmParam.MailTo), "报警", content)
@@ -145,7 +145,7 @@ func Alarm(content string) {
 			break
 		}
 		if err != nil {
-			app_log.GetLog().Logger.Errorln("content", "alarm is error,err:"+err.Error())
+			app_obj.GetLog().Logger.Errorln("content", "alarm is error,err:"+err.Error())
 		}
 	}
 }

@@ -11,7 +11,7 @@ type Object struct {
 func NewHttpResult() *HttpResult {
 	return &HttpResult{
 		Code:    0,
-		Data:    Object{},
+		Data:   new(Object),
 		Message: "ok",
 	}
 }

@@ -1,4 +1,7 @@
-package app_log
+// @Copyright (c) 2020.
+// @Author ${USER}
+// @Date ${DATE}
+package app_obj
 
 import (
 	"fmt"
@@ -9,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/base-wrapper/lib/app_obj"
 	"github.com/sirupsen/logrus"
 )
 
@@ -36,12 +38,15 @@ func GetLog() *AppLog {
 func (r *AppLog) getFields() (res logrus.Fields) {
 	var file = "-" //获取当前日志写入时的代码位置 （文件名称，函数名称）
 	// 获取上层调用者PC，文件名，所在行	// 拼接文件名与所在行
-	if pc, codePath, codeLine, ok := runtime.Caller(2); ok {
-		file = fmt.Sprintf("file:%s(func %s),line:%d", codePath, runtime.FuncForPC(pc).Name(), codeLine)
+	if _, codePath, codeLine, ok := runtime.Caller(2); ok {
+		file = fmt.Sprintf("%s(line:%d)",
+			codePath,
+			//runtime.FuncForPC(pc).Name(),
+			codeLine)
 	}
 	res = logrus.Fields{
-		app_obj.APP_LOG_KEY: app_obj.App.AppName,
-		app_obj.APP_LOG_LOC: file,
+		APP_LOG_KEY: App.AppName,
+		APP_LOG_LOC: file,
 	}
 	return
 }
@@ -49,7 +54,7 @@ func (r *AppLog) getFields() (res logrus.Fields) {
 func (r *AppLog) Error(context *gin.Context, data map[string]interface{}, message ...interface{}) {
 	fields := r.getFields()
 	if context != nil {
-		fields[app_obj.TRACE_ID] = context.GetHeader(app_obj.HTTP_TRACE_ID)
+		fields[TRACE_ID] = context.GetHeader(HTTP_TRACE_ID)
 	}
 
 	if len(data) > 0 {
@@ -62,7 +67,7 @@ func (r *AppLog) Error(context *gin.Context, data map[string]interface{}, messag
 func (r *AppLog) Info(context *gin.Context, data map[string]interface{}, message ...interface{}) {
 	fields := r.getFields()
 	if context != nil {
-		fields[app_obj.TRACE_ID] = context.GetHeader(app_obj.HTTP_TRACE_ID)
+		fields[TRACE_ID] = context.GetHeader(HTTP_TRACE_ID)
 	}
 	if len(data) > 0 {
 		for key, value := range data {
@@ -74,7 +79,7 @@ func (r *AppLog) Info(context *gin.Context, data map[string]interface{}, message
 func (r *AppLog) Debug(context *gin.Context, data map[string]interface{}, message ...interface{}) {
 	fields := r.getFields()
 	if context != nil {
-		fields[app_obj.TRACE_ID] = context.GetHeader(app_obj.HTTP_TRACE_ID)
+		fields[TRACE_ID] = context.GetHeader(HTTP_TRACE_ID)
 	}
 	if len(data) > 0 {
 		for key, value := range data {
@@ -86,7 +91,7 @@ func (r *AppLog) Debug(context *gin.Context, data map[string]interface{}, messag
 func (r *AppLog) Fatal(context *gin.Context, data map[string]interface{}, message ...interface{}) {
 	fields := r.getFields()
 	if context != nil {
-		fields[app_obj.TRACE_ID] = context.GetHeader(app_obj.HTTP_TRACE_ID)
+		fields[TRACE_ID] = context.GetHeader(HTTP_TRACE_ID)
 	}
 	if len(data) > 0 {
 		for key, value := range data {
@@ -96,13 +101,6 @@ func (r *AppLog) Fatal(context *gin.Context, data map[string]interface{}, messag
 	r.Logger.WithFields(fields).Fatal(message)
 }
 
-// func (r *AppLog) ErrorFields(fields logrus.Fields, message ...interface{}) {
-// 	r.Logger.WithFields(fields).Error(message)
-// }
-// func (r *AppLog) InfoFields(fields logrus.Fields, message ...interface{}) {
-// 	r.Logger.WithFields(fields).Info(message)
-// }
-
 // 初始化日志操作对象
 func InitAppLog() {
 	systemLog.Printf("【INFO】初始化日志操作对象")
@@ -110,7 +108,7 @@ func InitAppLog() {
 	logApp = newAppLog()
 
 	// 获取日志配置
-	logConfig := app_obj.GetLogConfig()
+	logConfig := GetLogConfig()
 
 	// 设置日志输出格式
 	logFormatter(logConfig, logApp.Logger)
@@ -122,7 +120,7 @@ func InitAppLog() {
 	logApp.Logger.SetLevel(logConfig.LogCollectLevel)
 
 }
-func logFormatter(logConfig *app_obj.OptionLog, log *logrus.Logger) {
+func logFormatter(logConfig *OptionLog, log *logrus.Logger) {
 	switch strings.ToLower(logConfig.Format) { // 日志格式
 	case "json":
 		log.SetFormatter(&logrus.JSONFormatter{})
@@ -131,7 +129,7 @@ func logFormatter(logConfig *app_obj.OptionLog, log *logrus.Logger) {
 	}
 
 }
-func outputWriter(config *app_obj.OptionLog, log *logrus.Logger) {
+func outputWriter(config *OptionLog, log *logrus.Logger) {
 	var ioWriter []io.Writer
 	for _, value := range config.Outputs {
 		switch strings.ToLower(value) {

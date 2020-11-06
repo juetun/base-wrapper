@@ -13,7 +13,7 @@ import (
 
 	"github.com/astaxie/beego/validation"
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/base-wrapper/lib/app_log"
+	"github.com/juetun/base-wrapper/lib/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 )
 
@@ -41,7 +41,7 @@ func (r *Gin) Validate(obj validate) bool {
 	valid := validation.Validation{}
 	b, err := valid.Valid(obj)
 	if err != nil {
-		app_log.GetLog().Error(r.C,
+		app_obj.GetLog().Error(r.C,
 			map[string]interface{}{
 				"message": "valid error",
 				"err":     err.Error(),

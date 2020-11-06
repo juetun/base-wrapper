@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/juetun/base-wrapper/lib/app_log"
 	"github.com/juetun/base-wrapper/lib/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
@@ -28,7 +27,7 @@ func PluginLog() (err error) {
 	app_obj.InitConfig(&configLogFile)
 
 	// 初始化日志操作对象
-	app_log.InitAppLog()
+	app_obj.InitAppLog()
 	io.SystemOutPrintln("Init log finished")
 	return
 }
