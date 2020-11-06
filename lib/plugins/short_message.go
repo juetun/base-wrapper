@@ -21,7 +21,7 @@ func PluginShortMessage() (err error) {
 
 	configSource.AddConfigPath(dir)   // path to look for the config file in
 	err = configSource.ReadInConfig() // Find and read the config file
-	if err != nil {                   // Handle errors reading the config file
+	if err != nil { // Handle errors reading the config file
 		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("Fatal error  short message file: %v \n", err))
 		return
 	}
@@ -41,7 +41,6 @@ func PluginShortMessage() (err error) {
 
 	app_obj.ShortMessageObj = app_obj.NewShortMessage(shortHandle)
 
-
 	// 监听配置变动
 	viper.WatchConfig()
 	viper.OnConfigChange(databaseFileChange)
@@ -53,6 +52,8 @@ func initShortMessage(nameSpace string, shortMessageConfig *ShortMessageConfig) 
 	switch nameSpace { // 短信通道配置 结构体映射
 	case "100sms":
 		res = short_message_impl.NewSms100()
+	case "feige":
+
 	default:
 		panic(fmt.Sprintf("当前不支持此通道(%s)", nameSpace))
 	}
@@ -60,6 +61,7 @@ func initShortMessage(nameSpace string, shortMessageConfig *ShortMessageConfig) 
 }
 
 type ShortMessageConfig struct {
+	Url       string `json:"url" yml:"Url"`
 	AppKey    string `json:"app_key" yml:"AppKey"`
 	AppSecret string `json:"app_secret" yml:"AppSecret"`
 }

@@ -20,4 +20,5 @@ require (
 	github.com/sirupsen/logrus v1.5.0
 	github.com/speps/go-hashids v2.0.0+incompatible
 	github.com/spf13/viper v1.6.2
+	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
 )

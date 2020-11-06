@@ -13,12 +13,15 @@ package controllers
 
 import (
 	"fmt"
+	"log"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/web/pojos"
 	"github.com/juetun/base-wrapper/web/services"
+	"golang.org/x/net/websocket"
 )
 
 type ControllerPage struct {
@@ -30,6 +33,33 @@ func NewControllerPage() (p *ControllerPage) {
 	p.ControllerBase.Init()
 	return p
 }
+
+//web socket操作
+func (r *ControllerPage) Websocket(conn *websocket.Conn) {
+	for {
+		var msg string
+		if err := websocket.Message.Receive(conn, &msg); err != nil {
+			log.Println(err)
+			return
+		}
+		log.Printf("recv: %v", msg)
+		go func() {
+			time.Sleep(time.Second * 1)
+			data := []byte(
+				"延迟发送" + time.Now().Format(time.RFC3339))
+			if _, err := conn.Write(data); err != nil {
+				log.Println(err)
+				return
+			}
+		}()
+		data := []byte(time.Now().Format(time.RFC3339))
+		if _, err := conn.Write(data); err != nil {
+			log.Println(err)
+			return
+		}
+	}
+}
+
 func (r *ControllerPage) Main(c *gin.Context) {
 	keyList := app_obj.ShortMessageObj.GetChannelKey()
 	fmt.Println("当前支持的通道号有:", keyList)

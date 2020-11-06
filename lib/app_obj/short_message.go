@@ -65,7 +65,7 @@ func (r *shortMessage) SendMsg(param *MessageArgument) (channelName string, err 
 	return
 }
 
-//获取渠道列表
+//获取短信渠道列表
 func (r *shortMessage) GetChannelKey() (res []string) {
 	res = make([]string, 0, len(r.channelListHandler))
 	for key, _ := range r.channelListHandler {
