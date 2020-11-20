@@ -12,6 +12,7 @@
 package controllers
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -29,8 +30,10 @@ type ControllerPage struct {
 }
 
 func NewControllerPage() (p *ControllerPage) {
-	p = &ControllerPage{}
-	p.ControllerBase.Init()
+
+	controller := &ControllerPage{}
+	controller.Init()
+	controller.MainTplFile = "car_master.htm"
 	return p
 }
 
@@ -59,15 +62,14 @@ func (r *ControllerPage) Websocket(conn *websocket.Conn) {
 		}
 	}
 }
-
-func (r *ControllerPage) Main(c *gin.Context) {
+func (r *ControllerPage) shortMessage(c *gin.Context) {
 	keyList := app_obj.ShortMessageObj.GetChannelKey()
 	fmt.Println("当前支持的通道号有:", keyList)
-	app_obj.ShortMessageObj.SendMsg(&app_obj.MessageArgument{
-		Mobile:   "",
-		AreaCode: "86",
-		Content:  "",
-	})
+	//app_obj.ShortMessageObj.SendMsg(&app_obj.MessageArgument{
+	//	Mobile:   "",
+	//	AreaCode: "86",
+	//	Content:  "",
+	//})
 
 	var err error
 	var arg pojos.ArgumentDefault
@@ -88,4 +90,24 @@ func (r *ControllerPage) Main(c *gin.Context) {
 	}
 
 	r.ResponseResult(c, result)
+}
+
+func (r *ControllerPage) Main(c *gin.Context) {
+	var err error
+	var arg = pojos.ArgumentDefault{}
+	h := gin.H{
+	}
+	err = c.BindQuery(&arg)
+	h["data"] = "haha"
+	if err != nil {
+		return
+	}
+	s:=base.NewBlock(
+		base.Data(h),
+		base.Ctx(context.TODO()),
+		base.TempFile("/Users/zhaochangjiang/go/src/github.com/juetun/base-wrapper/web/views/a.html"),
+	).Run()
+	fmt.Println(s)
+	//r.ResponseHtml(c, r.MainTplFile, h)
+
 }

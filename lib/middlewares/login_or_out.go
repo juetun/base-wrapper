@@ -24,7 +24,7 @@ func AuthParse(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 		//
 		jwtUser, _ = tokenValidate(c, true)
 
-		if len(callBacks) == 0 { //如果没配置回调 则直接结束
+		if callBacks == nil && len(callBacks) == 0 { //如果没配置回调 则直接结束
 			c.Next()
 			return
 		}

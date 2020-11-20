@@ -18,3 +18,8 @@ type (
 		Users []models.User
 	}
 )
+
+func (r *ArgumentDefault) SetPathParam(hid string) {
+
+	return
+}
