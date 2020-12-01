@@ -108,6 +108,6 @@ func (r *ControllerPage) Main(c *gin.Context) {
 		base.TempFile("/Users/zhaochangjiang/go/src/github.com/juetun/base-wrapper/web/views/a.html"),
 	).Run()
 	fmt.Println(s)
-	//r.ResponseHtml(c, r.MainTplFile, h)
+	r.ResponseHtml(c, r.MainTplFile, h)
 
 }

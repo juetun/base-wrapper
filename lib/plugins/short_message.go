@@ -53,9 +53,9 @@ func initShortMessage(nameSpace string, shortMessageConfig *ShortMessageConfig) 
 	case "100sms":
 		res = short_message_impl.NewSms100()
 	case "feige":
-
+		res = short_message_impl.NewFeiGe()
 	default:
-		panic(fmt.Sprintf("当前不支持此通道(%s)", nameSpace))
+		panic(fmt.Sprintf("当前不支持此短信通道(%s)", nameSpace))
 	}
 	return
 }
