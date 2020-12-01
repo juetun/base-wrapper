@@ -72,9 +72,7 @@ func (r *ControllerBase) ResponseError(c *gin.Context, err error) {
 	c.JSON(http.StatusOK, result)
 	return
 }
-func (r *ControllerBase) ResponseHtml(c *gin.Context, tpl string, data gin.H) {
-	c.HTML(http.StatusOK, tpl, data)
-}
+
 func (r *ControllerBase) ResponseCommonHtml(c *gin.Context, code int, data gin.H, extName ...string) {
 	defaultExt := "tmpl"
 	if len(extName) > 0 {

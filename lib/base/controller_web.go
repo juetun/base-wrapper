@@ -13,9 +13,11 @@ package base
 
 import (
 	"bytes"
-	"github.com/juetun/base-wrapper/lib/common/response"
 	"html/template"
+	"net/http"
 	"strings"
+
+	"github.com/juetun/base-wrapper/lib/common/response"
 
 	"github.com/gin-gonic/gin"
 )
@@ -43,6 +45,11 @@ type BreadCrumb struct {
 
 func Init() {
 
+}
+
+//渲染html
+func (r *ControllerWeb) ResponseHtml(c *gin.Context, tpl string, data gin.H) {
+	c.HTML(http.StatusOK, tpl, data)
 }
 
 // 获取详情的扩展名

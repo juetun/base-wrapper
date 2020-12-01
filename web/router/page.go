@@ -17,6 +17,7 @@ func init() {
 			page := controllers.NewControllerPage()
 			p := r.Group(urlPrefix, middlewares.AuthParse())
 			p.GET("/page", page.Main)
+			p.GET("/test", page.Tsst)
 			p.GET("/ws", common.GinWebsocketHandler(page.Websocket))
 		})
 }

@@ -20,7 +20,7 @@ func main() {
 	app_start.NewPluginsOperate().Use(
 		PluginJwt, // 加载用户验证插件,必须放在Redis插件后
 		// PluginElasticSearchV7,
-		//PluginShortMessage,
+		PluginShortMessage,
 		PluginAppMap,
 		// plugins.PluginOss,
 	).LoadPlugins() // 加载插件动作

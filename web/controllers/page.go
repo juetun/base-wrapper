@@ -91,23 +91,25 @@ func (r *ControllerPage) shortMessage(c *gin.Context) {
 
 	r.ResponseResult(c, result)
 }
+func (r *ControllerPage) Tsst(c *gin.Context) {
 
+}
 func (r *ControllerPage) Main(c *gin.Context) {
 	var err error
 	var arg = pojos.ArgumentDefault{}
-	h := gin.H{
-	}
-	err = c.BindQuery(&arg)
-	h["data"] = "haha"
-	if err != nil {
+	if err = c.BindQuery(&arg); err != nil {
 		return
 	}
-	s:=base.NewBlock(
+	context := context.TODO()
+	h := gin.H{"data": "haha",}
+	if h["show"], err = base.NewBlock(
+		base.CacheBlock(&base.BlockCache{}),
 		base.Data(h),
-		base.Ctx(context.TODO()),
+		base.Ctx(context),
 		base.TempFile("/Users/zhaochangjiang/go/src/github.com/juetun/base-wrapper/web/views/a.html"),
-	).Run()
-	fmt.Println(s)
+	).Run(); err != nil {
+		return
+	}
 	r.ResponseHtml(c, r.MainTplFile, h)
 
 }
