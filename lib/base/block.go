@@ -32,6 +32,9 @@ type BlockCacheInterface interface {
 type Handler func(block *Block) (err error)
 
 //页面操作对象
+//缓存规则：
+// 1、如果父block的缓存时间大于0，则子BLOCK设置了时间也不缓存，
+// 2、如果父BLOCK的缓存时间为0，则子BLOCK的缓存时间有效
 type Block struct {
 	Ctx                   context.Context `json:"ctx"`                     //上下文的操作对象 ，此处主要用来传递上下文参数
 	ParentBlockCache      *BlockCache     `json:"parent_block_cache"`      //当前Block的父Block
@@ -52,6 +55,7 @@ type BlockCache struct {
 	CacheType  string              `json:"cache_type"`  //当前界面缓存类型 如 file:文件缓存,redis:缓存，database:数据库缓存
 	Cache      BlockCacheInterface `json:"cache"`       //当前界面缓存的相关信息
 	CacheKey   string              `json:"cache_key"`
+	CacheData  string              `json:"cache_data"` //解析后台生成的html代码，（写入缓存的数据内容）
 }
 
 //判断文件目录是否存在
@@ -66,9 +70,15 @@ func (r *Block) Exists(path string) bool {
 	return true
 }
 
+//模板文件路径
+func (r *Block) tempFilePath() {
+	r.TempFile = r.TemplateBaseDirectory + r.TempFile
+}
+
 //将HTML模板文件绑定参数
 func (r *Block) ParseHtml() (res string, err error) {
 	var tmp *template.Template
+	r.tempFilePath()
 
 	if !r.Exists(r.TempFile) {
 		if err = fmt.Errorf("the template file(%s) is not exists",
@@ -81,7 +91,7 @@ func (r *Block) ParseHtml() (res string, err error) {
 	buf := new(bytes.Buffer)
 
 	//拼接TemplateFile path
-	if tmp, err = template.ParseFiles(r.TemplateBaseDirectory + r.TempFile); err != nil {
+	if tmp, err = template.ParseFiles(r.TempFile); err != nil {
 		return
 	} else {
 		tmp.Execute(buf, r.Data)
@@ -142,36 +152,16 @@ func (r *Block) getKey() (res string) {
 	return
 }
 
-//解析模板数据
-func (r *Block) Run() (res string, err error) {
-
-	r.defaultValue() //初始化默认值
-
-	if res, err = r.getCache(); err != nil {
-		return
-	}
-
-	for _, item := range r.ChildBock {
-		r.setChildContext(item)
-		if r.Data[item.Name], err = item.Run(); err != nil {
-			return
-		}
-	}
-
+func (r *Block) before() (err error) {
 	//如果配置了运行后执行
 	for _, runBefore := range r.RunBefore {
 		if err = runBefore(r); err != nil {
 			return
 		}
 	}
-	if res, err = r.ParseHtml(); err != nil {
-		return
-	}
-
-	//将数据写入缓存
-	if err = r.writeToCache(res); err != nil {
-		return
-	}
+	return
+}
+func (r *Block) after() (err error) {
 	//如果配置了运行后执行
 	for _, runAfter := range r.RunAfter {
 		if err = runAfter(r); err != nil {
@@ -181,8 +171,55 @@ func (r *Block) Run() (res string, err error) {
 	return
 }
 
+//解析模板数据
+func (r *Block) Run() (res string, err error) {
+
+	//初始化默认值
+	if err = r.defaultValue(); err != nil {
+		return
+	}
+
+	//获取缓存数据或者解析Block之前的动作
+	if err = r.before(); err != nil {
+		return
+	}
+	//从缓存中拿数据
+	if res, err = r.getCache(); err != nil {
+		r.CacheBlock.CacheData = res
+		if res != "" {
+			err = r.after()
+			return
+		}
+	}
+
+	for _, item := range r.ChildBock {
+		r.setChildContext(item) //传递上下文参数
+		if r.Data[item.Name], err = item.Run(); err != nil {
+			return
+		}
+	}
+
+	//解析HTML模板代码
+	if r.CacheBlock.CacheData, err = r.ParseHtml(); err != nil {
+		return
+	}
+
+	//返回值赋值在after后的目的是，可以通过后边的注入修改缓存值
+	if err = r.after(); err != nil {
+		return
+	}
+
+	res = r.CacheBlock.CacheData
+	//将数据写入缓存
+	if err = r.writeToCache(r.CacheBlock.CacheData); err != nil {
+		return
+	}
+
+	return
+}
+
 //BLOCK 默认数据逻辑处理
-func (r *Block) defaultValue() {
+func (r *Block) defaultValue() (err error) {
 	if r.Data == nil && len(r.Data) == 0 {
 		r.Data = gin.H{}
 	}
@@ -191,10 +228,20 @@ func (r *Block) defaultValue() {
 	}
 	//如果名称没定义
 	if r.Name == "" {
-		r.Name = fmt.Sprintf("%T", r)
+		err = fmt.Errorf("您没有定义当前BLOCK的name(%T)", r)
+		return
 	}
+
+	//默认初始化当前模板文件所在位置
+	r.defaultTemplateBaseDirectory()
+
+	if r.Ctx == nil {
+		r.Ctx = context.TODO()
+	}
+
 	//初始化过期时间
 	r.initExpireTime()
+	return
 }
 
 //缓存时间处理
@@ -217,20 +264,32 @@ func (r *Block) initExpireTime() {
 }
 
 func NewBlock(option ...BlockOption) (block *Block) {
+
 	block = &Block{}
 	for _, handler := range option {
 		handler(block)
+	}
+
+	return
+}
+func (r *Block) defaultTemplateBaseDirectory() {
+	//默认初始化当前模板文件所在位置
+	if r.TemplateBaseDirectory == "" {
+		r.TemplateBaseDirectory = app_obj.App.AppTemplateDirectory
 	}
 	return
 }
 
 type BlockOption func(block *Block)
 
+//当前BLOCK的子Block
 func ChildBock(childBock []*Block) BlockOption {
 	return func(block *Block) {
 		block.ChildBock = childBock
 	}
 }
+
+//BLOCK的Run方法运行主要逻辑后执行此方法
 func RunAfter(runAfter []Handler) BlockOption {
 	return func(block *Block) {
 		block.RunAfter = runAfter

@@ -58,8 +58,11 @@ func NewWebApplication(privateMiddleWares ...gin.HandlerFunc) *WebApplication {
 	return webApp
 }
 
+type RouterHandler func(r *gin.Engine) (err error)
+
 // 加载API路由
-func (r *WebApplication) LoadRouter() *WebApplication {
+func (r *WebApplication) LoadRouter(routerHandler ...RouterHandler) (res *WebApplication) {
+	res = r
 	var err error
 	defer func() {
 		if err != nil {
@@ -85,16 +88,23 @@ func (r *WebApplication) LoadRouter() *WebApplication {
 	r.syslog.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintln("注册业务路由....\n\n")
 
+	//操作路由相关动作
+	for _, handler := range routerHandler {
+		if err = handler(r.GinEngine); err != nil {
+			return
+		}
+	}
 	// URL路由注册操作
 	for _, router := range HandleFunc {
 		router(r.GinEngine, UrlPrefix)
 	}
 
-	return r
+	return
 }
 
 // 开始加载Gin 服务
 func (r *WebApplication) Run() (err error) {
+
 	appConfig := common.GetAppConfig()
 
 	// // 如果支持优雅重启
@@ -109,31 +119,41 @@ func (r *WebApplication) Run() (err error) {
 	return
 }
 func (r *WebApplication) start() {
+
 	r.syslog.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintln("Support grace reload")
+
 	srv := &http.Server{
 		Addr:    r.getListenPortString(),
 		Handler: r.GinEngine,
 	}
 	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("Listen Addr  %s", srv.Addr)
-	go func() {
+
+	go func() { //启动GIN服务动作
 		// service connections
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			r.syslog.SetInfoType(base.LogLevelInfo).SystemOutFatalf("listen: %s\n", err)
 		}
 	}()
+
 	// Wait for interrupt signal to gracefully shutdown the server with
 	// a timeout of 5 seconds.
 	quit := make(chan os.Signal)
+
 	signal.Notify(quit, os.Interrupt)
+
 	<-quit
+
 	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintln("Shutdown Server ...")
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
 		r.syslog.SetInfoType(base.LogLevelError).SystemOutFatalf("Server Shutdown:", err)
 	}
 	r.syslog.SetInfoType(base.LogLevelError).SystemOutPrintln("Server exiting")
+
 	close(quit)
 }
 func (r *WebApplication) getListenPortString() string {
@@ -141,6 +161,7 @@ func (r *WebApplication) getListenPortString() string {
 }
 
 // 工具路由注册（心跳检测、性能分析等）
+// 每个系统自动支持 /health 和 /index 访问
 func (r *WebApplication) toolRouteRegister(appConfig *app_obj.Application, UrlPrefix string) {
 	r.syslog.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintln("1、注册健康检查路由...")

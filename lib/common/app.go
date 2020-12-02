@@ -52,13 +52,13 @@ func PluginsApp() (err error) {
 	io.SystemOutPrintf("config directory is : '%s' ", dir)
 	viper.AddConfigPath(dir + "/../") // path to look for the config file in
 	err = viper.ReadInConfig()        // Find and read the config file
-	if err != nil {                   // Handle errors reading the config file
+	if err != nil { // Handle errors reading the config file
 		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("Fatal error config file: %s \n", err))
 		return
 	}
 	viper.WatchConfig()
 	viper.OnConfigChange(func(e fsnotify.Event) { // 热加载
-		fmt.Println("Config file changed:", e.Name)
+		io.SystemOutPrintf("Config file changed:", e.Name)
 	})
 
 	version := viper.GetString("app.version")
@@ -71,6 +71,19 @@ func PluginsApp() (err error) {
 	app_obj.App.AppGraceReload = viper.GetBool("app.grace_reload")
 	app_obj.App.AppSystemName = viper.GetString("app.system_name")
 	app_obj.App.AppNeedPProf = viper.GetBool("app.app_need_p_prof")
+	app_obj.App.AppTemplateDirectory = defaultAppTemplateDirectory(io, viper.GetString("app.app_template_directory"))
+	return
+}
+func defaultAppTemplateDirectory(io *base.SystemOut, dir string) (res string) {
+	if dir != "" {
+		res = dir
+	}
+	var err error
+	if dir, err = os.Getwd(); err != nil {
+		return
+	}
+	res = fmt.Sprintf("%s/web/views/", dir)
+	io.SystemOutPrintf("Template default directory is :'%s'", res)
 	return
 }
 

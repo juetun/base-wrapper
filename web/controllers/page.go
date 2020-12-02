@@ -12,7 +12,6 @@
 package controllers
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -30,11 +29,10 @@ type ControllerPage struct {
 }
 
 func NewControllerPage() (p *ControllerPage) {
-
-	controller := &ControllerPage{}
-	controller.Init()
-	controller.MainTplFile = "car_master.htm"
-	return p
+	p = &ControllerPage{}
+	p.Init()
+	p.MainTplFile = "car_master.htm"
+	return
 }
 
 //web socket操作
@@ -100,14 +98,15 @@ func (r *ControllerPage) Main(c *gin.Context) {
 	if err = c.BindQuery(&arg); err != nil {
 		return
 	}
-	context := context.TODO()
 	h := gin.H{"data": "haha",}
-	if h["show"], err = base.NewBlock(
-		base.CacheBlock(&base.BlockCache{}),
+	block := base.NewBlock(
+		base.Name("controller_main"),
 		base.Data(h),
-		base.Ctx(context),
-		base.TempFile("/Users/zhaochangjiang/go/src/github.com/juetun/base-wrapper/web/views/a.html"),
-	).Run(); err != nil {
+		base.TempFile("a.html"),
+	)
+
+	if h["show"], err = block.Run(); err != nil {
+		r.ResponseError(c, err)
 		return
 	}
 	r.ResponseHtml(c, r.MainTplFile, h)

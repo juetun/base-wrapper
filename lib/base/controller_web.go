@@ -43,13 +43,17 @@ type BreadCrumb struct {
 	Active string `json:"active"` // 加上样式
 }
 
-func Init() {
-
+// 处理错误信息句柄
+func (r *ControllerWeb) ResponseError(c *gin.Context, err error) {
+	result := NewResult().
+		SetErrorMsg(err)
+	c.JSON(http.StatusOK, result)
+	return
 }
 
 //渲染html
 func (r *ControllerWeb) ResponseHtml(c *gin.Context, tpl string, data gin.H) {
-	c.HTML(http.StatusOK, tpl, data)
+ 	c.HTML(http.StatusOK, tpl, data)
 }
 
 // 获取详情的扩展名

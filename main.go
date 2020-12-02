@@ -9,6 +9,7 @@
 package main
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app_start"
 	_ "github.com/juetun/base-wrapper/lib/init"    // 加载公共插件项
 	. "github.com/juetun/base-wrapper/lib/plugins" // 加载路由信息
@@ -27,7 +28,10 @@ func main() {
 
 	// 启动GIN服务
 	app_start.NewWebApplication().
-		LoadRouter(). // 记载gin 路由配置
+		LoadRouter(func(r *gin.Engine) (err error) {
+			r.LoadHTMLGlob("web/views/**/*.htm")
+			return
+		}). // 记载gin 路由配置
 		Run()
 
 }
