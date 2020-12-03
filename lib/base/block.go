@@ -31,7 +31,8 @@ type BlockCacheInterface interface {
 
 type Handler func(block *Block) (err error)
 
-//页面操作对象
+//页面操作对象 一个html由BLOCK拼凑而成 本结构体设计目的为实现页面局部数据缓存控制
+// 每个BLOCK具备独立的缓存对象，独立从数据库、redis、或其他数据源获取数据的能力获取数据的能力
 //缓存规则：
 // 1、如果父block的缓存时间大于0，则子BLOCK设置了时间也不缓存，
 // 2、如果父BLOCK的缓存时间为0，则子BLOCK的缓存时间有效
@@ -172,8 +173,11 @@ func (r *Block) after() (err error) {
 }
 
 //解析模板数据
-func (r *Block) Run() (res string, err error) {
+func (r *Block) Run() (res template.HTML, err error) {
 
+	defer func() {
+		res = template.HTML(r.CacheBlock.CacheData)
+	}()
 	//初始化默认值
 	if err = r.defaultValue(); err != nil {
 		return
@@ -184,8 +188,7 @@ func (r *Block) Run() (res string, err error) {
 		return
 	}
 	//从缓存中拿数据
-	if res, err = r.getCache(); err != nil {
-		r.CacheBlock.CacheData = res
+	if r.CacheBlock.CacheData, err = r.getCache(); err != nil {
 		if res != "" {
 			err = r.after()
 			return
@@ -208,8 +211,6 @@ func (r *Block) Run() (res string, err error) {
 	if err = r.after(); err != nil {
 		return
 	}
-
-	res = r.CacheBlock.CacheData
 	//将数据写入缓存
 	if err = r.writeToCache(r.CacheBlock.CacheData); err != nil {
 		return
@@ -283,14 +284,14 @@ func (r *Block) defaultTemplateBaseDirectory() {
 type BlockOption func(block *Block)
 
 //当前BLOCK的子Block
-func ChildBock(childBock []*Block) BlockOption {
+func ChildBock(childBock ...*Block) BlockOption {
 	return func(block *Block) {
 		block.ChildBock = childBock
 	}
 }
 
 //BLOCK的Run方法运行主要逻辑后执行此方法
-func RunAfter(runAfter []Handler) BlockOption {
+func RunAfter(runAfter ...Handler) BlockOption {
 	return func(block *Block) {
 		block.RunAfter = runAfter
 	}

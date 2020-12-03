@@ -28,6 +28,8 @@ func GinLogCollect(logger *app_obj.AppLog) gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+//流量日志收集
 func delayExecGinLogCollect(start time.Time, c *gin.Context, path *url.URL, logger *app_obj.AppLog) {
 	c.Request.URL.RawQuery, _ = url.QueryUnescape(c.Request.URL.RawQuery)
 	var bodyBytes []byte

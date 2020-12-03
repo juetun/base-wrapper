@@ -18,14 +18,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app_obj"
-	"github.com/juetun/base-wrapper/lib/base"
+	. "github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/web/pojos"
 	"github.com/juetun/base-wrapper/web/services"
 	"golang.org/x/net/websocket"
 )
 
 type ControllerPage struct {
-	base.ControllerWeb
+	ControllerWeb
 }
 
 func NewControllerPage() (p *ControllerPage) {
@@ -71,7 +71,7 @@ func (r *ControllerPage) shortMessage(c *gin.Context) {
 
 	var err error
 	var arg pojos.ArgumentDefault
-	var result = base.NewResult()
+	var result = NewResult()
 
 	err = c.ShouldBind(&arg)
 
@@ -80,7 +80,7 @@ func (r *ControllerPage) shortMessage(c *gin.Context) {
 		r.ResponseError(c, err)
 		return
 	}
-	srv := services.NewServiceDefault(base.GetControllerBaseContext(&r.ControllerBase, c))
+	srv := services.NewServiceDefault(GetControllerBaseContext(&r.ControllerBase, c))
 	result.Data, err = srv.Tmain(&arg)
 	if err != nil {
 		r.ResponseError(c, err)
@@ -98,11 +98,26 @@ func (r *ControllerPage) Main(c *gin.Context) {
 	if err = c.BindQuery(&arg); err != nil {
 		return
 	}
+	blockChild1 := NewBlock(
+		Name("controller_main_1"),
+		Data(gin.H{"data": "haha",}),
+		TempFile("a1.html"),
+	)
+	blockChild2 := NewBlock(
+		Name("controller_main_2"),
+		Data(gin.H{"data": "haha",}),
+		TempFile("a2.html"),
+	)
+
 	h := gin.H{"data": "haha",}
-	block := base.NewBlock(
-		base.Name("controller_main"),
-		base.Data(h),
-		base.TempFile("a.html"),
+	block := NewBlock(
+		Name("controller_main"),
+		Data(h),
+		TempFile("a.html"),
+		ChildBock(blockChild1, blockChild2),
+		RunAfter(func(block *Block) (err error) {
+			return
+		}),
 	)
 
 	if h["show"], err = block.Run(); err != nil {

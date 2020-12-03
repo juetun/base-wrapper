@@ -1,0 +1,74 @@
+@media (min-width: 1250px) {
+    .container {
+        max-width: 1230px;
+    }
+}
+
+footer .copy * {
+    font-size: 0.75rem;
+}
+
+a {
+    color: #17233d;
+}
+
+a:hover {
+    opacity: 0.8;
+    text-decoration: none;
+}
+
+.fixed-top .active a {
+    font-weight: bold;
+
+}
+
+.fixed-top .active a:hover {
+    transition: all .6s;
+    transform: scale(1.2);
+}
+
+.city-dropdown {
+    width: 30rem;
+    height: 27rem;
+    overflow-y: scroll;
+}
+
+.nav-cover {
+    height: 4rem;
+}
+
+.nav-province {
+    display: inline-block;
+    text-align: right;
+    color: #808695;
+}
+
+.delete-compare {
+    cursor: pointer;
+    float: right;
+}
+
+.left-nav {
+    top: 40%;
+    text-align: center;
+    width: 30px;
+    background-color: #ED6C00;
+    position: fixed;
+    right: 0;
+    z-index: 2;
+}
+
+.left-nav a {
+    cursor: pointer;
+}
+
+.logo-name {
+    float: left;
+    line-height: 2.5rem;
+    margin-left: .5rem
+}
+
+.logo-pic-show {
+    height: 2.5rem;
+    float: left
+}

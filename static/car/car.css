@@ -1,0 +1,1180 @@
+.list-car {
+    margin-left: 15px;
+}
+
+#table-config th {
+    border-top: 1px solid #e8eaec;
+}
+
+#table-config h5 {
+    font-size: 0.9rem;
+}
+
+#table-config th, td {
+    padding: 8px 10px;
+    font-size: 12px;
+    color: #515a6e;
+    border-right: 1px solid #e8eaec;
+    border-bottom: 1px solid #e8eaec;
+}
+
+#table-config .tbody-td-step1 {
+    text-align: left;
+    background-color: #e9ecef;
+}
+
+#table-config .con-desc-it {
+    line-height: 20px;
+    clear: both;
+}
+
+#table-config .con-desc-title {
+    float: left;
+}
+
+#table-config .con-desc-ext {
+    float: right;
+}
+
+.tbody-td-first {
+    text-align: right;
+    font-size: 14px;
+}
+
+#table-config .list-group-item {
+    font-weight: 400;
+    padding: .25rem .5rem
+}
+
+#table-config .table-th {
+    position: relative;
+}
+
+#table-config .button-group-div {
+    text-align: center;
+}
+
+#table-config .close-config {
+    position: absolute;
+    right: 0;
+    top: 0
+}
+
+#table-config .list-group-item .form-check .form-check-input {
+    float: left;
+    margin-top: 2px;
+}
+
+#table-config .price {
+    font-weight: 400;
+    margin: 15px 0;
+}
+
+#table-config .price > span > span {
+    color: #ed4014;
+}
+
+#table-config .btn-group {
+    margin-top: 0.3rem;
+}
+
+#table-config .btn-sm {
+    line-height: 0.9;
+    font-size: 0.5rem;
+}
+
+#table-config .table-tbody.high-light tr.notsame td.tbody-td-step {
+    color: #ff9900;
+}
+
+#config-list-group.high-light .list-group-item.notsame {
+    color: #ff9900;
+}
+
+#table-config .table-tbody.hidden-none tr.none {
+    display: none;
+}
+
+#config-list-group.hidden-none .list-group-item.none {
+    display: none
+}
+
+#table-config .table-tbody.hidden-common tr.same td {
+    display: none;
+}
+
+#config-list-group.hidden-common .list-group-item.same {
+    display: none;
+}
+
+#config-list-group .list-group-item {
+    text-align: center;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.5rem;
+    color: #515a6e;
+}
+
+.config-list-right {
+    position: fixed;
+    right: 0;
+    bottom: 80px;
+}
+
+#brand-list .character, .search-list .character {
+    margin-bottom: 1rem;
+}
+
+#brand-list .brand-logo {
+    width: 3rem;
+}
+
+#brand-list .character > a, .search-list .character > a {
+    margin: 0.1rem 0rem 0.1rem 0.2rem;
+    width: 2rem;
+}
+
+#brand-list .brand-list-group, .search-list .brand-list-group {
+    height: 1150px;
+
+    overflow-x: scroll;
+}
+
+#brand-list .brand-list-group .card-header, .search-list .brand-list-group .card-header {
+    padding: 0.2rem 0.8rem;
+}
+
+#brand-list #accordionExample .list-group-item, #brand-list .style-common .list-group-item, .search-list .style-common .list-group-item, .search-list .accordion .list-group-item, #brand-list .style-common .list-group-item {
+    font-size: 14px;
+    border-right: none;
+    border-left: none;
+}
+
+#brand-list .list-group-item span {
+    font-weight: 400;
+    font-size: 0.2rem;
+}
+
+#brand-list h4, .search-list h4 {
+    font-size: 1rem;
+}
+
+
+#brand-list .style-li-body.card-body .model-title-li .row {
+    margin-bottom: 0.5rem;
+    min-height: 4rem;
+}
+
+.style-base {
+    margin-bottom: 1rem;
+}
+
+.style-base .list-group-style {
+    padding-bottom: 1rem;
+}
+
+.style-base .style-img {
+    margin-bottom: .25rem;
+    display: inline-block;
+}
+
+.style-base .list-group-item {
+    border-bottom: none;
+    border-top: none;
+    padding: 0.25rem;
+}
+
+#brand-list .model-title-lis {
+    padding-bottom: 1rem;
+}
+
+#style-detail .model-title-lis > div, #brand-list .model-title-lis > div {
+    line-height: 1.75rem;
+}
+
+#style-detail .list-unstyled .media, .car-article .list-unstyled .media {
+    padding: 0 0 1rem;
+}
+
+.list-unstyled .summary {
+    font-size: .9rem;
+    text-indent: 1.5rem;
+}
+
+.list-unstyled .time {
+    color: #cccccc;
+}
+
+#style-detail .list-unstyled .media a:hover, .car-article .list-unstyled .media a:hover {
+    text-decoration: none;
+    opacity: 0.7;
+}
+
+#style-detail .list-unstyled li .img-p, .car-article .list-unstyled li .img-p {
+    height: 10rem;
+    display: inline-block;
+    width: 100%;
+    overflow: hidden;
+}
+
+#style-detail .list-unstyled li img, .car-article .list-unstyled li img {
+    width: 100%;
+}
+
+#style-detail .list-unstyled li img:hover, .car-article .list-unstyled li img:hover {
+    transition: all 1.5s;
+    transform: scale(1.05);
+}
+
+#style-detail .hot-news-l .list-unstyled li img, .car-article .list-unstyled .list-unstyled li img {
+    width: 100%;
+}
+
+.list-unstyled .title a {
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+.list-unstyled .time {
+
+}
+
+#style-detail .list-unstyled .media a {
+    color: #17233d;
+    max-height: 7rem;
+    overflow: hidden;
+}
+
+#style-detail .list-unstyled .media a:hover {
+    text-decoration: none;
+    opacity: 0.7;
+    transition: all 1.5s;
+    transform: scale(1.05);
+}
+
+#style-detail .list-unstyled p, .car-article .list-unstyled p {
+    text-indent: 1rem;
+    color: #515a6e;
+    font-size: .9rem;
+}
+
+#style-detail .list-unstyled p .time, .car-article .list-unstyled p .time {
+    /*color: #808695;*/
+    color: #cccccc;
+    float: right;
+    margin-right: 2rem;
+    line-height: 2rem;
+}
+
+
+#style-detail .li-nav, .style-detail .li-nav {
+    height: 3rem;
+    line-height: 3rem;
+    padding: 0 1.5rem
+}
+
+#style-detail .li-nav.active, .style-detail .li-nav.active {
+    background-color: #28a745 !important;
+}
+
+#style-detail .li-nav:hover, .style-detail .li-nav:hover {
+    background-color: #28a745 !important;
+    color: #ffffff;
+}
+
+.style-li-body .list-group-item.model-table-title {
+    background-color: #f8f8f9;
+    line-height: 2.5rem;
+    border-top: 1px solid #ffffff;
+    border-bottom: 1px solid #ffffff;
+}
+
+.juetun-right .page-right {
+    padding-right: 0;
+
+}
+
+#style-detail .style-li-body .list-group-item.model-table-title {
+    background-color: #f8f8f9;
+    border-top: 1px solid #dee2e6;
+}
+
+#style-detail .style-li-body .list-group-item.model-table-title0 {
+    border-top: none;
+}
+
+#style-detail .style-li-body #collapseTable0 .list-group-item.model-table-title {
+    border-top: none;
+}
+
+.style-li-body .list-group-item.model-table-title .row {
+    color: #808695;
+}
+
+.style-li-body .list-group-item.model-table-title .text-left {
+    font-weight: 600;
+    color: #17233d;
+}
+
+.style-li-body .list-group-item.model-table-title .col, .style-li-body .list-group-item.model-title-li .col {
+    padding: 0;
+}
+
+#brand-list .style-li-body .list-group-item.model-table-title .row {
+    height: 2.5rem;
+}
+
+#brand-list .style-li-body .list-group-item.model-table-title div > div {
+    line-height: 2.5rem;
+}
+
+#brand-list .clear-float {
+    clear: both;
+}
+
+#brand-list .style-li-body .model-table-title .row {
+    margin-bottom: 0;
+}
+
+#brand-list .jumbotron {
+    padding: 1rem 2rem;
+    margin-bottom: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+
+#brand-list .style-li {
+    margin-bottom: 1rem;
+    margin-top: 1rem;
+}
+
+
+#brand-list .style-li > .card .card-header {
+    border-bottom: none;
+}
+
+#brand-list .brand-name {
+    font-size: 1.5rem;
+}
+
+#brand-list .brand-auto-name {
+    font-size: 0.75rem;
+    font-weight: 400;
+}
+
+#brand-list .auto-name {
+    font-size: 1rem;
+}
+
+#brand-list .brand-type-list {
+    min-height: 3rem;
+}
+
+#brand-list .brand-type-list > div {
+    padding: 0.5rem;
+}
+
+#brand-list .brand-auto-level {
+    font-size: 0.75rem;
+    color: #808695;
+}
+
+#brand-list .style-li > .card {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+#brand-list .auto-title {
+    font-size: 0.5rem;
+    font-weight: 400;
+    line-height: 1.5rem;
+}
+
+.brand-title, #brand-list .brand-site {
+    font-size: 0.5rem;
+    font-weight: 400;
+}
+
+.style-li-body .model-title-li {
+    padding: 0.75rem 1rem !important;
+    border: none;
+}
+
+.style-li-body .model-list .list-group-item:hover {
+    background-color: #f8f8f9;
+}
+
+.style-li-body .model-list .list-group {
+    margin-bottom: 1rem;
+}
+
+.style-li-body .style-divide {
+    border-top: 1px solid #c5c8ce;
+    padding-top: 2rem;
+}
+
+#brand-list h4 .title {
+    font-size: 0.5rem;
+    font-weight: 400;
+}
+
+#brand-list #accordionExample .list-group-item, .search-list #accordionExample .list-group-item {
+    border-bottom: none;
+}
+
+#brand-list .btn-link, .search-list .btn-link {
+    color: #495057;
+}
+
+#brand-list .btn-link:hover, .search-list .btn-link:hover {
+    color: #495057;
+    text-decoration: none;
+}
+
+#brand-list .media-object {
+    width: 8rem;
+}
+
+#brand-list #accordionExample a:hover, .search-list #accordionExample a:hover {
+    text-decoration: underline;
+}
+
+
+.style-li-body .style-desc span {
+    font-size: .75rem;
+    display: block;
+    float: left;
+    text-align: right;
+    width: 5rem;
+}
+
+#brand-list .style-li-body .model-title, #style-detail .model-title {
+    font-size: 16px;
+}
+
+#brand-list .style-li-body .model-title a, #style-detail .model-title a {
+    color: #17233d;
+}
+
+#brand-list .style-li-body .model-title a:hover, #style-detail .model-title a:hover {
+    text-decoration: none;
+    opacity: 0.8;
+}
+
+#brand-list .auto-card .card .auto-name {
+    border-top: 1px solid rgba(0, 0, 0, .125);
+}
+
+#brand-list .auto-card .card.auto-card-0 .auto-name {
+    border-top: none;
+}
+
+.style-li-body .model-desc, #style-detail .model-desc {
+    color: #808695;
+}
+
+.style-li-body .model-desc-tag .label-danger {
+    line-height: 1.25rem;
+    /*background: #f6ffed;  border:1px solid #b7eb8f;*/
+    background: #ed4014;
+    color: #ffffff;
+    border: 0;
+    display: inline-block;
+    padding: 0 0.25rem;
+    border-radius: 3px;
+}
+
+.style-li-body .price {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.style-li-body .model-desc-tag .label {
+    line-height: 1.25rem;
+    /*background: #f6ffed;  border:1px solid #b7eb8f;*/
+    display: inline-block;
+    padding: 0 0.25rem;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+.style-li-body .model-desc-link {
+    font-size: 14px;
+    line-height: 1.5rem;
+}
+
+.style-li-body .model-desc-link div a {
+    color: #17233d;
+}
+
+.style-li-body .model-desc-link div a:hover {
+    opacity: 0.8;
+    text-decoration: none;
+}
+
+/*.style-li-body .model-desc-link .price {*/
+/*    line-height: 3rem;*/
+/*}*/
+
+.style-li-body .model-desc-link div span {
+    color: #e8eaec;
+}
+
+.style-li-body .model-desc-tag .label-danger {
+    /*background: #f6ffed;  border:1px solid #b7eb8f;*/
+    background: #fff1f0;
+    border: 1px solid #ffa39e;
+    color: #f5222d;
+}
+
+.style-li-body .model-desc-tag .label-green {
+    background: #f6ffed;
+    border: 1px solid #b7eb8f;
+    color: #52c41a;
+}
+
+.style-li-body .model-desc-tag .label-blue {
+    background: #e6f7ff;
+    border: 1px solid #91d5ff;
+    color: #1890ff;
+}
+
+.style-li-body .model-color .color {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    margin: 0 0.2rem;
+    border-radius: 3px;
+}
+
+#brand-list .style-desc a, .search-list .style-desc a {
+    float: left;
+    font-size: 12px;
+    margin: 0 0.25rem;
+}
+
+/* 自定义tooltip的背景色及字体颜色 */
+.define-tooltip-inner {
+    background: #ccc;
+    color: #000;
+    font-size: 12px;
+}
+
+/* 自定义tooltip四个不同方向箭头样式 */
+.tooltip.bs-tooltip-top .define-tooltip-arrow::before {
+    top: 0;
+    border-width: 0.4rem 0.4rem 0;
+    border-top-color: #ccc;
+}
+
+.tooltip.bs-tooltip-right .define-tooltip-arrow::before {
+    right: 0;
+    border-width: 0.4rem 0.4rem 0.4rem 0;
+    border-right-color: #ccc;
+}
+
+.tooltip.bs-tooltip-left .define-tooltip-arrow::before {
+    left: 0;
+    border-width: 0.4rem 0 0.4rem 0.4rem;
+    border-left-color: #ccc;
+}
+
+.tooltip.bs-tooltip-bottom .define-tooltip-arrow::before {
+    bottom: 0;
+    border-width: 0 0.4rem 0.4rem;
+    border-bottom-color: #ccc;
+}
+
+#brand-list .nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
+    background-color: rgba(0, 0, 0, .03);
+    border-bottom-color: #f8f8f9;
+}
+
+#style-detail .ad-top {
+    margin-bottom: 1rem;
+}
+
+#style-detail .navbar-nav .active {
+}
+
+#style-detail .list-group-item {
+    font-size: 1rem;
+}
+
+#brand-list .model-title-lis > div {
+
+}
+
+#style-detail .nav-item {
+    cursor: pointer;
+}
+
+#style-detail .jumbotron, .style-detail .jumbotron {
+    padding: 1rem 2rem;
+}
+
+#style-detail .jumbotron .display-4 img, .style-detail .jumbotron .display-4 img {
+    height: 2.5rem;
+}
+
+#style-detail .jumbotron .display-4, .style-detail .jumbotron .display-4 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 3.5rem;
+    display: block;
+    height: 3.5rem;
+}
+
+#style-detail .jumbotron .lead, .style-detail .jumbotron .lead {
+    font-size: 1.0rem;
+    margin-bottom: 0.5rem;
+}
+
+.brand-log {
+    text-align: center;
+}
+
+#style-detail .jumbotron hr {
+    margin-bottom: 1rem !important;
+    margin-top: 1rem !important;
+}
+
+.ad-left .pic, .pic {
+    margin-bottom: 0.5rem;
+}
+
+.search-list .s-op {
+    color: #495057;
+}
+
+.search-list .search-con .list-group-item {
+    padding: 0.25rem .5rem;
+}
+
+.search-list .search-con .list-group-item span {
+    font-weight: 600;
+}
+
+.col-right {
+    padding-right: 0;
+}
+
+#search-list .search-con .list-group-item .col-11 {
+    padding: 0;
+}
+
+#search-list .search-con .list-group-item .col-11 a {
+    margin-left: .25rem;
+}
+
+#search-list .search-con .list-group-item .col-1 {
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0.5rem;
+    font-weight: 600;
+}
+
+#search-list .search-con .list-group-item a {
+    margin-bottom: .25rem;
+    margin-top: .25rem;
+}
+
+#search-list .child-li {
+    overflow: hidden;
+    display: none;
+}
+
+#search-list .child-li.active {
+    display: block;
+}
+
+#search-list .form-inline {
+    float: left;
+    margin-left: 1rem;
+}
+
+#search-list .form-inline .form-control {
+    width: 4rem;
+}
+
+#search-list .form-inline .form-group {
+    margin-left: .1rem !important;
+    margin-right: .1rem !important;
+}
+
+#search-list .search-con li .label {
+    margin: .5rem 0;
+    text-align: left;
+    display: inline-block;
+    width: 4.5rem;
+}
+
+#search-list .form-inline .form-group.divid {
+    width: .5rem !important;
+    text-align: center !important;
+}
+
+.search-list .car-search-page {
+    margin-left: auto !important;
+}
+
+.search-list .more-search .label {
+    width: 4rem;
+    margin: .5rem 0;
+    text-align: left;
+}
+
+.search-list .more-search .dropdown-menu {
+    max-height: 15rem;
+    overflow-y: auto;
+}
+
+.middle-box {
+    padding: 4rem
+}
+
+.dealer-list .card:hover {
+    background-color: #f8f9fa;
+}
+
+.dealer-list .card-title {
+    font-size: 1rem;
+    overflow: hidden;
+}
+
+/*#style-detail .mt-3 span {*/
+/*    font-size: 1.5rem;*/
+/*    color: #007bff;*/
+/*}*/
+
+.dealer-list .card-title span, .dealer-list .card-title a {
+    display: inline-block;
+    float: left;
+    line-height: 1.5rem;
+}
+
+.dealer-list .dealer-tp {
+    background-color: #007bff;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 400;
+    height: 1.5rem;
+    line-height: 1.5rem;
+    display: inline-block;
+    padding: 0.05rem 0.5rem;
+    border-top-left-radius: 30%;
+    border-bottom-right-radius: 30%;
+}
+
+.dealer-list .card-title .name {
+    width: 15rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+
+}
+
+.dealer-list .card-title .area {
+    color: #6c757d;
+    font-weight: 400;
+    width: 5rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.dealer-list .card-title .act {
+    float: right;
+    font-weight: 400;
+    color: #6c757d;
+}
+
+.dealer-list .dealer-c {
+    font-size: 14px;
+}
+
+.dealer-list .dealer-c > div {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    white-space: nowrap;
+    line-height: 2rem;
+}
+
+.dealer-list .dealer-c .left {
+    width: 2rem;
+    text-align: right;
+    display: inline-block;
+    margin-right: 0.1rem;
+    margin-left: 0.25rem;
+}
+
+.dealer-list .dealer-c .d-c-c {
+    white-space: nowrap;
+    width: 50rem;
+}
+
+.dealer-list .dealer-c span.cu {
+    font-size: 12px;
+    color: #ffffff;
+    background-color: #ed4014;
+    padding: 0.15rem;
+    border-top-left-radius: 25%;
+    border-bottom-right-radius: 25%;
+}
+
+.dealer-list .dealer-pic {
+    width: 100%;
+    max-height: 6.5rem;
+    overflow: hidden;
+    display: inline-block;
+    width: 100%;
+
+}
+
+.dealer-list .dealer-pic img:hover {
+    transition: all 1.5s;
+    transform: scale(1.1);
+}
+
+.dealer-list .dealer-img {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.dealer-list .card-text {
+    margin: 1rem 0;
+}
+
+.concept-car {
+    color: #808695;
+    background-color: #f8f8f9;
+}
+
+.enquiry .mr-3 {
+    max-width: 100%;
+}
+
+.enquiry .enquiry-li {
+    text-align: center;
+}
+
+.enquiry .enquiry-li-title {
+}
+
+.float-left {
+    float: left;
+}
+
+.enquiry .dealer-list {
+    max-height: 29rem;
+    overflow-y: scroll;
+}
+
+.enquiry .dealer-list .media-body * {
+    font-size: 1rem;
+}
+
+.enquiry .dealer-list .media-body .price {
+    font-size: .75rem;
+}
+
+.enquiry .dealer-list .media-body .price .d-price {
+    font-weight: bold;
+}
+
+.enquiry .dealer-list .media-body .price .d-fav {
+    font-size: .5rem;
+}
+
+.enquiry .dealer-list .media-body .price .g-price {
+    font-size: .5rem;
+}
+
+.enquiry .dealer-list .media-body p.address, .enquiry .dealer-list .media-body p a {
+    font-size: .5rem;
+}
+
+.enquiry .dealer-list .list-group-item0 {
+    border-top: 0 !important;
+}
+
+.enquiry form .alert {
+    padding: .25rem .5rem;
+    margin-bottom: 0;
+}
+
+.enquiry .en-m-li {
+    min-width: 35rem;
+    max-height: 20rem;
+    overflow-y: scroll;
+}
+
+.enquiry .en-m-li .li {
+    background-color: #e9ecef;
+}
+
+.enquiry .text-justify {
+    font-size: .8rem;
+}
+
+.reprint {
+    font-size: 14px;
+    color: #808695;
+    text-align: center;
+}
+
+.reprint a {
+    color: #808695;
+}
+
+.detail .detail-title {
+    display: block;
+    text-align: center;
+}
+
+.detail .detail-content p {
+    text-indent: 2rem;
+
+}
+
+.detail .detail-content img {
+    width: 100%;
+    display: inherit;
+}
+
+.color-type .btn {
+    border-width: 3px;
+    border-color: #808695
+}
+
+.thum-s .th-li {
+    border: 1px solid #808695;
+}
+
+.fullscreen-bg {
+    background-color: #17233d;
+}
+
+.thum-s .th-li.active {
+    border-color: #f8f8f9;
+}
+
+.thum-s img {
+    max-height: 8rem;
+    margin: 0 auto;
+    display: block;
+    width: 100%;
+}
+
+.bot-fixed {
+    z-index: 3;
+    color: #FFFFFF;
+    bottom: 0;
+    width: 100%;
+    background-color: #808695;
+}
+
+.upon-op {
+    height: 7rem;
+    overflow: hidden;
+}
+
+.upon-op span {
+    margin-top: 3.5rem;
+}
+
+.fullscreen-right {
+    color: #FFFFFF;
+    background-color: #808695;
+    z-index: 3;
+}
+
+.carousel-control-prev, .carousel-control-next, .carousel-control-next-icon, .carousel-control-prev-icon {
+    cursor: pointer
+}
+
+.wrapmiddle {
+    display: table;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    *position: relative;
+}
+
+.wrapmiddle .wrapsub {
+    display: table-cell;
+    vertical-align: middle;
+    *position: absolute;
+    *top: 50%;
+}
+
+.wrapmiddle .wrapsub .wrapbox {
+    *position: relative;
+    *top: -50%;
+}
+
+.wrapmiddle .wrapsub img:hover {
+    transition: all 1.5s;
+    transform: scale(1.05);
+}
+
+.full-pic-img {
+    margin: 0 auto;
+    display: block;
+    max-height: 100%;
+    max-width: 100%;
+}
+
+.recommend .bg-primary {
+    width: .5rem;
+    display: inline-block;
+    margin-right: .25rem;
+}
+
+.recommend-style .img-class {
+    display: block;
+    height: 7rem;
+    width: 100%;
+    overflow: hidden;
+}
+
+.recommend-style .img-class .bg-img-re {
+    height: 100%;
+    background-size: 100%;
+    background-repeat: no-repeat;
+
+}
+
+.recommend-style .img-class .bg-img-re:hover {
+    transition: all 1.5s;
+    transform: scale(1.1);
+}
+
+.recommend-style h5 {
+    width: 100%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.recommend-style .address {
+    height: 1.5rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.card-img:hover {
+    transition: all 1.5s;
+    transform: scale(1.05);
+}
+
+.auto-detail .lead {
+    text-indent: 2rem;
+}
+
+
+.dealer-detail .dealer-logo {
+    width: 100%;
+    overflow: hidden;
+}
+
+.article .li:hover {
+    background-color: #f8f9fa;
+}
+
+.article .article-title {
+    width: 100%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.article .img-left {
+    max-height: 8rem;
+    overflow: hidden;
+    height: 15rem;
+    overflow: hidden
+}
+
+.article .article-text {
+    text-indent: 2rem;
+    max-height: 3rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dealer-detail .icon-show {
+    width: 1rem;
+    height: 1rem;
+    float: left;
+    margin-right: .5rem
+}
+
+.dealer-detail .dealer-desc {
+    font-size: .8rem;
+}
+
+.promote .list-group-flush a .title {
+    width: 22rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+.dealer-address .c {
+}
+
+.dealer-address .float-left {
+    font-weight: bold
+}
+
+.map-address {
+    margin-top: .25rem;
+    line-height: 1.25rem;
+    height: 1rem;
+    width: 1rem;
+    display: inline;
+    float: left;
+}
+
+.dealer-icon {
+    font-size: 1.5rem;
+    margin-right: .5rem;
+}
+
+.line {
+    border-bottom: 4px solid #EBEBEB;
+}
+
+.line .title {
+    border-bottom: 4px solid #007bff;
+    border-right: 4px solid #ffffff;
+    display: inline-block;
+    *display: inline;
+    *zoom: 1;
+    padding-right: .75rem;
+    padding-bottom: 2px;
+    /*兼容inline-block----这里可以以用浮动代替*/
+    /*inline-block遇到text-indent会有兼容问题，原因是 ie6/7 其实还是inline*/
+    margin-bottom: -4px;
+}
+
+.model-arg .arg-val {
+    font-size: 1rem;
+}
+
+/*.model-arg .card:hover {*/
+/*    background-color: #e9ecef;*/
+/*}*/
+.full-pic-dropdown {
+    max-width: 18.5rem;
+    height: 21rem;
+    overflow: auto;
+}

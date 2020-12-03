@@ -30,6 +30,10 @@ func main() {
 	app_start.NewWebApplication().
 		LoadRouter(func(r *gin.Engine) (err error) {
 			r.LoadHTMLGlob("web/views/**/*.htm")
+			r.Static("/static/home", "./static/home")
+			r.Static("/static/car", "./static/car")
+			r.StaticFile("/jd_root.txt", "./static/jd_root.txt")
+			r.StaticFile("/favicon.ico", "./static/favicon.ico")
 			return
 		}). // 记载gin 路由配置
 		Run()

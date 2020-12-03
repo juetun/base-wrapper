@@ -1,0 +1,292 @@
+
+
+.page-index #nav-tab .active {
+    border-bottom: 3px solid #17a2b8;
+}
+
+.page-index .hot-brand .card-header {
+    background-color: #ffffff;
+}
+
+.page-index .hot-brand .card-header h3 {
+    line-height: 1.75rem;
+    font-size: 1.25rem;
+}
+
+.page-index .hot-brand .card-header a {
+    font-size: 1rem;
+    float: right;
+    font-weight: 400;
+    line-height: 1.75rem;
+}
+
+.page-index .r-b .b-img {
+    padding: .75rem;
+    overflow: hidden
+}
+
+.page-index .r-b .card-body {
+    padding: .15rem 1.25rem;
+}
+
+.page-index .r-b .card-text {
+    width: 100%;
+    font-size: .85rem;
+    overflow: hidden;
+    word-break: keep-all;
+    white-space: nowrap;
+    display: block
+}
+
+.page-index .hot-news-c ul li {
+    padding: .35rem;
+    margin: 0;
+}
+
+.page-index .hot-news-c ul li:before {
+    content: '';
+    display: inline-block;
+    width: .5rem;
+    height: .5rem;
+    border-radius: 50%;
+    background-color: #d8d8d8;
+    position: relative;
+    right: .15rem;
+    top: -0.1rem;
+}
+
+.page-index .style-rec {
+    height: 19rem;
+    overflow: hidden;
+}
+
+.page-index .style-rec .card:hover {
+    background-color: #f8f8f9;
+    border-radius: .5rem;
+}
+
+.page-index .style-rec .card-body {
+    padding: 0;
+}
+
+.page-index .card-img-top:hover {
+    transition: all .6s;
+    transform: scale(1.1);
+}
+
+.page-index .style-rec .style-name a {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 100%;
+}
+
+.page-index .style-rec .img-arg {
+    overflow: hidden;
+}
+
+.page-index .style-rec .style-li {
+    text-align: center;
+}
+
+.page-index .style-rec .style-link a {
+    color: #808695;
+    position: relative;
+}
+
+.page-index .style-rec .style-name a .tag {
+    position: absolute;
+    right: 0;
+    top: .25rem;
+}
+
+.page-index .style-rec .style-name a .tag .tag-li {
+    display: inline-block;
+    color: #f8f8f9;
+    background-color: #ed4014;
+    padding: 0 .25rem;
+    font-size: .5rem;
+
+}
+
+.page-index .style-rec .style-name a .tag .tag-li.tag-rec {
+    background-color: #19be6b;
+}
+
+.page-index .list-unstyled .media {
+    padding: 0 0 1rem;
+}
+
+.page-index .list-unstyled .media a {
+    color: #17233d;
+    max-height: 7rem;
+    overflow: hidden;
+}
+
+.page-index .list-unstyled .media a:hover {
+    text-decoration: none;
+    opacity: 0.7;
+}
+
+.page-index .hot-news-l .list-unstyled li .img-p {
+    height: 8rem;
+    display: inline-block;
+    width: 100%;
+    overflow: hidden;
+}
+
+.page-index .hot-news-l .list-unstyled li img {
+    width: 100%;
+}
+
+.page-index .list-unstyled .media .media-body p {
+    text-indent: 1rem;
+    color: #515a6e;
+}
+
+.page-index .list-unstyled .media .media-body p .time {
+    color: #808695;
+    float: right;
+    margin-right: 2rem;
+    font-size: .5rem;
+    line-height: 2rem;
+}
+
+.page-index .mr-3, .car-article .list-unstyled img {
+    width: 9rem;
+    overflow: hidden;
+}
+
+.dealer-list .dealer-pic {
+    display: inline-block;
+    width: 100%;
+    overflow: hidden;
+}
+
+.page-index .mr-3:hover, .page-index .dealer-list img:hover {
+    transition: all .6s;
+    transform: scale(1.1);
+}
+
+.page-index .dealer-list .address {
+    overflow: hidden;
+    width: 100%;
+}
+
+.page-index .dealer-list .left {
+    display: block;
+    float: left;
+}
+
+.page-index .dealer-list .d-c-c {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 8rem;
+    display: block;
+    float: left;
+}
+
+.page-index .ad-pic {
+    position: relative;
+    overflow: hidden;
+
+}
+
+.page-index .ad-pic img {
+    width: 100%;
+}
+
+.page-index .ad-pic-c {
+    position: absolute;
+    bottom: 0;
+    text-align: center;
+    /*background-color: #fff0f6;*/
+    background-color: #000000;
+    opacity: 0.7;
+    width: 100%;
+    color: #ffffff;
+
+}
+
+.page-index .ad-pic-c .ad-pic-title, .page-index .ad-pic-c .ad-pic-desc {
+    width: 100%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    font-size: 1rem;
+}
+
+.page-index .ad-pic-c .ad-pic-title {
+    color: #ffffff;
+}
+
+.page-index .ad-pic-c .ad-pic-desc {
+    font-size: .75rem;
+}
+
+.page-index .carousel-item img {
+    height: 18.5rem;
+}
+
+.page-index .carousel-item img:hover {
+    transition: all .6s;
+    transform: scale(1.1);
+}
+
+.page-index .hot-article .item {
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.page-index .dealer-list .card-title a {
+    font-size: 1.25rem;
+    font-weight: 500;
+}
+
+.page-index .dealer-list .card-title .dealer-tp {
+    background-color: #007bff;
+    color: #fff;
+    font-weight: 400;
+    padding: 0.25rem 0.25rem;
+    border-top-left-radius: 30%;
+    border-bottom-right-radius: 30%;
+    font-size: .75rem;
+}
+
+#article-list-load .time {
+    color: #cccccc;
+    float: right;
+
+}
+
+#article-list-load li h5.title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#article-list-load li h5 a {
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#article-list-load li p {
+    text-indent: 1.5rem;
+    font-size: .9rem;
+}
+
+#hot-article-bottom {
+    height: 4rem;
+}
+
+.page-index .new-ttl span {
+
+    overflow: hidden;
+    margin-right: .2rem;
+}
+
