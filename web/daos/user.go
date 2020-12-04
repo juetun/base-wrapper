@@ -8,32 +8,11 @@
 package daos
 
 import (
-	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/web/models"
 	"github.com/juetun/base-wrapper/web/pojos"
 )
 
-type DaoUser struct {
-	base.ServiceDao
-}
-
-func NewDaoUser(context ...*base.Context) (p *DaoUser) {
-	p = &DaoUser{}
-	p.SetContext(context...)
-	return
-}
-
-func (r *DaoUser) GetUser(arg *pojos.ArgumentDefault) (res []models.User, err error) {
-	err = r.Context.Db.
-		Where("id=?", 1).
-		Find(&res).
-		Error
-	return
-}
-func (r *DaoUser) TestOrm(arg *pojos.ArgumentDefault) (res []models.User, err error) {
-	err = r.Context.Db.
-		Where("key=?", 1).
-		Find(&res).
-		Error
-	return
+type DaoUser interface {
+	GetUser(arg *pojos.ArgumentDefault) (res []models.User, err error)
+	TestOrm(arg *pojos.ArgumentDefault) (res []models.User, err error)
 }

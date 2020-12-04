@@ -5,7 +5,11 @@
 * @Version: 1.0.0
 * @Date 2020/8/18 6:13 下午
  */
-package services
+
+// @Copyright (c) 2020.
+// @Author ${USER}
+// @Date ${DATE}
+package srv_impl
 
 import (
 	"bytes"
@@ -20,26 +24,27 @@ import (
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
-	"github.com/juetun/base-wrapper/web/daos"
+	"github.com/juetun/base-wrapper/web/daos/dao_impl"
 	"github.com/juetun/base-wrapper/web/pojos"
+	"github.com/juetun/base-wrapper/web/srv"
 )
 
-type ServiceDefault struct {
+type ServiceDefaultImpl struct {
 	base.ServiceBase
 }
 
-func NewServiceDefault(context ...*base.Context) (p *ServiceDefault) {
-	p = &ServiceDefault{}
+func NewServiceDefaultImpl(context ...*base.Context) (res srv.ServiceDefault) {
+	p := &ServiceDefaultImpl{}
 	p.SetContext(context...)
 	return
 }
-func (r *ServiceDefault) Index(arg *pojos.ArgumentDefault) (res *pojos.ResultDefault, err error) {
+func (r *ServiceDefaultImpl) Index(arg *pojos.ArgumentDefault) (res *pojos.ResultDefault, err error) {
 	res = &pojos.ResultDefault{}
-	dao := daos.NewDaoUser(r.Context)
+	dao := dao_impl.NewDaoUserImpl(r.Context)
 	res.Users, err = dao.GetUser(arg)
 	return
 }
-func (r *ServiceDefault) TestEs(arg *pojos.ArgumentDefault) (result interface{}, err error) {
+func (r *ServiceDefaultImpl) TestEs(arg *pojos.ArgumentDefault) (result interface{}, err error) {
 	log.SetFlags(0)
 
 	var (
@@ -172,7 +177,7 @@ func (r *ServiceDefault) TestEs(arg *pojos.ArgumentDefault) (result interface{},
 	log.Println(strings.Repeat("=", 37))
 	return
 }
-func (r *ServiceDefault) Tmain(arg *pojos.ArgumentDefault) (result interface{}, err error) {
+func (r *ServiceDefaultImpl) Tmain(arg *pojos.ArgumentDefault) (result interface{}, err error) {
 
 	return
 }

@@ -17,7 +17,7 @@ import (
 )
 
 func init() {
-	app_start.HandleFunc = append(app_start.HandleFunc,
+	app_start.HandleFuncOuterNet = append(app_start.HandleFuncOuterNet,
 		func(r *gin.Engine, urlPrefix string) {
 			//c := controllers.NewControllerDefault()
 			//p := r.Group(urlPrefix, middlewares.Authentication(func(user *app_obj.JwtUserMessage, c *gin.Context) (err error) {

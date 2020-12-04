@@ -21,8 +21,9 @@ import (
 // 路由注册函数
 type HandleRouter func(c *gin.Engine, urlPrefix string)
 
-// 路由函数数组
-var HandleFunc = make([]HandleRouter, 0)
+var HandleFunc = make([]HandleRouter, 0)         // 路由函数切片
+var HandleFuncIntranet = make([]HandleRouter, 0) //内网路由函数切片
+var HandleFuncOuterNet = make([]HandleRouter, 0) //外网路由函数切片
 
 type WebApplication struct {
 	GinEngine *gin.Engine
@@ -71,7 +72,7 @@ func (r *WebApplication) LoadRouter(routerHandler ...RouterHandler) (res *WebApp
 		}
 	}()
 	appConfig := common.GetAppConfig()
-	var UrlPrefix = appConfig.AppName + "/" + appConfig.AppApiVersion
+	var UrlPrefix = fmt.Sprintf("%s/%s", appConfig.AppName, appConfig.AppApiVersion)
 
 	fmt.Printf("\n\n")
 	r.syslog.SetInfoType(base.LogLevelInfo).
@@ -99,6 +100,21 @@ func (r *WebApplication) LoadRouter(routerHandler ...RouterHandler) (res *WebApp
 		router(r.GinEngine, UrlPrefix)
 	}
 
+	if len(HandleFuncIntranet) > 0 {
+		r.syslog.SetInfoType(base.LogLevelInfo).
+			SystemOutPrintln("注册内网访问接口路由....")
+		for _, router := range HandleFuncIntranet {
+			router(r.GinEngine, fmt.Sprintf("%s/%s", UrlPrefix, "in"))
+		}
+	}
+	fmt.Printf("\n")
+	if len(HandleFuncOuterNet) > 0 {
+		r.syslog.SetInfoType(base.LogLevelInfo).
+			SystemOutPrintln("注册外网访问接口路由....")
+		for _, router := range HandleFuncOuterNet {
+			router(r.GinEngine, fmt.Sprintf("%s/%s", UrlPrefix, "out"))
+		}
+	}
 	return
 }
 
