@@ -118,7 +118,7 @@ func (r *OptionLog) GetFileWriter() (file io.Writer, err error) {
 		file, err = rotatelogs.New(r.GetFileName("_%Y%m%d"),
 			rotatelogs.WithLinkName(r.LogFilePath),
 			rotatelogs.WithRotationTime(24*time.Hour),
-			rotatelogs.WithMaxAge(24*100*time.Hour),
+			rotatelogs.WithMaxAge(14*24*time.Hour), //日志文件保留14天
 		)
 		if err != nil {
 			systemLog.Printf("failed to create rotatelogs: %s", err)
