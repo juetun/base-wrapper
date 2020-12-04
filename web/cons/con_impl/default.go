@@ -14,21 +14,21 @@ package con_impl
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/base-wrapper/web/controllers"
+	"github.com/juetun/base-wrapper/web/cons"
 	"github.com/juetun/base-wrapper/web/pojos"
 	"github.com/juetun/base-wrapper/web/srv/srv_impl"
 )
 
-type ControllerDefaultImpl struct {
+type ConDefaultImpl struct {
 	base.ControllerBase
 }
 
-func NewControllerDefault() (res controllers.ControllerDefault) {
-	p := &ControllerDefaultImpl{}
+func NewConDefault() (res cons.ConDefault) {
+	p := &ConDefaultImpl{}
 	p.ControllerBase.Init()
 	return p
 }
-func (r *ControllerDefaultImpl) TestEs(c *gin.Context) {
+func (r *ConDefaultImpl) TestEs(c *gin.Context) {
 	var err error
 	var arg pojos.ArgumentDefault
 	var result = base.NewResult()
@@ -49,7 +49,7 @@ func (r *ControllerDefaultImpl) TestEs(c *gin.Context) {
 
 	r.ResponseResult(c, result)
 }
-func (r *ControllerDefaultImpl) Index(c *gin.Context) {
+func (r *ConDefaultImpl) Index(c *gin.Context) {
 	var err error
 	var arg pojos.ArgumentDefault
 	var result = base.NewResult()

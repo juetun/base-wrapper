@@ -29,6 +29,7 @@ func NewDaoUserImpl(context ...*base.Context) (res daos.DaoUser) {
 }
 
 func (r *DaoUserImpl) GetUser(arg *pojos.ArgumentDefault) (res []models.User, err error) {
+	
 	err = r.Context.Db.
 		Where("id=?", 1).
 		Find(&res).

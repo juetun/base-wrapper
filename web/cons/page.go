@@ -9,14 +9,14 @@
 // @Copyright (c) 2020.
 // @Author ${USER}
 // @Date ${DATE}
-package controllers
+package cons
 
 import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/net/websocket"
 )
 
-type ControllerPage interface {
+type ConPage interface {
 	//web socket操作
 	Websocket(conn *websocket.Conn)
 	Tsst(c *gin.Context)

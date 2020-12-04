@@ -20,25 +20,25 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	. "github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/base-wrapper/web/controllers"
+	"github.com/juetun/base-wrapper/web/cons"
 	"github.com/juetun/base-wrapper/web/pojos"
-	services_impl "github.com/juetun/base-wrapper/web/srv/srv_impl"
+	"github.com/juetun/base-wrapper/web/srv/srv_impl"
 	"golang.org/x/net/websocket"
 )
 
-type ControllerPageImpl struct {
+type ConPageImpl struct {
 	ControllerWeb
 }
 
-func NewControllerPage() ( controllers.ControllerPage) {
-	p := &ControllerPageImpl{}
+func NewConPage() (res cons.ConPage) {
+	p := &ConPageImpl{}
 	p.ControllerWeb.Init()
 	p.MainTplFile = "car_master.htm"
 	return p
 }
 
 //web socket操作
-func (r *ControllerPageImpl) Websocket(conn *websocket.Conn) {
+func (r *ConPageImpl) Websocket(conn *websocket.Conn) {
 	for {
 		var msg string
 		if err := websocket.Message.Receive(conn, &msg); err != nil {
@@ -62,7 +62,7 @@ func (r *ControllerPageImpl) Websocket(conn *websocket.Conn) {
 		}
 	}
 }
-func (r *ControllerPageImpl) shortMessage(c *gin.Context) {
+func (r *ConPageImpl) shortMessage(c *gin.Context) {
 	keyList := app_obj.ShortMessageObj.GetChannelKey()
 	fmt.Println("当前支持的通道号有:", keyList)
 	//app_obj.ShortMessageObj.SendMsg(&app_obj.MessageArgument{
@@ -82,7 +82,7 @@ func (r *ControllerPageImpl) shortMessage(c *gin.Context) {
 		r.ResponseError(c, err)
 		return
 	}
-	srv := services_impl.NewServiceDefaultImpl(GetControllerBaseContext(&r.ControllerBase, c))
+	srv := srv_impl.NewServiceDefaultImpl(GetControllerBaseContext(&r.ControllerBase, c))
 	result.Data, err = srv.Tmain(&arg)
 	if err != nil {
 		r.ResponseError(c, err)
@@ -91,16 +91,16 @@ func (r *ControllerPageImpl) shortMessage(c *gin.Context) {
 
 	r.ResponseResult(c, result)
 }
-func (r *ControllerPageImpl) Tsst(c *gin.Context) {
+func (r *ConPageImpl) Tsst(c *gin.Context) {
 
 }
-func (r *ControllerPageImpl) Main(c *gin.Context) {
+func (r *ConPageImpl) Main(c *gin.Context) {
 	var err error
 	var arg = pojos.ArgumentDefault{}
 	if err = c.BindQuery(&arg); err != nil {
 		return
 	}
-	srv := services_impl.NewServiceDefaultImpl(GetControllerBaseContext(&r.ControllerBase, c))
+	srv := srv_impl.NewServiceDefaultImpl(GetControllerBaseContext(&r.ControllerBase, c))
 	ctx := context.WithValue(context.TODO(), "srv", srv)
 	blockChild1 := NewBlock(
 		Ctx(ctx),

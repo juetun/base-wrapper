@@ -8,13 +8,13 @@ import (
 	"github.com/juetun/base-wrapper/lib/app/app_start"
 	"github.com/juetun/base-wrapper/lib/app/middlewares"
 	"github.com/juetun/base-wrapper/lib/common"
-	"github.com/juetun/base-wrapper/web/controllers/con_impl"
+	"github.com/juetun/base-wrapper/web/cons/con_impl"
 )
 
 func init() {
 	app_start.HandleFuncIntranet = append(app_start.HandleFuncIntranet,
 		func(r *gin.Engine, urlPrefix string) {
-			page := con_impl.NewControllerPage()
+			page := con_impl.NewConPage()
 			p := r.Group(urlPrefix, middlewares.AuthParse())
 			p.GET("/page", page.Main)
 			p.GET("/test", page.Tsst)
