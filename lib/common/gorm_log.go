@@ -13,7 +13,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
-	"github.com/juetun/base-wrapper/lib/app_obj"
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/sirupsen/logrus"
 )
 

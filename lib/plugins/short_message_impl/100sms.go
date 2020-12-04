@@ -3,7 +3,7 @@ package short_message_impl
 import (
 	"fmt"
 
-	"github.com/juetun/base-wrapper/lib/app_obj"
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
 )
 
 type Sms100 struct {

@@ -14,7 +14,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/base-wrapper/lib/app_obj"
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	utils2 "github.com/juetun/base-wrapper/lib/utils"
 )
 

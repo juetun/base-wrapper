@@ -1,7 +1,7 @@
 package init
 
 import (
-	"github.com/juetun/base-wrapper/lib/app_start"
+	"github.com/juetun/base-wrapper/lib/app/app_start"
 	"github.com/juetun/base-wrapper/lib/common"
 	. "github.com/juetun/base-wrapper/lib/plugins"
 )

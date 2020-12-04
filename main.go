@@ -10,10 +10,11 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/base-wrapper/lib/app_start"
-	_ "github.com/juetun/base-wrapper/lib/init"    // 加载公共插件项
-	. "github.com/juetun/base-wrapper/lib/plugins" // 加载路由信息
-	_ "github.com/juetun/base-wrapper/web/router"  // 加载路由信息
+	"github.com/juetun/base-wrapper/lib/app/app_start"
+	_ "github.com/juetun/base-wrapper/lib/init"            // 加载公共插件项
+	. "github.com/juetun/base-wrapper/lib/plugins"         // 组件目录
+	_ "github.com/juetun/base-wrapper/web/router/intranet" // 加载内网访问路由
+	_ "github.com/juetun/base-wrapper/web/router/outernet" // 加载内网访问路由
 )
 
 // https://github.com/izghua/go-blog

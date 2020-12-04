@@ -9,7 +9,7 @@ package plugins
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/base-wrapper/lib/middlewares"
+	"github.com/juetun/base-wrapper/lib/app/middlewares"
 )
 
 const CityCookieName = "city"

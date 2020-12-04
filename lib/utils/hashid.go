@@ -7,7 +7,7 @@
 package utils
 
 import (
-	"github.com/juetun/base-wrapper/lib/app_obj"
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/speps/go-hashids"
 )
 

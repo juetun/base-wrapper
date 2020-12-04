@@ -5,11 +5,15 @@
 * @Version: 1.0.0
 * @Date 2020/4/19 10:22 下午
  */
-package router
+
+// @Copyright (c) 2020.
+// @Author ${USER}
+// @Date ${DATE}
+package outernet
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/base-wrapper/lib/app_start"
+	"github.com/juetun/base-wrapper/lib/app/app_start"
 )
 
 func init() {

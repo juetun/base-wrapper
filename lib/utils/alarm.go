@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"github.com/go-errors/errors"
-	"github.com/juetun/base-wrapper/lib/app_obj"
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
 )
 
 // Define AlarmType to string

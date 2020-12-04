@@ -12,12 +12,13 @@
 package controllers
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/base-wrapper/lib/app_obj"
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	. "github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/web/pojos"
 	"github.com/juetun/base-wrapper/web/services"
@@ -98,12 +99,16 @@ func (r *ControllerPage) Main(c *gin.Context) {
 	if err = c.BindQuery(&arg); err != nil {
 		return
 	}
+	srv := services.NewServiceDefault(GetControllerBaseContext(&r.ControllerBase, c))
+	ctx := context.WithValue(context.TODO(), "srv", srv)
 	blockChild1 := NewBlock(
+		Ctx(ctx),
 		Name("controller_main_1"),
 		Data(gin.H{"data": "haha",}),
 		TempFile("a1.html"),
 	)
 	blockChild2 := NewBlock(
+		Ctx(ctx),
 		Name("controller_main_2"),
 		Data(gin.H{"data": "haha",}),
 		TempFile("a2.html"),
@@ -111,6 +116,7 @@ func (r *ControllerPage) Main(c *gin.Context) {
 
 	h := gin.H{"data": "haha",}
 	block := NewBlock(
+		Ctx(ctx),
 		Name("controller_main"),
 		Data(h),
 		TempFile("a.html"),

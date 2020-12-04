@@ -12,12 +12,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/juetun/base-wrapper/lib/app_obj"
-	"github.com/juetun/base-wrapper/lib/app_start"
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
+	"github.com/juetun/base-wrapper/lib/app/app_start"
 	"github.com/juetun/base-wrapper/lib/base"
 	_ "github.com/juetun/base-wrapper/lib/init"    // 加载公共插件项
 	. "github.com/juetun/base-wrapper/lib/plugins" // 加载路由信息
-	"github.com/juetun/base-wrapper/lib/rpc"
+	"github.com/juetun/base-wrapper/lib/plugins/rpc"
 )
 
 func TestMicroRpcGet(t *testing.T) {

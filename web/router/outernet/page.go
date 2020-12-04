@@ -1,13 +1,13 @@
 // @Copyright (c) 2020.
 // @Author ${USER}
 // @Date ${DATE}
-package router
+package outernet
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/base-wrapper/lib/app_start"
+	"github.com/juetun/base-wrapper/lib/app/app_start"
+	"github.com/juetun/base-wrapper/lib/app/middlewares"
 	"github.com/juetun/base-wrapper/lib/common"
-	"github.com/juetun/base-wrapper/lib/middlewares"
 	"github.com/juetun/base-wrapper/web/controllers"
 )
 

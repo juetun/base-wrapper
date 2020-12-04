@@ -15,7 +15,7 @@ import (
 	"net/smtp"
 	"strings"
 
-	"github.com/juetun/base-wrapper/lib/app_obj"
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
 )
 
 const MAIlTYPE = "html"
