@@ -1,4 +1,7 @@
-package base
+// @Copyright (c) 2020.
+// @Author ${USER}
+// @Date ${DATE}
+package page_block
 
 //页面缓存对象
 
@@ -12,24 +15,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
+	"github.com/juetun/base-wrapper/lib/base/block/block_cache_impl"
 )
 
-//缓存数据的接口，开发中需自定义实现逻辑
-type BlockCacheInterface interface {
-	//存储缓存数据
-	//@param  name 缓存的kEY
-	//@param  val  缓存的值
-	//@param  cacheTime 缓存的时间
-	//@return error
-	Set(name string, val string, cacheTime time.Duration) (err error)
-
-	//获取缓存数据
-	//@param name 缓存的key
-	//@return res 获取的数据值
-	Get(name string) (res string, err error)
-}
-
 type Handler func(block *Block) (err error)
+type HandlerBlockCache func(block *BlockCache) (err error)
 
 //页面操作对象 一个html由BLOCK拼凑而成 本结构体设计目的为实现页面局部数据缓存控制
 // 每个BLOCK具备独立的缓存对象，独立从数据库、redis、或其他数据源获取数据的能力获取数据的能力
@@ -48,15 +38,6 @@ type Block struct {
 	RunBefore             []Handler       `json:"-"`          //渲染完数据后执行此方法，主要用来调试数据使用 //渲染完数据后执行此方法，主要用来调试数据使用,返回值为true时跳出
 	RunAfter              []Handler       `json:"-"`          //渲染完数据前执行此方法，主要用来调试数据使用 //渲染完数据前执行此方法，主要用来调试数据使用,返回值为true时跳出
 	ChildBock             []*Block        `json:"child_bock"` //当前的子BLOCK
-}
-
-//缓存信息对象
-type BlockCache struct {
-	ExpireTime time.Time           `json:"expire_time"` //静态化时间周期(单位秒)，设置当前BLOCK的生命周期，如果父Block>0时以父Block的值为准。
-	CacheType  string              `json:"cache_type"`  //当前界面缓存类型 如 file:文件缓存,redis:缓存，database:数据库缓存
-	Cache      BlockCacheInterface `json:"cache"`       //当前界面缓存的相关信息
-	CacheKey   string              `json:"cache_key"`
-	CacheData  string              `json:"cache_data"` //解析后台生成的html代码，（写入缓存的数据内容）
 }
 
 //判断文件目录是否存在
@@ -219,14 +200,32 @@ func (r *Block) Run() (res template.HTML, err error) {
 	return
 }
 
+//初始化页面缓存对象
+func (r *Block) defaultCacheBlock() {
+	if r.CacheBlock == nil {
+		r.CacheBlock = &BlockCache{
+			//默认使用redis缓存数据
+			Cache: block_cache_impl.NewBlockCacheRedisImpl(),
+		}
+		return
+	}
+
+	if r.CacheBlock.Cache == nil {
+		//默认使用redis缓存数据
+		r.CacheBlock.Cache = block_cache_impl.NewBlockCacheRedisImpl()
+	}
+	return
+}
+
 //BLOCK 默认数据逻辑处理
 func (r *Block) defaultValue() (err error) {
 	if r.Data == nil && len(r.Data) == 0 {
 		r.Data = gin.H{}
 	}
-	if r.CacheBlock == nil {
-		r.CacheBlock = &BlockCache{}
-	}
+
+	//初始化页面缓存对象
+	r.defaultCacheBlock()
+
 	//如果名称没定义
 	if r.Name == "" {
 		err = fmt.Errorf("您没有定义当前BLOCK的name(%T)", r)
@@ -273,8 +272,9 @@ func NewBlock(option ...BlockOption) (block *Block) {
 
 	return
 }
+
+//默认初始化当前模板文件所在位置
 func (r *Block) defaultTemplateBaseDirectory() {
-	//默认初始化当前模板文件所在位置
 	if r.TemplateBaseDirectory == "" {
 		r.TemplateBaseDirectory = app_obj.App.AppTemplateDirectory
 	}
@@ -297,12 +297,12 @@ func RunAfter(runAfter ...Handler) BlockOption {
 	}
 }
 
-func RunBefore(runBefore []Handler) BlockOption {
+func RunBefore(runBefore ...Handler) BlockOption {
 	return func(block *Block) {
 		block.RunBefore = runBefore
 	}
 }
-func RunChildBefore(runChildBefore []Handler) BlockOption {
+func RunChildBefore(runChildBefore ...Handler) BlockOption {
 	return func(block *Block) {
 		block.RunChildBefore = runChildBefore
 	}
@@ -311,6 +311,12 @@ func RunChildBefore(runChildBefore []Handler) BlockOption {
 func CacheBlock(cacheBlock *BlockCache) BlockOption {
 	return func(block *Block) {
 		block.CacheBlock = cacheBlock
+	}
+}
+
+func CacheBlockOption(cacheBlock ...BlockCacheOption) BlockOption {
+	return func(block *Block) {
+		block.CacheBlock = NewBlockCache(cacheBlock...)
 	}
 }
 
@@ -337,6 +343,13 @@ func Name(value string) BlockOption {
 		block.Name = value
 	}
 }
+
+func ParentBlockCacheOption(value *BlockCache) BlockOption {
+	return func(block *Block) {
+		block.ParentBlockCache = &BlockCache{}
+	}
+}
+
 func ParentBlockCache(value *BlockCache) BlockOption {
 	return func(block *Block) {
 		block.ParentBlockCache = value

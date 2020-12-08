@@ -33,15 +33,15 @@ type ServiceDefaultImpl struct {
 	base.ServiceBase
 }
 
-func NewServiceDefaultImpl(context ...*base.Context) (res srv.ServiceDefault) {
+func NewServiceDefaultImpl(context ...*base.Context) (res srvs.ServiceDefault) {
 	p := &ServiceDefaultImpl{}
 	p.SetContext(context...)
 	return
 }
 func (r *ServiceDefaultImpl) Index(arg *pojos.ArgumentDefault) (res *pojos.ResultDefault, err error) {
 	res = &pojos.ResultDefault{}
-	dao := dao_impl.NewDaoUserImpl(r.Context)
-	res.Users, err = dao.GetUser(arg)
+	res.Users, err = dao_impl.NewDaoUserImpl(r.Context).
+		GetUser(arg)
 	return
 }
 func (r *ServiceDefaultImpl) TestEs(arg *pojos.ArgumentDefault) (result interface{}, err error) {

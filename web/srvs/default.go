@@ -5,7 +5,7 @@
 * @Version: 1.0.0
 * @Date 2020/8/18 6:13 下午
  */
-package srv
+package srvs
 
 import (
 	"github.com/juetun/base-wrapper/web/pojos"
