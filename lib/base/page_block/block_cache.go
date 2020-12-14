@@ -3,38 +3,59 @@
 // @Date ${DATE}
 package page_block
 
-import "time"
+import (
+	"log"
+	"strings"
+	"time"
 
-//缓存数据的接口，开发中需自定义实现逻辑
-type BlockCacheInterface interface {
-	//存储缓存数据
-	//@param  name 缓存的kEY
-	//@param  val  缓存的值
-	//@param  cacheTime 缓存的时间
-	//@return error
-	Set(name string, val string, cacheTime time.Duration) (err error)
+	"github.com/juetun/base-wrapper/lib/base/page_block/block_cache_impl"
+	"github.com/juetun/base-wrapper/lib/base/page_block/inte"
+)
 
-	//获取缓存数据
-	//@param name 缓存的key
-	//@return res 获取的数据值
-	Get(name string) (res string, err error)
-}
+const (
+	CacheFile     = "file"     //缓存到文件
+	CacheRedis    = "redis"    //缓存到Redis
+	CacheDatabase = "database" //缓存到数据库
+)
 
 //缓存信息对象
 type BlockCache struct {
-	ExpireTime time.Time           `json:"expire_time"` //静态化时间周期(单位秒)，设置当前BLOCK的生命周期，如果父Block>0时以父Block的值为准。
-	CacheType  string              `json:"cache_type"`  //当前界面缓存类型 如 file:文件缓存,redis:缓存，database:数据库缓存
-	Cache      BlockCacheInterface `json:"cache"`       //当前界面缓存的相关信息
-	CacheKey   string              `json:"cache_key"`
-	CacheData  string              `json:"cache_data"` //解析后台生成的html代码，（写入缓存的数据内容）
+	ExpireTime time.Time                `json:"expire_time"` //静态化时间周期(单位秒)，设置当前BLOCK的生命周期，如果父Block>0时以父Block的值为准。
+	CacheType  string                   `json:"cache_type"`  //当前界面缓存类型 如 file:文件缓存,redis:缓存，database:数据库缓存
+	Cache      inte.BlockCacheInterface `json:"cache"`       //当前界面缓存的相关信息
+	CacheKey   string                   `json:"cache_key"`
+	CacheData  string                   `json:"cache_data"` //解析后台生成的html代码，（写入缓存的数据内容）
 }
 
 func NewBlockCache(option ...BlockCacheOption) (res *BlockCache) {
-	res = &BlockCache{}
+	res = &BlockCache{
+		CacheType: CacheRedis,
+	}
 	for _, handler := range option {
 		handler(res)
 	}
+
+	//初始化默认值
+	res.Default()
 	return
+}
+func (r *BlockCache) Default() {
+	if r.Cache == nil {
+		r.defaultCache()
+	}
+
+}
+func (r *BlockCache) defaultCache() {
+	switch strings.ToLower(r.CacheType) {
+	case CacheRedis: //缓存到redis
+		r.Cache = block_cache_impl.NewBlockCacheRedisImpl()
+	case CacheFile: //缓存到文件
+		r.Cache = block_cache_impl.NewBlockCacheFileImpl()
+	case CacheDatabase: //缓存到数据库
+		r.Cache = block_cache_impl.NewBlockCacheDatabaseImpl()
+	default:
+		log.Fatalf("the cache type is not supported (%s)", r.CacheType)
+	}
 }
 
 type BlockCacheOption func(block *BlockCache)
@@ -49,7 +70,7 @@ func CacheKey(cacheKey string) func(res *BlockCache) {
 		blockCache.CacheKey = cacheKey
 	}
 }
-func Cache(blockCacheInterface BlockCacheInterface) func(res *BlockCache) {
+func Cache(blockCacheInterface inte.BlockCacheInterface) func(res *BlockCache) {
 	return func(blockCache *BlockCache) {
 		blockCache.Cache = blockCacheInterface
 	}

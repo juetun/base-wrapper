@@ -15,7 +15,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
-	"github.com/juetun/base-wrapper/lib/base/page_block/block_cache_impl"
 )
 
 type Handler func(block *Block) (err error)
@@ -33,7 +32,7 @@ type Block struct {
 	Data                  gin.H           `json:"data"`                    //当前Block的参数
 	TempFile              string          `json:"temp_file"`               //html文件地址
 	TemplateBaseDirectory string          `json:"template_base_directory"` //html模板文件所在的公共基础路径
-	CacheBlock            *BlockCache     `json:"cache"`                   //当前模块缓存的基本参数
+	BlockCache            *BlockCache     `json:"cache"`                   //当前模块缓存的基本参数
 	RunChildBefore        []Handler       `json:"-"`
 	RunBefore             []Handler       `json:"-"`          //渲染完数据后执行此方法，主要用来调试数据使用 //渲染完数据后执行此方法，主要用来调试数据使用,返回值为true时跳出
 	RunAfter              []Handler       `json:"-"`          //渲染完数据前执行此方法，主要用来调试数据使用 //渲染完数据前执行此方法，主要用来调试数据使用,返回值为true时跳出
@@ -96,29 +95,29 @@ func (r *Block) setChildContext(item *Block) {
 
 	item.Data = data
 	item.Ctx = r.Ctx
-	item.ParentBlockCache = r.CacheBlock
+	item.ParentBlockCache = r.BlockCache
 }
 
 //从缓存中获取数据
 func (r *Block) getCache() (res string, err error) {
-	if r.CacheBlock.Cache == nil {
+	if r.BlockCache.Cache == nil {
 		return
 	}
-	res, err = r.CacheBlock.Cache.Get(r.getKey())
+	res, err = r.BlockCache.Cache.Get(r.getKey())
 	return
 }
 
 //将数据写入缓存
 func (r *Block) writeToCache(data string) (err error) {
 
-	if r.CacheBlock.ExpireTime.IsZero() {
+	if r.BlockCache.ExpireTime.IsZero() {
 		return
 	}
 
 	//缓存时间
-	if lt := r.CacheBlock.ExpireTime.Unix() - time.Now().Unix(); lt > 0 {
-		lTime := time.Duration(r.CacheBlock.ExpireTime.Unix() - time.Now().Unix())
-		r.CacheBlock.Cache.Set(r.getKey(), data, lTime*time.Second)
+	if lt := r.BlockCache.ExpireTime.Unix() - time.Now().Unix(); lt > 0 {
+		lTime := time.Duration(r.BlockCache.ExpireTime.Unix() - time.Now().Unix())
+		r.BlockCache.Cache.Set(r.getKey(), data, lTime*time.Second)
 	}
 
 	return
@@ -126,8 +125,8 @@ func (r *Block) writeToCache(data string) (err error) {
 
 //获取缓存数据的Key
 func (r *Block) getKey() (res string) {
-	if r.CacheBlock.CacheKey != "" {
-		res = r.CacheBlock.CacheKey
+	if r.BlockCache.CacheKey != "" {
+		res = r.BlockCache.CacheKey
 		return
 	}
 	res = fmt.Sprintf("%s:%s", app_obj.App.AppName, r.Name)
@@ -153,23 +152,9 @@ func (r *Block) after() (err error) {
 	return
 }
 
-//解析模板数据
-func (r *Block) Run() (res template.HTML, err error) {
-
-	defer func() {
-		res = template.HTML(r.CacheBlock.CacheData)
-	}()
-	//初始化默认值
-	if err = r.defaultValue(); err != nil {
-		return
-	}
-
-	//获取缓存数据或者解析Block之前的动作
-	if err = r.before(); err != nil {
-		return
-	}
+func (r *Block) haveCacheDo() (res template.HTML, err error) {
 	//从缓存中拿数据
-	if r.CacheBlock.CacheData, err = r.getCache(); err != nil {
+	if r.BlockCache.CacheData, err = r.getCache(); err != nil {
 		if res != "" {
 			err = r.after()
 			return
@@ -184,7 +169,7 @@ func (r *Block) Run() (res template.HTML, err error) {
 	}
 
 	//解析HTML模板代码
-	if r.CacheBlock.CacheData, err = r.ParseHtml(); err != nil {
+	if r.BlockCache.CacheData, err = r.ParseHtml(); err != nil {
 		return
 	}
 
@@ -193,32 +178,74 @@ func (r *Block) Run() (res template.HTML, err error) {
 		return
 	}
 	//将数据写入缓存
-	if err = r.writeToCache(r.CacheBlock.CacheData); err != nil {
+	if err = r.writeToCache(r.BlockCache.CacheData); err != nil {
 		return
 	}
 
+	return
+}
+
+func (r *Block) hasNotCacheDo() (res template.HTML, err error) {
+	for _, item := range r.ChildBock {
+		r.setChildContext(item) //传递上下文参数
+		if r.Data[item.Name], err = item.Run(); err != nil {
+			return
+		}
+	}
+
+	//解析HTML模板代码
+	if r.BlockCache.CacheData, err = r.ParseHtml(); err != nil {
+		return
+	}
+
+	//返回值赋值在after后的目的是，可以通过后边的注入修改缓存值
+	if err = r.after(); err != nil {
+		return
+	}
+	return
+
+}
+
+//解析模板数据
+func (r *Block) Run() (res template.HTML, err error) {
+
+	defer func() {
+		res = template.HTML(r.BlockCache.CacheData)
+	}()
+	//初始化默认值
+	if err = r.defaultValue(); err != nil {
+		return
+	}
+
+	//获取缓存数据或者解析Block之前的动作
+	if err = r.before(); err != nil {
+		return
+	}
+	if r.BlockCache == nil {
+		if res, err = r.hasNotCacheDo(); err != nil {
+			return
+		}
+		return
+	}
+	if res, err = r.haveCacheDo(); err != nil {
+		return
+	}
 	return
 }
 
 //初始化页面缓存对象
 func (r *Block) defaultCacheBlock() {
-	if r.CacheBlock == nil {
-		r.CacheBlock = &BlockCache{
-			//默认使用redis缓存数据
-			Cache: block_cache_impl.NewBlockCacheRedisImpl(),
-		}
-		return
+
+	if r.BlockCache == nil {
+		r.BlockCache = NewBlockCache()
 	}
 
-	if r.CacheBlock.Cache == nil {
-		//默认使用redis缓存数据
-		r.CacheBlock.Cache = block_cache_impl.NewBlockCacheRedisImpl()
-	}
 	return
 }
 
 //BLOCK 默认数据逻辑处理
 func (r *Block) defaultValue() (err error) {
+
 	if r.Data == nil && len(r.Data) == 0 {
 		r.Data = gin.H{}
 	}
@@ -247,18 +274,18 @@ func (r *Block) defaultValue() (err error) {
 //缓存时间处理
 func (r *Block) initExpireTime() {
 
-	if r.ParentBlockCache == nil || r.CacheBlock == nil {
+	if r.ParentBlockCache == nil || r.BlockCache == nil {
 		return
 	}
 	//如果当前BLOCK的缓存时间为0 则不缓存
 	//如果当前的父BLOCK缓存为0,则指定使用当前缓存时间
-	if r.ParentBlockCache.ExpireTime.Unix() == 0 || r.CacheBlock.ExpireTime.Unix() == 0 {
+	if r.ParentBlockCache.ExpireTime.Unix() == 0 || r.BlockCache.ExpireTime.Unix() == 0 {
 		return
 	}
 
 	//如果当前BLOCK的父block不等于0,则本次缓存就为不缓存，（设置的过期时间是昨天当前时间）
 	if r.ParentBlockCache.ExpireTime.Unix()-time.Now().Unix() > 0 {
-		r.CacheBlock.ExpireTime = time.Now().AddDate(0, 0, -1)
+		r.BlockCache.ExpireTime = time.Now().AddDate(0, 0, -1)
 	}
 
 }
@@ -269,7 +296,6 @@ func NewBlock(option ...BlockOption) (block *Block) {
 	for _, handler := range option {
 		handler(block)
 	}
-
 	return
 }
 
@@ -310,13 +336,13 @@ func RunChildBefore(runChildBefore ...Handler) BlockOption {
 
 func CacheBlock(cacheBlock *BlockCache) BlockOption {
 	return func(block *Block) {
-		block.CacheBlock = cacheBlock
+		block.BlockCache = cacheBlock
 	}
 }
 
 func CacheBlockOption(cacheBlock ...BlockCacheOption) BlockOption {
 	return func(block *Block) {
-		block.CacheBlock = NewBlockCache(cacheBlock...)
+		block.BlockCache = NewBlockCache(cacheBlock...)
 	}
 }
 

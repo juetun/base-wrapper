@@ -103,18 +103,18 @@ func (r *ConPageImpl) Main(c *gin.Context) {
 	}
 	srv := srv_impl.NewServiceDefaultImpl(GetControllerBaseContext(&r.ControllerBase, c))
 	ctx := context.WithValue(context.TODO(), "srv", srv)
-	blockChild1 := page_block.NewBlock(
-		page_block.Ctx(ctx),
-		page_block.Name("controller_main_1"),
-		page_block.Data(gin.H{"data": "haha",}),
-		page_block.TempFile("a1.html"),
-	)
-	blockChild2 := page_block.NewBlock(
-		page_block.Ctx(ctx),
-		page_block.Name("controller_main_2"),
-		page_block.Data(gin.H{"data": "haha",}),
-		page_block.TempFile("a2.html"),
-	)
+	//blockChild1 := page_block.NewBlock(
+	//	page_block.Ctx(ctx),
+	//	page_block.Name("controller_main_1"),
+	//	page_block.Data(gin.H{"data": "haha",}),
+	//	page_block.TempFile("a1.html"),
+	//)
+	//blockChild2 := page_block.NewBlock(
+	//	page_block.Ctx(ctx),
+	//	page_block.Name("controller_main_2"),
+	//	page_block.Data(gin.H{"data": "haha",}),
+	//	page_block.TempFile("a2.html"),
+	//)
 
 	h := gin.H{"data": "haha",}
 	block := page_block.NewBlock(
@@ -122,7 +122,7 @@ func (r *ConPageImpl) Main(c *gin.Context) {
 		page_block.Name("controller_main"),
 		page_block.Data(h),
 		page_block.TempFile("a.html"),
-		page_block.ChildBock(blockChild1, blockChild2),
+		//page_block.ChildBock(blockChild1, blockChild2),
 		page_block.RunAfter(func(block *page_block.Block) (err error) {
 			return
 		}),
