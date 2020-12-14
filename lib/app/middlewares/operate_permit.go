@@ -4,9 +4,11 @@
 package middlewares
 
 import (
+	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/common"
 )
 
@@ -19,4 +21,41 @@ func GetRUri(c *gin.Context) string {
 	s2 := strings.TrimRight(s1[0], "/")
 	// fmt.Printf("Uri is :'%v'", s2)
 	return s2
+}
+
+// 用户登录逻辑处理
+func Auth(c *gin.Context) (exit bool) {
+
+	token := c.Request.Header.Get(app_obj.HTTP_USER_TOKEN)
+	traceId := c.GetHeader(app_obj.HTTP_TRACE_ID)
+	c.Set(app_obj.TRACE_ID, traceId)
+
+	if token == "" {
+		msg := "token is null"
+		app_obj.GetLog().Error(c, map[string]interface{}{
+			"method": "zgh.ginmiddleware.Auth",
+			"error":  msg,
+		})
+		c.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusUnauthorized).SetMessage(msg))
+		c.Abort()
+		exit = true
+		return
+	}
+
+	jwtUser, err := common.ParseToken(token, c)
+	if err != nil {
+		app_obj.GetLog().Error(c, map[string]interface{}{
+			"method": "zgh.ginmiddleware.Auth",
+			"token":  token,
+			"error":  err.Error(),
+		})
+		c.JSON(http.StatusOK, common.NewHttpResult().SetCode(403).SetMessage(err.Error()))
+		c.Abort()
+		exit = true
+		return
+	}
+	c.Set(app_obj.ContextUserObjectKey, jwtUser)
+	c.Set(app_obj.ContextUserTokenKey, token)
+
+	return
 }
