@@ -5,6 +5,7 @@
 package block_cache_impl
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/go-redis/redis"
@@ -16,7 +17,6 @@ import (
 type blockCacheRedisImpl struct {
 	CacheClient *redis.Client
 }
-
 
 type BlockCacheRedisImplOption func(block inte.BlockCacheInterface)
 
@@ -32,21 +32,26 @@ func NewBlockCacheRedisImpl(blockCacheRedisImplOption ...BlockCacheRedisImplOpti
 }
 
 //初始化默认值
-func (b blockCacheRedisImpl) DefaultValue() {
+func (b *blockCacheRedisImpl) DefaultValue() {
 	if b.CacheClient == nil {
+
 		b.CacheClient = app_obj.GetRedisClient()
+		if b.CacheClient == nil {
+			panic(fmt.Errorf("get cache client exception"))
+		}
+
 	}
+	return
 }
 
-
 //写入缓存数据
-func (b blockCacheRedisImpl) Set(name string, val string, cacheTime time.Duration) (err error) {
+func (b *blockCacheRedisImpl) Set(name string, val string, cacheTime time.Duration) (err error) {
 	err = b.CacheClient.Set(name, val, cacheTime).Err()
 	return
 }
 
 //读取缓存数据
-func (b blockCacheRedisImpl) Get(name string) (res string, err error) {
+func (b *blockCacheRedisImpl) Get(name string) (res string, err error) {
 	resData := b.CacheClient.Get(name)
 	if err = resData.Err(); err != nil {
 		return

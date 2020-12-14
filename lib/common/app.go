@@ -3,6 +3,7 @@ package common
 import (
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/fsnotify/fsnotify"
@@ -106,7 +107,7 @@ func NewApplication() *app_obj.Application {
 		env = ENV_RELEASE
 	}
 	var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
-	io.SystemOutPrintf("Env is: '%s'", env)
+	io.SystemOutPrintf("Env:'%s'(You can set environment variable with 'export \"GO_ENV=%s\")", env, strings.Join([]string{ENV_DEVELOP, ENV_TEST, ENV_TEST, ENV_DEMO, ENV_RELEASE,}, "|"), )
 	return &app_obj.Application{
 		AppSystemName:  "",
 		AppName:        "app",

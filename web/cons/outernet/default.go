@@ -5,7 +5,11 @@
 * @Version: 1.0.0
 * @Date 2020/8/18 6:04 下午
  */
-package cons
+
+// @Copyright (c) 2020.
+// @Author ${USER}
+// @Date ${DATE}
+package outernet
 
 import (
 	"github.com/gin-gonic/gin"

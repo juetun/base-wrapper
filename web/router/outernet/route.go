@@ -16,13 +16,13 @@ import (
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	. "github.com/juetun/base-wrapper/lib/app/app_start"
 	"github.com/juetun/base-wrapper/lib/app/middlewares"
-	"github.com/juetun/base-wrapper/web/cons/con_impl"
+	con_impl2 "github.com/juetun/base-wrapper/web/cons/outernet/con_impl"
 )
 
 func init() {
 	HandleFuncOuterNet = append(HandleFuncOuterNet,
 		func(r *gin.Engine, urlPrefix string) {
-			c := con_impl.NewConDefault()
+			c := con_impl2.NewConDefault()
 			p := r.Group(urlPrefix, middlewares.Authentication(func(user *app_obj.JwtUserMessage, c *gin.Context) (err error) {
 				return
 			}))

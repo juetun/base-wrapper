@@ -14,7 +14,7 @@ package con_impl
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/base-wrapper/web/cons"
+	"github.com/juetun/base-wrapper/web/cons/outernet"
 	"github.com/juetun/base-wrapper/web/pojos"
 	"github.com/juetun/base-wrapper/web/srvs/srv_impl"
 )
@@ -23,7 +23,7 @@ type ConDefaultImpl struct {
 	base.ControllerBase
 }
 
-func NewConDefault() (res cons.ConDefault) {
+func NewConDefault() (res outernet.ConDefault) {
 	p := &ConDefaultImpl{}
 	p.ControllerBase.Init()
 	return p

@@ -8,6 +8,7 @@ package page_block
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"fmt"
 	"html/template"
 	"os"
@@ -125,11 +126,24 @@ func (r *Block) writeToCache(data string) (err error) {
 
 //获取缓存数据的Key
 func (r *Block) getKey() (res string) {
+
 	if r.BlockCache.CacheKey != "" {
 		res = r.BlockCache.CacheKey
 		return
 	}
-	res = fmt.Sprintf("%s:%s", app_obj.App.AppName, r.Name)
+
+	uniqueKey := fmt.Sprintf("p:%s:%s", app_obj.App.AppName, r.Name)
+
+	switch r.BlockCache.CacheType {
+
+	case CacheRedis: //如果缓存类型为redis
+		res = uniqueKey
+	case CacheFile, CacheDatabase:
+		res = base64.StdEncoding.EncodeToString([]byte(uniqueKey))
+	default:
+		res = base64.StdEncoding.EncodeToString([]byte(uniqueKey))
+	}
+
 	return
 }
 
@@ -160,7 +174,6 @@ func (r *Block) haveCacheDo() (res template.HTML, err error) {
 			return
 		}
 	}
-
 	for _, item := range r.ChildBock {
 		r.setChildContext(item) //传递上下文参数
 		if r.Data[item.Name], err = item.Run(); err != nil {

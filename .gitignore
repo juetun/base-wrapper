@@ -2,3 +2,4 @@ config
 basic
 main.go
 /log.log
+/vendor/

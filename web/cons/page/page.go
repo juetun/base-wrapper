@@ -9,7 +9,7 @@
 // @Copyright (c) 2020.
 // @Author ${USER}
 // @Date ${DATE}
-package cons
+package page
 
 import (
 	"github.com/gin-gonic/gin"

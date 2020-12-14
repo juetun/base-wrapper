@@ -56,6 +56,7 @@ func (r *BlockCache) defaultCache() {
 	default:
 		log.Fatalf("the cache type is not supported (%s)", r.CacheType)
 	}
+	return
 }
 
 type BlockCacheOption func(block *BlockCache)

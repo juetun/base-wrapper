@@ -24,6 +24,7 @@ type HandleRouter func(c *gin.Engine, urlPrefix string)
 var HandleFunc = make([]HandleRouter, 0)         // 路由函数切片
 var HandleFuncIntranet = make([]HandleRouter, 0) //内网路由函数切片
 var HandleFuncOuterNet = make([]HandleRouter, 0) //外网路由函数切片
+var HandleFuncPage = make([]HandleRouter, 0)     //外网路由函数切片
 
 type WebApplication struct {
 	GinEngine *gin.Engine
@@ -107,12 +108,20 @@ func (r *WebApplication) LoadRouter(routerHandler ...RouterHandler) (res *WebApp
 			router(r.GinEngine, fmt.Sprintf("%s/%s", UrlPrefix, "in"))
 		}
 	}
-	fmt.Printf("\n")
 	if len(HandleFuncOuterNet) > 0 {
+		fmt.Printf("\n")
 		r.syslog.SetInfoType(base.LogLevelInfo).
 			SystemOutPrintln("注册外网访问接口路由....")
 		for _, router := range HandleFuncOuterNet {
 			router(r.GinEngine, fmt.Sprintf("%s/%s", UrlPrefix, "out"))
+		}
+	}
+	if len(HandleFuncPage) > 0 {
+		fmt.Printf("\n")
+		r.syslog.SetInfoType(base.LogLevelInfo).
+			SystemOutPrintf("注册网页界面访问路由(%s).... \n", UrlPrefix)
+		for _, router := range HandleFuncPage {
+			router(r.GinEngine, UrlPrefix)
 		}
 	}
 	return
