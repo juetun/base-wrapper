@@ -36,11 +36,13 @@ func (b BlockCacheRedisImpl) defaultValue() {
 	}
 }
 
+//写入数据
 func (b BlockCacheRedisImpl) Set(name string, val string, cacheTime time.Duration) (err error) {
 	err = b.CacheClient.Set(name, val, cacheTime).Err()
 	return
 }
 
+//读取数据
 func (b BlockCacheRedisImpl) Get(name string) (res string, err error) {
 	resData := b.CacheClient.Get(name)
 	if err = resData.Err(); err != nil {

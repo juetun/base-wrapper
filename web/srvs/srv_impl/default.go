@@ -26,7 +26,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/juetun/base-wrapper/web/daos/dao_impl"
 	"github.com/juetun/base-wrapper/web/pojos"
-	"github.com/juetun/base-wrapper/web/srv"
+	"github.com/juetun/base-wrapper/web/srvs"
 )
 
 type ServiceDefaultImpl struct {

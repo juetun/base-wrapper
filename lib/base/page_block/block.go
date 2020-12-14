@@ -15,7 +15,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
-	"github.com/juetun/base-wrapper/lib/base/block/block_cache_impl"
+	"github.com/juetun/base-wrapper/lib/base/page_block/block_cache_impl"
 )
 
 type Handler func(block *Block) (err error)

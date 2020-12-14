@@ -20,10 +20,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	. "github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/base-wrapper/lib/base/block"
+	"github.com/juetun/base-wrapper/lib/base/page_block"
 	"github.com/juetun/base-wrapper/web/cons"
 	"github.com/juetun/base-wrapper/web/pojos"
-	"github.com/juetun/base-wrapper/web/srv/srv_impl"
+	"github.com/juetun/base-wrapper/web/srvs/srv_impl"
 	"golang.org/x/net/websocket"
 )
 

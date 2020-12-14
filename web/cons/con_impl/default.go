@@ -16,7 +16,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/web/cons"
 	"github.com/juetun/base-wrapper/web/pojos"
-	"github.com/juetun/base-wrapper/web/srv/srv_impl"
+	"github.com/juetun/base-wrapper/web/srvs/srv_impl"
 )
 
 type ConDefaultImpl struct {
