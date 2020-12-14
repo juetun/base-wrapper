@@ -46,6 +46,7 @@ func (b *blockCacheRedisImpl) DefaultValue() {
 
 //写入缓存数据
 func (b *blockCacheRedisImpl) Set(name string, val string, cacheTime time.Duration) (err error) {
+	fmt.Println("缓存的KEY是:",name)
 	err = b.CacheClient.Set(name, val, cacheTime).Err()
 	return
 }

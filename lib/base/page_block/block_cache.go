@@ -4,7 +4,7 @@
 package page_block
 
 import (
-	"log"
+	"fmt"
 	"strings"
 	"time"
 
@@ -34,7 +34,6 @@ func NewBlockCache(option ...BlockCacheOption) (res *BlockCache) {
 	for _, handler := range option {
 		handler(res)
 	}
-
 	//初始化默认值
 	res.Default()
 	return
@@ -43,7 +42,6 @@ func (r *BlockCache) Default() {
 	if r.Cache == nil {
 		r.defaultCache()
 	}
-
 }
 func (r *BlockCache) defaultCache() {
 	switch strings.ToLower(r.CacheType) {
@@ -54,18 +52,22 @@ func (r *BlockCache) defaultCache() {
 	case CacheDatabase: //缓存到数据库
 		r.Cache = block_cache_impl.NewBlockCacheDatabaseImpl()
 	default:
-		log.Fatalf("the cache type is not supported (%s)", r.CacheType)
+		//缓存的存储位置 当前支持 redis ,file,database
+		panic(fmt.Errorf("the cache type is not supported (%s)", r.CacheType))
 	}
 	return
 }
 
 type BlockCacheOption func(block *BlockCache)
 
+//缓存数据
 func CacheData(cacheData string) func(res *BlockCache) {
 	return func(blockCache *BlockCache) {
 		blockCache.CacheData = cacheData
 	}
 }
+
+//缓存数据的KEY
 func CacheKey(cacheKey string) func(res *BlockCache) {
 	return func(blockCache *BlockCache) {
 		blockCache.CacheKey = cacheKey
@@ -76,14 +78,17 @@ func Cache(blockCacheInterface inte.BlockCacheInterface) func(res *BlockCache) {
 		blockCache.Cache = blockCacheInterface
 	}
 }
+
+//设置缓存类型 当前支持 "redis","file","database"
 func CacheType(cacheType string) func(blockCache *BlockCache) {
 	return func(blockCache *BlockCache) {
 		blockCache.CacheType = cacheType
 	}
 }
 
-func ExpireTime(tt time.Time) func(blockCache *BlockCache) {
+//设置缓存时间
+func ExpireTime(tt time.Duration) func(blockCache *BlockCache) {
 	return func(blockCache *BlockCache) {
-		blockCache.ExpireTime = tt
+		blockCache.ExpireTime = time.Now().Add(tt)
 	}
 }

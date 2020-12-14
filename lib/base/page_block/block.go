@@ -34,10 +34,10 @@ type Block struct {
 	TempFile              string          `json:"temp_file"`               //html文件地址
 	TemplateBaseDirectory string          `json:"template_base_directory"` //html模板文件所在的公共基础路径
 	BlockCache            *BlockCache     `json:"cache"`                   //当前模块缓存的基本参数
-	RunChildBefore        []Handler       `json:"-"`
-	RunBefore             []Handler       `json:"-"`          //渲染完数据后执行此方法，主要用来调试数据使用 //渲染完数据后执行此方法，主要用来调试数据使用,返回值为true时跳出
-	RunAfter              []Handler       `json:"-"`          //渲染完数据前执行此方法，主要用来调试数据使用 //渲染完数据前执行此方法，主要用来调试数据使用,返回值为true时跳出
-	ChildBock             []*Block        `json:"child_bock"` //当前的子BLOCK
+	RunChildBefore        []Handler       `json:"-"`                       //子BLOCK运行之前的动作
+	RunBefore             []Handler       `json:"-"`                       //渲染完数据后执行此方法，主要用来调试数据使用 //渲染完数据后执行此方法，主要用来调试数据使用,返回值为true时跳出
+	RunAfter              []Handler       `json:"-"`                       //渲染完数据前执行此方法，主要用来调试数据使用 //渲染完数据前执行此方法，主要用来调试数据使用,返回值为true时跳出
+	ChildBock             []*Block        `json:"child_bock"`              //当前的子BLOCK
 }
 
 //判断文件目录是否存在
@@ -104,7 +104,7 @@ func (r *Block) getCache() (res string, err error) {
 	if r.BlockCache.Cache == nil {
 		return
 	}
-	res, err = r.BlockCache.Cache.Get(r.getKey())
+	res, err = r.BlockCache.Cache.Get(r.getCacheKey())
 	return
 }
 
@@ -118,14 +118,14 @@ func (r *Block) writeToCache(data string) (err error) {
 	//缓存时间
 	if lt := r.BlockCache.ExpireTime.Unix() - time.Now().Unix(); lt > 0 {
 		lTime := time.Duration(r.BlockCache.ExpireTime.Unix() - time.Now().Unix())
-		r.BlockCache.Cache.Set(r.getKey(), data, lTime*time.Second)
+		r.BlockCache.Cache.Set(r.getCacheKey(), data, lTime*time.Second)
 	}
 
 	return
 }
 
 //获取缓存数据的Key
-func (r *Block) getKey() (res string) {
+func (r *Block) getCacheKey() (res string) {
 
 	if r.BlockCache.CacheKey != "" {
 		res = r.BlockCache.CacheKey
@@ -234,12 +234,14 @@ func (r *Block) Run() (res template.HTML, err error) {
 	if err = r.before(); err != nil {
 		return
 	}
+	//如果没有缓存
 	if r.BlockCache == nil {
 		if res, err = r.hasNotCacheDo(); err != nil {
 			return
 		}
 		return
 	}
+
 	if res, err = r.haveCacheDo(); err != nil {
 		return
 	}
