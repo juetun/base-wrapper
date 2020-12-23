@@ -22,8 +22,13 @@ import (
 var logConfig *OptionLog
 
 type OptionLog struct {
-	Outputs         []string `json:"outputs" yml:"outputs"`                       // []string{"stdout","file"}
-	LogFileConfig                                                                 // 配置文件信息. 当Outputs值中有输入出到文件标记"file"时有效.
+	Outputs []string `json:"outputs" yml:"outputs"` // []string{"stdout","file"}
+	//LogFileConfig                                                                 // 配置文件信息. 当Outputs值中有输入出到文件标记"file"时有效.
+
+	LogFilePath string `json:"log_file_path" yml:"logfilepath"` // 日志文件输出路径，空 不输出
+	LogFileName string `json:"log_file_name" yml:"logfilename"` // 日志文件名(或文件名前缀)，空 不输出
+	LogIsCut    bool   `json:"log_is_cut" yml:"logiscut"`       // 日志文件是否切割
+
 	Format          string       `json:"format" yml:"format"`                     // 日志格式 "json"
 	LogCollectLevel logrus.Level `json:"log_collect_level" yml:"logcollectlevel"` // 日志收集等级
 }
@@ -86,7 +91,7 @@ func InitConfig(config *OptionLog) {
 	}
 	if logConfig.LogFilePath == "" {
 		dir, _ := os.Getwd()
-		logConfig.LogFilePath = dir
+		logConfig.LogFilePath = fmt.Sprintf("%s/log", dir)
 	}
 	if logConfig.LogFileName == "" {
 		logConfig.LogFileName = "log.log"
@@ -108,27 +113,62 @@ func (r *OptionLog) GetFileName(suffix ...string) (res string) {
 	return
 }
 
-func (r *OptionLog) GetFileWriter() (file io.Writer, err error) {
-	logFile := r.GetFileName()
-	if logFile == "" {
-		systemLog.Printf("【WARN】log file Name is empty! ")
+func  (r *OptionLog) PathExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
+}
+func (r *OptionLog) existsOrCreateDir() (err error) {
+	var ok bool
+	//判断目录是否存在
+	if ok, err = r.PathExists(r.LogFilePath); err != nil {
+		return
+	} else if ok {
 		return
 	}
-	if r.LogIsCut { // 如果日志文件需要切割
-		file, err = rotatelogs.New(r.GetFileName("_%Y%m%d"),
-			rotatelogs.WithLinkName(r.LogFilePath),
-			rotatelogs.WithRotationTime(24*time.Hour),
-			rotatelogs.WithMaxAge(14*24*time.Hour), //日志文件保留14天
-		)
-		if err != nil {
+	//如果目录不存在，则尝试创建目录
+	if err = os.MkdirAll(r.LogFilePath, 0766); err != nil {
+		return
+	}
+	return
+}
+
+//获取日志接收文件Writer
+func (r *OptionLog) GetFileWriter() (file io.Writer, err error) {
+
+	var logFile string
+
+	//判断日志文件目录存在不，如果不存在，则尝试创建目录
+	if err = r.existsOrCreateDir(); err != nil {
+		return
+	}
+
+	// 如果日志文件需要切割
+	if r.LogIsCut {
+		if file, err = rotatelogs.New(
+			r.GetFileName("_%Y%m%d"),
+			rotatelogs.WithLinkName(fmt.Sprintf("%s/%s", r.LogFilePath, r.LogFileName)),
+			rotatelogs.WithMaxAge(24*time.Hour),
+			rotatelogs.WithRotationTime(time.Hour),
+		); err != nil {
 			systemLog.Printf("failed to create rotatelogs: %s", err)
 			return
 		}
 		return
 	}
+
+	if logFile := r.GetFileName(); logFile == "" {
+		systemLog.Printf("【WARN】log file Name is empty! ")
+		return
+	}
+
 	// 日志文件不需要切割
-	file, err = os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
+	if file, err = os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666); err != nil {
 		systemLog.Printf("【ERROR】Could Not Open Log File(%s) : %s ", logFile, err.Error())
 		return
 	}

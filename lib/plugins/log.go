@@ -36,12 +36,13 @@ func loadLogConfig() (mysqlConfig app_obj.OptionLog, err error) {
 	io.SystemOutPrintln("Load database start")
 
 	configSource := viper.New()
-	configSource.SetConfigName("log")                           // name of config file (without extension)
-	configSource.SetConfigType("yaml")                          // REQUIRED if the config file does not have the extension in the name
-	configSource.AddConfigPath(common.GetConfigFileDirectory()) // path to look for the config file in
+	configSource.SetConfigName("log")  // name of config file (without extension)
+	configSource.SetConfigType("yaml") // REQUIRED if the config file does not have the extension in the name
+	configPath := common.GetConfigFileDirectory()
+	configSource.AddConfigPath(configPath) // path to look for the config file in
 
 	err = configSource.ReadInConfig() // Find and read the config file
-	if err != nil {                   // Handle errors reading the config file
+	if err != nil { // Handle errors reading the config file
 		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("Fatal error database file: %v \n", err))
 		return
 	}

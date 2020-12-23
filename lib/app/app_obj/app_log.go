@@ -148,8 +148,9 @@ func outputWriter(config *OptionLog, log *logrus.Logger) {
 
 	if len(ioWriter) == 0 { // 默认输出到控制台
 		log.SetOutput(os.Stdout)
-	} else { // 多个端输出
-		log.SetOutput(io.MultiWriter(ioWriter...))
+		return
 	}
+	// 多个端输出
+	log.SetOutput(io.MultiWriter(ioWriter...))
 	return
 }
