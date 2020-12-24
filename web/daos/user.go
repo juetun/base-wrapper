@@ -9,10 +9,10 @@ package daos
 
 import (
 	"github.com/juetun/base-wrapper/web/models"
-	"github.com/juetun/base-wrapper/web/pojos"
+	"github.com/juetun/base-wrapper/web/wrapper"
 )
 
 type DaoUser interface {
-	GetUser(arg *pojos.ArgumentDefault) (res []models.User, err error)
-	TestOrm(arg *pojos.ArgumentDefault) (res []models.User, err error)
+	GetUser(arg *wrapper.ArgumentDefault) (res []models.User, err error)
+	TestOrm(arg *wrapper.ArgumentDefault) (res []models.User, err error)
 }

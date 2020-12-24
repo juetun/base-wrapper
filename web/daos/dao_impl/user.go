@@ -15,7 +15,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/web/daos"
 	"github.com/juetun/base-wrapper/web/models"
-	"github.com/juetun/base-wrapper/web/pojos"
+	"github.com/juetun/base-wrapper/web/wrapper"
 )
 
 type DaoUserImpl struct {
@@ -28,7 +28,7 @@ func NewDaoUserImpl(context ...*base.Context) (res daos.DaoUser) {
 	return p
 }
 
-func (r *DaoUserImpl) GetUser(arg *pojos.ArgumentDefault) (res []models.User, err error) {
+func (r *DaoUserImpl) GetUser(arg *wrapper.ArgumentDefault) (res []models.User, err error) {
 	
 	err = r.Context.Db.
 		Where("id=?", 1).
@@ -36,7 +36,7 @@ func (r *DaoUserImpl) GetUser(arg *pojos.ArgumentDefault) (res []models.User, er
 		Error
 	return
 }
-func (r *DaoUserImpl) TestOrm(arg *pojos.ArgumentDefault) (res []models.User, err error) {
+func (r *DaoUserImpl) TestOrm(arg *wrapper.ArgumentDefault) (res []models.User, err error) {
 	err = r.Context.Db.
 		Where("key=?", 1).
 		Find(&res).

@@ -22,7 +22,7 @@ import (
 	. "github.com/juetun/base-wrapper/lib/base"
 	. "github.com/juetun/base-wrapper/lib/base/page_block"
 	"github.com/juetun/base-wrapper/web/cons/page"
-	"github.com/juetun/base-wrapper/web/pojos"
+	"github.com/juetun/base-wrapper/web/wrapper"
 	"github.com/juetun/base-wrapper/web/srvs/srv_impl"
 	"golang.org/x/net/websocket"
 )
@@ -73,7 +73,7 @@ func (r *ConPageImpl) shortMessage(c *gin.Context) {
 	//})
 
 	var err error
-	var arg pojos.ArgumentDefault
+	var arg wrapper.ArgumentDefault
 	var result = NewResult()
 
 	err = c.ShouldBind(&arg)
@@ -97,7 +97,7 @@ func (r *ConPageImpl) Tsst(c *gin.Context) {
 }
 func (r *ConPageImpl) Main(c *gin.Context) {
 	var err error
-	var arg = pojos.ArgumentDefault{}
+	var arg = wrapper.ArgumentDefault{}
 	if err = c.BindQuery(&arg); err != nil {
 		return
 	}

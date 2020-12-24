@@ -5,7 +5,7 @@
 * @Version: 1.0.0
 * @Date 2020/4/19 10:19 下午
  */
-
+////go:generate statik -src=./web/views
 package main
 
 import (

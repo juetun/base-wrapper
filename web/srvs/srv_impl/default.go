@@ -25,7 +25,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/juetun/base-wrapper/web/daos/dao_impl"
-	"github.com/juetun/base-wrapper/web/pojos"
+	"github.com/juetun/base-wrapper/web/wrapper"
 	"github.com/juetun/base-wrapper/web/srvs"
 )
 
@@ -38,13 +38,13 @@ func NewServiceDefaultImpl(context ...*base.Context) (res srvs.ServiceDefault) {
 	p.SetContext(context...)
 	return
 }
-func (r *ServiceDefaultImpl) Index(arg *pojos.ArgumentDefault) (res *pojos.ResultDefault, err error) {
-	res = &pojos.ResultDefault{}
+func (r *ServiceDefaultImpl) Index(arg *wrapper.ArgumentDefault) (res *wrapper.ResultDefault, err error) {
+	res = &wrapper.ResultDefault{}
 	res.Users, err = dao_impl.NewDaoUserImpl(r.Context).
 		GetUser(arg)
 	return
 }
-func (r *ServiceDefaultImpl) TestEs(arg *pojos.ArgumentDefault) (result interface{}, err error) {
+func (r *ServiceDefaultImpl) TestEs(arg *wrapper.ArgumentDefault) (result interface{}, err error) {
 	log.SetFlags(0)
 
 	var (
@@ -177,7 +177,7 @@ func (r *ServiceDefaultImpl) TestEs(arg *pojos.ArgumentDefault) (result interfac
 	log.Println(strings.Repeat("=", 37))
 	return
 }
-func (r *ServiceDefaultImpl) Tmain(arg *pojos.ArgumentDefault) (result interface{}, err error) {
+func (r *ServiceDefaultImpl) Tmain(arg *wrapper.ArgumentDefault) (result interface{}, err error) {
 
 	return
 }

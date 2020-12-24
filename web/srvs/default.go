@@ -8,11 +8,11 @@
 package srvs
 
 import (
-	"github.com/juetun/base-wrapper/web/pojos"
+	"github.com/juetun/base-wrapper/web/wrapper"
 )
 
 type ServiceDefault interface {
-	Index(arg *pojos.ArgumentDefault) (res *pojos.ResultDefault, err error)
-	TestEs(arg *pojos.ArgumentDefault) (result interface{}, err error)
-	Tmain(arg *pojos.ArgumentDefault) (result interface{}, err error)
+	Index(arg *wrapper.ArgumentDefault) (res *wrapper.ResultDefault, err error)
+	TestEs(arg *wrapper.ArgumentDefault) (result interface{}, err error)
+	Tmain(arg *wrapper.ArgumentDefault) (result interface{}, err error)
 }

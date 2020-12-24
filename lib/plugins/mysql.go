@@ -41,7 +41,7 @@ func loadMysqlConfig() (err error) {
 
 	configSource.AddConfigPath(dir)   // path to look for the config file in
 	err = configSource.ReadInConfig() // Find and read the config file
-	if err != nil {                   // Handle errors reading the config file
+	if err != nil { // Handle errors reading the config file
 		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("Fatal error database file: %v \n", err))
 		return
 	}
@@ -83,15 +83,16 @@ func initMysql(nameSpace string, config *Mysql) {
 	db.DB().SetMaxIdleConns(config.MaxIdleConns)
 	db.DB().SetMaxOpenConns(config.MaxOpenConns)
 	db.DB().SetConnMaxLifetime(time.Hour)
-	if err := createTable(db); err != nil {
-		panic(err)
-	}
 }
 func getMysql(nameSpace string, addr *Mysql) *gorm.DB {
 	io.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintf("init mysql :%#v", addr)
-	db, err := gorm.Open("mysql", addr.Addr)
-	if err != nil {
+	var db *gorm.DB
+	var err error
+
+	//数据库连接不可用会自动报错
+	if db, err = gorm.Open("mysql", addr.Addr); err != nil {
+		//io.SetInfoType(base.LogLevelFatal).SystemOutPrintf(fmt.Sprintf("Fatal error database file: %v \n", err))
 		panic(err)
 	}
 	app_obj.DbMysql[nameSpace] = db
