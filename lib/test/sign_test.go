@@ -10,9 +10,9 @@ import (
 )
 
 func TestSign(t *testing.T) {
-	sign.Sign().
+	signencrypt.Sign().
 		SignTopRequest(map[string]string{
 			"KK": "111",
 			"AA": "mmmk",
-		}, "aaa", sign.CHARSET_UTF_8)
+		}, "aaa", signencrypt.CHARSET_UTF_8)
 }

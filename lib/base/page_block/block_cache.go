@@ -40,10 +40,12 @@ func NewBlockCache(option ...BlockCacheOption) (res *BlockCache) {
 }
 func (r *BlockCache) Default() {
 	if r.Cache == nil {
+		r.CacheType = CacheRedis
 		r.defaultCache()
 	}
 }
 func (r *BlockCache) defaultCache() {
+
 	switch strings.ToLower(r.CacheType) {
 	case CacheRedis: //缓存到redis
 		r.Cache = block_cache_impl.NewBlockCacheRedisImpl()

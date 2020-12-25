@@ -1,13 +1,12 @@
 // @Copyright (c) 2020.
 // @Author ${USER}
 // @Date ${DATE}
-package sign
+package signencrypt
 
 import (
 	"bytes"
 	"crypto/hmac"
 	"crypto/md5"
-	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -51,13 +50,13 @@ const (
 )
 
 //当前类的指针
-var sign *signUtils
+var sign *SignUtils
 
 //同步锁
 var signone sync.Once
 
 //签名类
-type signUtils struct {
+type SignUtils struct {
 	mapExtend *MapExtend
 }
 
@@ -73,9 +72,9 @@ func (r *MapExtend) GetKeys(data map[string]string) (res []string, err error) {
 }
 
 //实例化签名
-func Sign() *signUtils {
+func Sign() *SignUtils {
 	signone.Do(func() {
-		sign = new(signUtils)
+		sign = new(SignUtils)
 		sign.mapExtend = new(MapExtend)
 	})
 	return sign
@@ -87,7 +86,7 @@ parameters 要签名的数据项
 secret 生成的publicKey
 signMethod 签名的字符编码
 */
-func (s *signUtils) SignTopRequest(parameters map[string]string, secret string, signMethod GOLANG_CHARSET) (res string, err error) {
+func (s *SignUtils) SignTopRequest(parameters map[string]string, secret string, signMethod GOLANG_CHARSET) (bb bytes.Buffer, err error) {
 
 	/**
 	  1、第一步：把字典按Key的字母顺序排序
@@ -105,7 +104,6 @@ func (s *signUtils) SignTopRequest(parameters map[string]string, secret string, 
 	}
 
 	//第二步：把所有参数名和参数值串在一起
-	var bb bytes.Buffer
 	if CHARSET_UTF_8 == signMethod {
 		bb.WriteString(secret)
 	}
@@ -115,13 +113,25 @@ func (s *signUtils) SignTopRequest(parameters map[string]string, secret string, 
 			bb.WriteString(val)
 		}
 	}
+	return
+}
 
-	fmt.Println(bb.String())
+type ListenHandler func(s string)
+type ListenHandlerStruct struct {
+	MD5HMAC       ListenHandler //转换成 MD5后执行
+	ByteTo16After ListenHandler //把二进制转化为大写的十六进制
+	FinishHandler ListenHandler //返回签名完成的字符串
+}
+
+func (s *SignUtils) Encrypt(argJoin string, secret string, signMethod GOLANG_CHARSET, listenHandlerStruct ListenHandlerStruct) (res string) {
+
+	var bb bytes.Buffer
+	bb.WriteString(argJoin)
 
 	//第三步：使用MD5/HMAC加密
 	b := make([]byte, 0)
 	if CHARSET_UTF_8 == signMethod {
-		h := hmac.New(md5.New, s.GetUtf8Bytes(secret))
+		h := hmac.New(md5.New, []byte(secret))
 		h.Write(bb.Bytes())
 		b = h.Sum(nil)
 	} else {
@@ -131,7 +141,10 @@ func (s *signUtils) SignTopRequest(parameters map[string]string, secret string, 
 		b = h.Sum(nil)
 	}
 
- 	//第四步：把二进制转化为大写的十六进制
+	if listenHandlerStruct.MD5HMAC != nil {
+		listenHandlerStruct.MD5HMAC(string(b))
+	}
+	//第四步：把二进制转化为大写的十六进制
 	var result bytes.Buffer
 	for i := 0; i < len(b); i++ {
 		s := strconv.FormatInt(int64(b[i]&0xff), 16)
@@ -140,13 +153,19 @@ func (s *signUtils) SignTopRequest(parameters map[string]string, secret string, 
 		}
 		result.WriteString(s)
 	}
+	if listenHandlerStruct.ByteTo16After != nil {
+		listenHandlerStruct.ByteTo16After(result.String())
+	}
 	//返回签名完成的字符串
-	res = strings.ToUpper(result.String())
+	res = strings.ToLower(result.String())
+	if listenHandlerStruct.FinishHandler != nil {
+		listenHandlerStruct.FinishHandler(result.String())
+	}
 	return
 }
 
 //默认utf8字符串
-func (s *signUtils) GetUtf8Bytes(str string) []byte {
-	b := []byte(str)
-	return b
-}
+//func (s *SignUtils) GetUtf8Bytes(str string) []byte {
+//	b := []byte(str)
+//	return b
+//}

@@ -16,7 +16,7 @@ func init() {
 		func(r *gin.Engine, urlPrefix string) {
 			page := con_impl.NewConPage()
 			p := r.Group(urlPrefix, middlewares.AuthParse())
-			p.GET("/page", page.Main)
+			p.POST("/page", page.Main)
 			p.GET("/page/test", page.Tsst)
 			p.GET("/page/ws", common.GinWebsocketHandler(page.Websocket))
 		})
