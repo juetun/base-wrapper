@@ -139,6 +139,7 @@ func SignGinRequest(c *gin.Context) (signRes string, err error) {
 		if t, err = strconv.Atoi(headerT); err != nil {
 			return
 		}
+		//传递的时间格式必须大于当前时间-一天
 		if app_obj.App.AppEnv != common.ENV_RELEASE && int(time.Now().UnixNano()/1e6)-t > 86400000 {
 			err = fmt.Errorf("the header of  parameter(t) must be more than now desc one days")
 			return
@@ -182,7 +183,7 @@ func SignGinRequest(c *gin.Context) (signRes string, err error) {
 				c.Header("Sign-f", s)
 			},
 		}
-		
+
 	}
 	signRes = signencrypt.Sign().Encrypt(base64Code, secret, signencrypt.CHARSET_UTF_8, listenHandlerStruct)
 	return
