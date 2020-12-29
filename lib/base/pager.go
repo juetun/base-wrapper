@@ -15,6 +15,18 @@ type ReqPager struct {
 	PageNo   int `json:"page_no" form:"page_no"`
 	PageSize int `json:"page_size" form:"page_size"`
 }
+
+func (r *ReqPager) GetOffset() (offset int) {
+	if r.PageNo < 1 {
+		r.PageNo = DefaultPageNo
+	}
+	if r.PageSize == 0 {
+		r.PageSize = DefaultPageSize
+	}
+	offset = (r.PageNo - 1) * r.PageSize
+	return
+}
+
 type Pager struct {
 	ReqPager
 	List       interface{} `json:"list"`
@@ -24,8 +36,8 @@ type Pager struct {
 func NewPager() *Pager {
 	return &Pager{
 		ReqPager: ReqPager{
-			PageNo:   1,
-			PageSize: 15,
+			PageNo:   DefaultPageNo,
+			PageSize: DefaultPageSize,
 		},
 	}
 }
@@ -54,6 +66,7 @@ func (r *Pager) Offset(page string, limit string) (limitInt int, offset int) {
 	}
 	return limitInt, (pageInt - 1) * limitInt
 }
+
 //计算偏移量
 func (r *Pager) GetOffset() (offset int) {
 	if r.PageNo < 1 {
