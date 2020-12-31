@@ -7,24 +7,24 @@ import (
 
 var ShortMessageObj *shortMessage
 
-//短信发送的参数
+// 短信发送的参数
 type MessageArgument struct {
-	Mobile        string   `json:"mobile"`         //手机号
-	AreaCode      string   `json:"area"`           //地区号 默认 86
-	Content       string   `json:"content"`        //短信内容
-	ExceptChannel []string `json:"except_channel"` //排除渠道，（此字段主要为当某一渠道发送不成功后，重试发送切换渠道使用）
-	Channel       string   `json:"channel"`        //短信渠道号 不设置使用默认规则
+	Mobile        string   `json:"mobile"`         // 手机号
+	AreaCode      string   `json:"area"`           // 地区号 默认 86
+	Content       string   `json:"content"`        // 短信内容
+	ExceptChannel []string `json:"except_channel"` // 排除渠道，（此字段主要为当某一渠道发送不成功后，重试发送切换渠道使用）
+	Channel       string   `json:"channel"`        // 短信渠道号 不设置使用默认规则
 }
 
-//渠道发送需要实现的接口
+// 渠道发送需要实现的接口
 type ShortMessageInter interface {
 	Send(param *MessageArgument) (err error)
 }
 
-//短息发送调用的公共动作
+// 短息发送调用的公共动作
 type shortMessage struct {
-	channelListHandler map[string]ShortMessageInter //当前支持的短息通道列表
-	shortMessageIndex  int                          //当前发送短信的序号
+	channelListHandler map[string]ShortMessageInter // 当前支持的短息通道列表
+	shortMessageIndex  int                          // 当前发送短信的序号
 	syncMutex          sync.Mutex
 }
 
@@ -40,9 +40,9 @@ func NewShortMessage(channelMap ...map[string]ShortMessageInter) (res *shortMess
 	return
 }
 
-//添加渠道
-//channelName string 渠道名称
-//channel 渠道实现的调用的结构体
+// 添加渠道
+// channelName string 渠道名称
+// channel 渠道实现的调用的结构体
 func AddMessageChannel(channelName string, channel ShortMessageInter) {
 	var syc sync.Mutex
 	syc.Lock()
@@ -50,7 +50,7 @@ func AddMessageChannel(channelName string, channel ShortMessageInter) {
 	ShortMessageObj.channelListHandler[channelName] = channel
 }
 
-//发送短信调用接口
+// 发送短信调用接口
 func (r *shortMessage) SendMsg(param *MessageArgument) (channelName string, err error) {
 
 	if len(r.channelListHandler) == 0 {
@@ -65,7 +65,7 @@ func (r *shortMessage) SendMsg(param *MessageArgument) (channelName string, err 
 	return
 }
 
-//获取短信渠道列表
+// 获取短信渠道列表
 func (r *shortMessage) GetChannelKey() (res []string) {
 	res = make([]string, 0, len(r.channelListHandler))
 	for key, _ := range r.channelListHandler {
@@ -74,16 +74,16 @@ func (r *shortMessage) GetChannelKey() (res []string) {
 	return
 }
 
-//获取当前可选的短信通道
+// 获取当前可选的短信通道
 func (r *shortMessage) getChannelListHandler(param *MessageArgument) (channelListHandler map[string]ShortMessageInter) {
 	channelListHandler = make(map[string]ShortMessageInter, len(r.channelListHandler))
 
-	//如果没有排除的通道，说明按照系统默认的算法选择通道发送
+	// 如果没有排除的通道，说明按照系统默认的算法选择通道发送
 	if len(param.ExceptChannel) <= 0 {
 		channelListHandler = r.channelListHandler
 		return
 	}
-	//将黑名单短信通道排除
+	// 将黑名单短信通道排除
 	for key, value := range r.channelListHandler {
 		if !r.flagExceptChannel(param.ExceptChannel, key) {
 			channelListHandler[key] = value
@@ -92,7 +92,7 @@ func (r *shortMessage) getChannelListHandler(param *MessageArgument) (channelLis
 	return
 }
 
-//判断指定通道是否为 黑名单通道
+// 判断指定通道是否为 黑名单通道
 func (r *shortMessage) flagExceptChannel(exceptChannel []string, channelName string) (res bool) {
 	for _, channel := range exceptChannel {
 		if channel == channelName {
@@ -104,7 +104,7 @@ func (r *shortMessage) flagExceptChannel(exceptChannel []string, channelName str
 }
 func (r *shortMessage) upIndex() {
 	r.syncMutex.Lock()
-	//多个短信通道轮流发
+	// 多个短信通道轮流发
 	r.shortMessageIndex++
 	if r.shortMessageIndex > 1000 {
 		r.shortMessageIndex = 0
@@ -120,7 +120,7 @@ func (r *shortMessage) initChannel(param *MessageArgument) (channelData ShortMes
 		return
 	}
 
-	//更新轮询条件
+	// 更新轮询条件
 	r.upIndex()
 
 	ind := r.shortMessageIndex % len(r.channelListHandler)

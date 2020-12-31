@@ -8,12 +8,16 @@
 package utils
 
 import (
+	"bytes"
 	"crypto/md5"
 	"encoding/hex"
+	"fmt"
+	"math/rand"
+	"strconv"
 	"strings"
 )
 
-//字符串加密 md5算法
+// 字符串加密 md5算法
 func Md5(str string) string {
 	c := md5.New()
 	c.Write([]byte(str))
@@ -75,7 +79,7 @@ func MyPaginate(count int64, limit int, page int) Paginate {
 	}
 }
 
-//汉字截取
+// 汉字截取
 func SubString(strValue string, num int, suffix ...string) (res string) {
 	var b []int32
 	var i = 0
@@ -90,13 +94,30 @@ func SubString(strValue string, num int, suffix ...string) (res string) {
 	return
 }
 
-//将字符串转换为数字
-//param strValue
-//return int64
+// 将字符串转换为数字
+// param strValue
+// return int64
 func GetStringUniqueNumber(strValue string) (num int64) {
 	sp := []rune(strValue)
 	for _, value := range sp {
 		num += int64(value)
 	}
+	return
+}
+
+// 短信验证码字符串生成
+func RandomString(length ...int) (authCode string, err error) {
+	len := len(length)
+	if len > 1 {
+		err = fmt.Errorf("length 最多1个数字")
+		return
+	} else if len == 0 {
+		len = 6
+	}
+	var buff bytes.Buffer
+	for i := 0; i < len; i++ {
+		buff.WriteString(strconv.Itoa(rand.Intn(10)))
+	}
+	authCode = buff.String()
 	return
 }
