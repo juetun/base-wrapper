@@ -1,9 +1,9 @@
 /**
-* @Author:changjiang
-* @Description:
-* @File:strings
-* @Version: 1.0.0
-* @Date 2020/3/19 11:45 下午
+* Author:changjiang
+* Description:
+* File:strings
+* Version: 1.0.0
+* Date 2020/3/19 11:45 下午
  */
 package utils
 
@@ -14,9 +14,9 @@ import (
 )
 
 //字符串加密 md5算法
-func Md5(s string) string {
+func Md5(str string) string {
 	c := md5.New()
-	c.Write([]byte(s))
+	c.Write([]byte(str))
 	cipherStr := c.Sum(nil)
 	return hex.EncodeToString(cipherStr)
 }
@@ -76,10 +76,10 @@ func MyPaginate(count int64, limit int, page int) Paginate {
 }
 
 //汉字截取
-func SubString(s string, num int, suffix ...string) (res string) {
+func SubString(strValue string, num int, suffix ...string) (res string) {
 	var b []int32
 	var i = 0
-	for _, value := range s {
+	for _, value := range strValue {
 		if i >= num {
 			break
 		}
@@ -91,10 +91,10 @@ func SubString(s string, num int, suffix ...string) (res string) {
 }
 
 //将字符串转换为数字
-//@param s
-//@return int64
-func GetStringUniqueNumber(s string) (num int64) {
-	sp := []rune(s)
+//param strValue
+//return int64
+func GetStringUniqueNumber(strValue string) (num int64) {
+	sp := []rune(strValue)
 	for _, value := range sp {
 		num += int64(value)
 	}

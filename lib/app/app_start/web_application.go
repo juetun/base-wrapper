@@ -16,6 +16,8 @@ import (
 	"github.com/juetun/base-wrapper/lib/app/middlewares"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
+	"github.com/swaggo/gin-swagger"
+	"github.com/swaggo/gin-swagger/swaggerFiles"
 )
 
 // 路由注册函数
@@ -188,19 +190,43 @@ func (r *WebApplication) getListenPortString() string {
 // 工具路由注册（心跳检测、性能分析等）
 // 每个系统自动支持 /health 和 /index 访问
 func (r *WebApplication) toolRouteRegister(appConfig *app_obj.Application, UrlPrefix string) {
+	//注册默认的公共路由，如健康检查
+	r.registerDefaultRoute(UrlPrefix)
+
+	// 是否开启性能分析工具
+	r.pProf(appConfig)
+
+	//注册swagger路由
+	r.registerSwagger(appConfig)
+
+}
+func (r *WebApplication) registerDefaultRoute(UrlPrefix string) {
 	r.syslog.SetInfoType(base.LogLevelInfo).
-		SystemOutPrintln("1、注册健康检查路由...")
+		SystemOutPrintln("#注册健康检查路由...")
 	// 注册健康检查请求地址
 	r.GinEngine.GET("/health", func(c *gin.Context) {
 		c.String(http.StatusOK, "success")
 	})
+
 	// 注册默认路径
 	r.GinEngine.GET("/index", func(c *gin.Context) {
 		// time.Sleep(5 * time.Second)
 		c.String(http.StatusOK, fmt.Sprintf("Welcome \"%s\" Server", UrlPrefix))
 	})
-	// 是否开启性能分析工具
-	r.pProf(appConfig)
+}
+func (r *WebApplication) registerSwagger(appConfig *app_obj.Application) {
+	//如果非线上(release)环境，则可以直接使用
+	if app_obj.App.AppEnv != common.ENV_RELEASE {
+		return
+	}
+
+	r.syslog.SetInfoType(base.LogLevelInfo).
+		SystemOutPrintln("#集成swagger路由...")
+
+	// 文档界面访问URL
+	// http://127.0.0.1:8080/swagger/index.html
+	r.GinEngine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 }
 
 // 是否开启性能分析工具

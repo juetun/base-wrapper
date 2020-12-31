@@ -16,7 +16,7 @@ type HashModel interface {
 }
 
 // 生成GUID
-// @param prefix string 数据库名+表名
+// param prefix string 数据库名+表名
 func Guid(prefix string) string {
 	guid := uuid.New()
 	s := guid.String()

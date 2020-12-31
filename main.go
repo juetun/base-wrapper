@@ -15,6 +15,7 @@ import (
 	. "github.com/juetun/base-wrapper/lib/plugins" // 组件目录
 	_ "github.com/juetun/base-wrapper/web/router"  // 加载路由
 
+	_ "github.com/juetun/base-wrapper/docs"
 )
 
 // https://github.com/izghua/go-blog
