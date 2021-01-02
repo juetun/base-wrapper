@@ -10,10 +10,10 @@ package utils
 import (
 	"bytes"
 	"crypto/md5"
+	"crypto/rand" // 真随机
 	"encoding/hex"
 	"fmt"
-	"math/rand"
-	"strconv"
+	"math/big"
 	"strings"
 )
 
@@ -106,6 +106,8 @@ func GetStringUniqueNumber(strValue string) (num int64) {
 }
 
 // 短信验证码字符串生成
+
+// 短信验证码字符串生成
 func RandomString(length ...int) (authCode string, err error) {
 	len := len(length)
 	if len > 1 {
@@ -115,8 +117,10 @@ func RandomString(length ...int) (authCode string, err error) {
 		len = 6
 	}
 	var buff bytes.Buffer
-	for i := 0; i < len; i++ {
-		buff.WriteString(strconv.Itoa(rand.Intn(10)))
+
+	for i := 0; i < length[0]; i++ {
+		result, _ := rand.Int(rand.Reader, big.NewInt(10))
+		buff.WriteString(result.String())
 	}
 	authCode = buff.String()
 	return
