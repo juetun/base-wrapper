@@ -100,6 +100,18 @@ func (r *AppLog) Fatal(context *gin.Context, data map[string]interface{}, messag
 	}
 	r.Logger.WithFields(fields).Fatal(message)
 }
+func (r *AppLog) Warn(context *gin.Context, data map[string]interface{}, message ...interface{}) {
+	fields := r.getFields()
+	if context != nil {
+		fields[TRACE_ID] = context.GetHeader(HTTP_TRACE_ID)
+	}
+	if len(data) > 0 {
+		for key, value := range data {
+			fields[key] = value
+		}
+	}
+	r.Logger.WithFields(fields).Warn(message)
+}
 
 // 初始化日志操作对象
 func InitAppLog() {

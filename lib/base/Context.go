@@ -32,7 +32,7 @@ func NewContext(contextOption ...ContextOption) *Context {
 }
 
 type Context struct {
-	Log         *app_obj.AppLog `json:"log"`
+	log         *app_obj.AppLog `json:"log"`
 	Db          *gorm.DB        `json:"db"`
 	CacheClient *redis.Client   `json:"cache_client"`
 	GinContext  *gin.Context
@@ -42,7 +42,7 @@ type ContextOption func(context *Context)
 
 func Log(opt *app_obj.AppLog) ContextOption {
 	return func(context *Context) {
-		context.Log = opt
+		context.log = opt
 	}
 }
 func Db(opt *gorm.DB) ContextOption {
@@ -63,8 +63,8 @@ func GinContext(opt *gin.Context) ContextOption {
 func (r *Context) InitContext() (c *Context) {
 	r.syncLog.Lock()
 	defer r.syncLog.Unlock()
-	if r.Log == nil {
-		r.Log = app_obj.GetLog()
+	if r.log == nil {
+		r.log = app_obj.GetLog()
 	}
 	s := ""
 	if nil != r.GinContext {
@@ -79,6 +79,21 @@ func (r *Context) InitContext() (c *Context) {
 	if r.CacheClient == nil {
 		r.CacheClient = app_obj.GetRedisClient()
 	}
-
 	return r
+}
+
+func (r *Context) Error(data map[string]interface{}, message ...interface{}) {
+	r.log.Error(r.GinContext, data, message)
+}
+func (r *Context) Info(data map[string]interface{}, message ...interface{}) {
+	r.log.Info(r.GinContext, data, message)
+}
+func (r *Context) Debug(data map[string]interface{}, message ...interface{}) {
+	r.log.Debug(r.GinContext, data, message)
+}
+func (r *Context) Fatal(data map[string]interface{}, message ...interface{}) {
+	r.log.Fatal(r.GinContext, data, message)
+}
+func (r *Context) Warn(data map[string]interface{}, message ...interface{}) {
+	r.log.Warn(r.GinContext, data, message)
 }
