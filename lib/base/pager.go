@@ -16,13 +16,16 @@ type ReqPager struct {
 	PageSize int `json:"page_size" form:"page_size"`
 }
 
-func (r *ReqPager) GetOffset() (offset int) {
+func (r *ReqPager) DefaultPager() {
 	if r.PageNo < 1 {
 		r.PageNo = DefaultPageNo
 	}
 	if r.PageSize == 0 {
 		r.PageSize = DefaultPageSize
 	}
+}
+func (r *ReqPager) GetOffset() (offset int) {
+	r.DefaultPager()
 	offset = (r.PageNo - 1) * r.PageSize
 	return
 }
@@ -33,6 +36,14 @@ type Pager struct {
 	TotalCount int         `json:"total_count"`
 }
 
+func (r *Pager) DefaultPager() {
+	if r.PageNo < 1 {
+		r.PageNo = DefaultPageNo
+	}
+	if r.PageSize < 1 {
+		r.PageSize = DefaultPageSize
+	}
+}
 func NewPager() *Pager {
 	return &Pager{
 		ReqPager: ReqPager{
@@ -42,10 +53,18 @@ func NewPager() *Pager {
 	}
 }
 func (r *Pager) SetPageNo(pageNo int) *Pager {
+	if pageNo == 0 {
+		r.PageNo = DefaultPageNo
+		return r
+	}
 	r.PageNo = pageNo
 	return r
 }
 func (r *Pager) SetPageSize(pageSize int) *Pager {
+	if pageSize == 0 {
+		r.PageSize = DefaultPageSize
+		return r
+	}
 	r.PageSize = pageSize
 	return r
 }
@@ -56,21 +75,20 @@ func (r *Pager) SetList(list interface{}) *Pager {
 
 //计算偏移量
 func (r *Pager) Offset(page string, limit string) (limitInt int, offset int) {
-	pageInt, err := strconv.Atoi(page)
-	if err != nil {
-		pageInt = 1
+	var err error
+	if r.PageNo, err = strconv.Atoi(page); err != nil {
+		r.PageNo = DefaultPageNo
 	}
-	limitInt, err = strconv.Atoi(limit)
-	if err != nil {
-		limitInt = 20
+	if r.PageSize, err = strconv.Atoi(limit); err != nil {
+		r.PageSize = DefaultPageSize
 	}
-	return limitInt, (pageInt - 1) * limitInt
+	return r.PageSize, (r.PageNo - 1) * r.PageSize
 }
 
 //计算偏移量
 func (r *Pager) GetOffset() (offset int) {
 	if r.PageNo < 1 {
-		r.PageNo = 1
+		r.PageNo = DefaultPageNo
 	}
 	offset = (r.PageNo - 1) * r.PageSize
 	return
