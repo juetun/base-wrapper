@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-var ShortMessageObj *shortMessage
+var ShortMessageObj = &shortMessage{channelListHandler: map[string]ShortMessageInter{},}
 
 // 短信发送的参数
 type MessageArgument struct {
