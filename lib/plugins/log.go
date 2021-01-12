@@ -1,13 +1,12 @@
 package plugins
 
 import (
-	"fmt"
+	"io/ioutil"
 	"sync"
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
-	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
-	"github.com/spf13/viper"
+	"gopkg.in/yaml.v2"
 )
 
 func PluginLog() (err error) {
@@ -35,22 +34,16 @@ func loadLogConfig() (mysqlConfig app_obj.OptionLog, err error) {
 
 	io.SystemOutPrintln("Load database start")
 
-	configSource := viper.New()
-	configSource.SetConfigName("log")  // name of config file (without extension)
-	configSource.SetConfigType("yaml") // REQUIRED if the config file does not have the extension in the name
-	configPath := common.GetConfigFileDirectory()
-	configSource.AddConfigPath(configPath) // path to look for the config file in
 
-	err = configSource.ReadInConfig() // Find and read the config file
-	if err != nil { // Handle errors reading the config file
-		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("Fatal error database file: %v \n", err))
-		return
-	}
+ 	var yamlFile []byte
 
-	if err = configSource.Unmarshal(&mysqlConfig); err != nil {
-		io.SetInfoType(base.LogLevelInfo).
-			SystemOutPrintf("Load database config failure  '%v' ", mysqlConfig)
-		panic(err)
+	if yamlFile, err = ioutil.ReadFile(common.GetConfigFilePath("log.yaml")); err != nil {
+		io.SystemOutFatalf("yamlFile.Get err   #%v \n", err)
 	}
+	if err = yaml.Unmarshal(yamlFile, &mysqlConfig); err != nil {
+		io.SystemOutFatalf("Load log config config err(%#v) \n", err)
+	}
+ 	io.SystemOutPrintf("Load log config is : '%#v' ", mysqlConfig)
+
 	return
 }

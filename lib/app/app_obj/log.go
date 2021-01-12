@@ -25,12 +25,11 @@ type OptionLog struct {
 	Outputs []string `json:"outputs" yml:"outputs"` // []string{"stdout","file"}
 	//LogFileConfig                                                                 // 配置文件信息. 当Outputs值中有输入出到文件标记"file"时有效.
 
-	LogFilePath string `json:"log_file_path" yml:"logfilepath"` // 日志文件输出路径，空 不输出
-	LogFileName string `json:"log_file_name" yml:"logfilename"` // 日志文件名(或文件名前缀)，空 不输出
-	LogIsCut    bool   `json:"log_is_cut" yml:"logiscut"`       // 日志文件是否切割
-
-	Format          string       `json:"format" yml:"format"`                     // 日志格式 "json"
-	LogCollectLevel logrus.Level `json:"log_collect_level" yml:"logcollectlevel"` // 日志收集等级
+	LogFilePath     string `json:"log_file_path" yml:"logfilepath"`         // 日志文件输出路径，空 不输出
+	LogFileName     string `json:"log_file_name" yml:"logfilename"`         // 日志文件名(或文件名前缀)，空 不输出
+	LogIsCut        bool   `json:"log_is_cut" yml:"logiscut"`               // 日志文件是否切割
+	Format          string `json:"format" yml:"format"`                     // 日志格式 "json"
+	LogCollectLevel uint32 `json:"log_collect_level" yml:"logcollectlevel"` // 日志收集等级
 }
 
 // 如果是
@@ -61,7 +60,7 @@ func Format(format string) SetOption {
 
 func LogCollectLevel(arg logrus.Level) SetOption {
 	return func(opt *OptionLog) {
-		opt.LogCollectLevel = arg
+		opt.LogCollectLevel = uint32(arg)
 	}
 }
 func LogFilePath(arg string) SetOption {
@@ -113,7 +112,7 @@ func (r *OptionLog) GetFileName(suffix ...string) (res string) {
 	return
 }
 
-func  (r *OptionLog) PathExists(path string) (bool, error) {
+func (r *OptionLog) PathExists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
 		return true, nil

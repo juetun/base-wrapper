@@ -92,7 +92,7 @@ func getMysql(nameSpace string, addr *Mysql) *gorm.DB {
 
 	//数据库连接不可用会自动报错
 	if db, err = gorm.Open("mysql", addr.Addr); err != nil {
-		//io.SetInfoType(base.LogLevelFatal).SystemOutPrintf(fmt.Sprintf("Fatal error database file: %v \n", err))
+		io.SetInfoType(base.LogLevelFatal).SystemOutPrintf(fmt.Sprintf("Fatal error database file: %v \n", err))
 		panic(err)
 	}
 	app_obj.DbMysql[nameSpace] = db

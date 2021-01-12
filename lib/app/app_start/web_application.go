@@ -135,7 +135,7 @@ func (r *WebApplication) Run() (err error) {
 	appConfig := common.GetAppConfig()
 
 	// // 如果支持优雅重启
-	if appConfig.AppGraceReload {
+	if appConfig.AppGraceReload > 0 {
 		r.start()
 		return
 	}

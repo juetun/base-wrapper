@@ -27,15 +27,15 @@ var App *Application
 
 // 应用基本的配置结构体
 type Application struct {
-	AppSystemName        string `json:"app_system_name"`
-	AppEnv               string `json:"app_env"`                // 当前运行环境
-	AppName              string `json:"app_name"`               // 应用名称
-	AppVersion           string `json:"app_version"`            // 应用版本以前缀v 开头
-	AppApiVersion        string `json:"app_api_version"`        // 应用的API的版本号，用于api接口路由参数拼接
-	AppPort              int    `json:"app_port"`               // 应用监听的端口
-	AppGraceReload       bool   `json:"grace_reload"`           // 应用是否支持优雅重启
-	AppNeedPProf         bool   `json:"app_need_p_prof"`        // 是否需要内存分析
-	AppTemplateDirectory string `json:"app_template_directory"` //temp模板默认目录
+	AppSystemName        string `json:"app_system_name" yaml:"system_name"`
+	AppEnv               string `json:"app_env" yaml:"env"`                               // 当前运行环境
+	AppName              string `json:"app_name" yaml:"name"`                             // 应用名称
+	AppVersion           string `json:"app_version" yaml:"version"`                       // 应用版本以前缀v 开头
+	AppApiVersion        string `json:"app_api_version" yaml:"app_api_version"`           // 应用的API的版本号，用于api接口路由参数拼接
+	AppPort              int    `json:"app_port" yaml:"port"`                             // 应用监听的端口
+	AppGraceReload       int    `json:"grace_reload" yaml:"grace_reload"`                 // 应用是否支持优雅重启
+	AppNeedPProf         bool   `json:"app_need_p_prof" yaml:"app_need_p_prof"`           // 是否需要内存分析
+	AppTemplateDirectory string `json:"app_template_directory" yaml:"template_directory"` //temp模板默认目录
 }
 
 func (r *Application) ToString() string {

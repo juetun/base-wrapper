@@ -38,8 +38,8 @@ func (r *PluginsOperate) LoadPlugins() (res *PluginsOperate) {
 	var err error
 	for _, handle := range *PluginsHandleStruct {
 		io.SystemOutPrintf(strings.Repeat("-", 30) + "\n")
-		err = handle.FuncHandler()
-		if err != nil {
+
+		if err = handle.FuncHandler();err != nil {
 			panic(err)
 		}
 	}

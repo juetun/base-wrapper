@@ -129,7 +129,7 @@ func InitAppLog() {
 	outputWriter(logConfig, logApp.Logger)
 
 	// 日志收集等级
-	logApp.Logger.SetLevel(logConfig.LogCollectLevel)
+	logApp.Logger.SetLevel(logrus.Level(logConfig.LogCollectLevel))
 
 }
 func logFormatter(logConfig *OptionLog, log *logrus.Logger) {

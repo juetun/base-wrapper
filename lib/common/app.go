@@ -2,14 +2,16 @@ package common
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path"
 	"strings"
 	"sync"
 
-	"github.com/fsnotify/fsnotify"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/spf13/viper"
+	"github.com/juetun/base-wrapper/lib/utils"
+	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -47,32 +49,31 @@ func PluginsApp() (err error) {
 		io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("app config is: '%v' \n", app_obj.App.ToString())
 		io.SystemOutPrintf("load app config finished \n")
 	}()
-	viper.SetConfigName("app")  // name of config file (without extension)
-	viper.SetConfigType("yaml") // REQUIRED if the config file does not have the extension in the name
 	dir := GetConfigFileDirectory()
 	io.SystemOutPrintf("config directory is : '%s' ", dir)
-	viper.AddConfigPath(dir + "/../") // path to look for the config file in
-	err = viper.ReadInConfig()        // Find and read the config file
-	if err != nil { // Handle errors reading the config file
-		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("Fatal error config file: %s \n", err))
-		return
-	}
-	viper.WatchConfig()
-	viper.OnConfigChange(func(e fsnotify.Event) { // 热加载
-		io.SystemOutPrintf("Config file changed:", e.Name)
-	})
 
-	version := viper.GetString("app.version")
-	app_obj.App.AppVersion = "v" + version
-	app_obj.App.AppPort = viper.GetInt("app.port")
-	if app_obj.App.AppPort == 0 { // 默认80端口
-		app_obj.App.AppPort = 80
+	type app struct {
+		App *app_obj.Application `json:"app" yaml:"app"`
 	}
-	app_obj.App.AppName = viper.GetString("app.name")
-	app_obj.App.AppGraceReload = viper.GetBool("app.grace_reload")
-	app_obj.App.AppSystemName = viper.GetString("app.system_name")
-	app_obj.App.AppNeedPProf = viper.GetBool("app.app_need_p_prof")
-	app_obj.App.AppTemplateDirectory = defaultAppTemplateDirectory(io, viper.GetString("app.app_template_directory"))
+	var data app
+	var yamlFile []byte
+	filePath := GetConfigFilePath("app.yaml", true)
+	if yamlFile, err = ioutil.ReadFile(filePath); err != nil {
+		io.SystemOutFatalf("yamlFile.Get err(%s)  #%v \n", filePath, err)
+	}
+	if err = yaml.Unmarshal(yamlFile, &data); err != nil {
+		io.SystemOutFatalf("load app config err(%#v) \n", err)
+	}
+
+	if data.App.AppPort == 0 { // 默认80端口
+		data.App.AppPort = 80
+	}
+	if app_obj.App.AppEnv != "" && data.App.AppEnv == "" {
+		data.App.AppEnv = app_obj.App.AppEnv
+	}
+	data.App.AppVersion = "v" + data.App.AppVersion
+	app_obj.App = data.App
+	io.SystemOutPrintf("App Config is : '%#v' ", app_obj.App)
 	return
 }
 func defaultAppTemplateDirectory(io *base.SystemOut, dir string) (res string) {
@@ -89,15 +90,64 @@ func defaultAppTemplateDirectory(io *base.SystemOut, dir string) (res string) {
 }
 
 // 获得配置文件所在目录
-func GetConfigFileDirectory() string {
+func GetConfigFileDirectory(notEnv ...bool) (res string) {
+
 	var env = ""
 	if app_obj.App.AppEnv != "" {
 		env = app_obj.App.AppEnv + "/"
 	}
+	var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
+
 	if app_obj.BaseDirect == "" {
-		return "./config/" + env
+		var (
+			dir string
+			err error
+		)
+		if dir, err = os.Getwd(); err != nil {
+			io.SystemOutPrintf("Template GetConfigFileDirectory is :'%s'", res)
+		}
+		if len(notEnv) > 0 && notEnv[0] {
+			return fmt.Sprintf("%s/config/", dir)
+		} else {
+			return fmt.Sprintf("%s/config/%s", dir, env)
+		}
+
 	}
-	return fmt.Sprintf("%s/config/%s", app_obj.BaseDirect, env)
+	if len(notEnv) > 0 && notEnv[0] {
+		res = fmt.Sprintf("%s/config/", app_obj.BaseDirect)
+		return
+	} else {
+		return fmt.Sprintf("%s/config/%s", app_obj.BaseDirect, env)
+	}
+
+}
+
+//获取配置文件的路径
+func GetConfigFilePath(fileName string, notEnv ...bool) (res string) {
+	dir := GetConfigFileDirectory(notEnv...)
+	res = fmt.Sprintf("%s%s", dir, fileName)
+
+	extString := path.Ext(fileName)
+	var ext string
+	if extString != "" {
+		ext = strings.TrimLeft(extString, ".")
+	}
+	switch ext {
+	case "yaml":
+		if ok, _ := utils.PathExists(res); ok {
+			return
+		}
+		res = fmt.Sprintf("%s%s.yml", dir, strings.TrimSuffix(path.Base(fileName), extString))
+		return
+	case "yml":
+		if ok, _ := utils.PathExists(res); ok {
+			return
+		}
+		res = fmt.Sprintf("%s%s.yaml", dir, strings.TrimSuffix(path.Base(fileName), extString))
+		return
+	}
+
+	return
 }
 
 // 初始化应用信息
@@ -115,7 +165,7 @@ func NewApplication() *app_obj.Application {
 		AppApiVersion:  "v1",
 		AppPort:        8080,
 		AppEnv:         env,
-		AppGraceReload: false,
+		AppGraceReload: 0,
 		AppNeedPProf:   false,
 	}
 }
