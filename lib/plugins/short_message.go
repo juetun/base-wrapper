@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
@@ -14,6 +15,11 @@ import (
 func PluginShortMessage() (err error) {
 
 	io.SystemOutPrintln("Load short message start")
+	var syncLock sync.Mutex
+	syncLock.Lock()
+	defer syncLock.Unlock()
+
+
 	configSource := viper.New()
 	configSource.SetConfigName("message") // name of config file (without extension)
 	configSource.SetConfigType("yaml")    // REQUIRED if the config file does not have the extension in the name

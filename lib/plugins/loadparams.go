@@ -18,10 +18,10 @@ import (
 )
 
 type CommonConfig struct {
-	Domain     string `json:"domain" `
-	AppDomain  string `json:"app_domain" `
-	DomainUser string `json:"domain_user"`
-	DomainApi  string `json:"domain_api"`
+	Domain     string `json:"domain" yaml:"domain"`
+	AppDomain  string `json:"app_domain" yaml:"app_domain"`
+	DomainUser string `json:"domain_user" yaml:"domain_user"`
+	DomainApi  string `json:"domain_api" yaml:"domain_api"`
 }
 
 func (r *CommonConfig) ToString() string {
@@ -48,7 +48,7 @@ func PluginLoadCommonParams() (err error) {
 	io.SystemOutPrintf("config directory is : '%s' ", dir)
 	viper.AddConfigPath(dir + "/../" + app.AppEnv + "/") // path to look for the config file in
 	err = viper.ReadInConfig()                           // Find and read the config file
-	if err != nil {                                      // Handle errors reading the config file
+	if err != nil { // Handle errors reading the config file
 		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("Fatal error config file: %s \n", err))
 		return
 	}

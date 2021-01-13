@@ -9,6 +9,7 @@ package plugins
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
@@ -17,6 +18,10 @@ import (
 )
 
 func PluginAppMap() (err error) {
+	var syncLock sync.Mutex
+	syncLock.Lock()
+	defer syncLock.Unlock()
+
 	io.SystemOutPrintln("Load AppMap start")
 	defer io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("AppMap load config finished \n"))
 
@@ -27,7 +32,7 @@ func PluginAppMap() (err error) {
 
 	configSource.AddConfigPath(dir)   // path to look for the config file in
 	err = configSource.ReadInConfig() // Find and read the config file
-	if err != nil {                   // Handle errors reading the config file
+	if err != nil { // Handle errors reading the config file
 		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("Fatal error  AppMap file: %v \n", err))
 		return
 	}

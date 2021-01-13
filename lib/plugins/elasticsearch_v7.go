@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v7"
@@ -17,6 +18,10 @@ import (
 
 // ElasticSearch检索初始化入口
 func PluginElasticSearchV7() (err error) {
+
+	var syncLock sync.Mutex
+	syncLock.Lock()
+	defer syncLock.Unlock()
 
 	io.SystemOutPrintln("Load ElasticSearch start")
 	defer io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("ElasticSearch load config finished \n"))

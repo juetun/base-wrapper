@@ -9,6 +9,7 @@ package plugins
 
 import (
 	systemLog "log"
+	"sync"
 
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/spf13/viper"
@@ -30,7 +31,12 @@ type Oss struct {
 var oss = make(map[string]Oss)
 
 func PluginOss() (err error) {
+
 	systemLog.Printf("【INFO】Load oss config.")
+	var syncLock sync.Mutex
+	syncLock.Lock()
+	defer syncLock.Unlock()
+
 	configSource := viper.New()
 	configSource.AddConfigPath(common.GetConfigFileDirectory())
 	configSource.SetConfigName("oss")

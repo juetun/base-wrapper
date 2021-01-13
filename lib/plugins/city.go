@@ -8,6 +8,8 @@
 package plugins
 
 import (
+	"sync"
+
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/middlewares"
 )
@@ -16,6 +18,11 @@ const CityCookieName = "city"
 const MiddleCityCode = "city"
 
 func PluginLocation() (err error) {
+	var syncLock sync.Mutex
+	syncLock.Lock()
+	defer syncLock.Unlock()
+
+
 	middlewares.MiddleWareComponent = append(middlewares.MiddleWareComponent, func(context *gin.Context) {
 
 		// fmt.Printf("*******************")

@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"fmt"
+	"io/ioutil"
 	"sync"
 	"time"
 
@@ -11,11 +12,11 @@ import (
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
-	"github.com/spf13/viper"
+	"gopkg.in/yaml.v2"
 )
 
 type Mysql struct {
-	NameSpace    string `json:"name_space"`
+	NameSpace    string `json:"name_space" yaml:"name_space"`
 	Addr         string `json:"addr" yaml:"addr"`
 	MaxIdleConns int    `json:"max_idle_conns" yaml:"maxidleconns"`
 	MaxOpenConns int    `json:"max_open_conns" yaml:"maxopenconns"`
@@ -34,31 +35,20 @@ var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
 func loadMysqlConfig() (err error) {
 
 	io.SystemOutPrintln("Load database start")
-	configSource := viper.New()
-	configSource.SetConfigName("database") // name of config file (without extension)
-	configSource.SetConfigType("yaml")     // REQUIRED if the config file does not have the extension in the name
-	dir := common.GetConfigFileDirectory()
-
-	configSource.AddConfigPath(dir)   // path to look for the config file in
-	err = configSource.ReadInConfig() // Find and read the config file
-	if err != nil { // Handle errors reading the config file
-		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("Fatal error database file: %v \n", err))
-		return
+	var mysqlConfig map[string]Mysql
+	var yamlFile []byte
+	filePath := common.GetConfigFilePath("database.yaml")
+	if yamlFile, err = ioutil.ReadFile(filePath); err != nil {
+		io.SystemOutFatalf("yamlFile.Get err(%s)  #%v \n", filePath, err)
 	}
-	// 数据库配置信息存储对象
-	var mysqlConfig = make(map[string]Mysql)
-
-	if err = configSource.Unmarshal(&mysqlConfig); err != nil {
-		io.SetInfoType(base.LogLevelInfo).
-			SystemOutPrintf("Load database config failure  '%v' ", mysqlConfig)
-		panic(err)
+	if err = yaml.Unmarshal(yamlFile, &mysqlConfig); err != nil {
+		io.SystemOutFatalf("load database config err(%+v) \n", err)
 	}
+	io.SystemOutPrintf("load database config is:%+v \n", mysqlConfig)
 	for key, value := range mysqlConfig {
 		initMysql(key, &value)
 	}
-	// 监听配置变动
-	viper.WatchConfig()
-	viper.OnConfigChange(databaseFileChange)
+
 	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("Database load config finished \n"))
 	return
 }
