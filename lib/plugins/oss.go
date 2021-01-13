@@ -8,11 +8,13 @@
 package plugins
 
 import (
+	"io/ioutil"
 	systemLog "log"
 	"sync"
 
+	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
-	"github.com/spf13/viper"
+	"gopkg.in/yaml.v2"
 )
 
 type Oss struct {
@@ -37,18 +39,20 @@ func PluginOss() (err error) {
 	syncLock.Lock()
 	defer syncLock.Unlock()
 
-	configSource := viper.New()
-	configSource.AddConfigPath(common.GetConfigFileDirectory())
-	configSource.SetConfigName("oss")
-	configSource.SetConfigType("yml")
-	if err := configSource.ReadInConfig(); err != nil {
-		panic(err)
-	}
+	var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
+	io.SystemOutPrintln("Load common config start")
+	defer func() {
+		io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("oss config is: '%v' \n", config.ToString())
+		io.SystemOutPrintf("load oss config finished \n")
+	}()
 
+	var yamlFile []byte
 	var v map[string]Oss
-	// 直接反序列化为Struct
-	if err := configSource.Unmarshal(&v); err != nil {
-		panic(err)
+	if yamlFile, err = ioutil.ReadFile(common.GetConfigFilePath("oss.yaml")); err != nil {
+		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   #%v \n", err)
+	}
+	if err = yaml.Unmarshal(yamlFile, &v); err != nil {
+		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Load oss config config err(%#v) \n", err)
 	}
 	for k, d := range v {
 		if k == "" {
@@ -58,7 +62,6 @@ func PluginOss() (err error) {
 		systemLog.Printf("【INFO】oss config:%v", d)
 		oss[d.NameSpace] = d
 	}
-	systemLog.Printf("【INFO】Load oss config finished")
 	return
 }
 

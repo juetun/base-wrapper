@@ -12,11 +12,13 @@ import (
 
 	"github.com/go-redis/redis"
 )
+
 // 当前请求上下文存储使用的KEY
 const (
 	ContextUserObjectKey = "jwt_user" // 用户信息
 	ContextUserTokenKey  = "token"    // 存储token的KEY
 )
+
 var jwtParam *JwtParam
 
 func NewJwtParam() *JwtParam {
@@ -102,10 +104,10 @@ func (jp *JwtParam) SetRedisCache(rc *redis.Client) func(jp *JwtParam) interface
 func (jp *JwtParam) JwtInit(options ...func(jp *JwtParam) interface{}) error {
 
 	q := &JwtParam{
-		DefaultJti:      "izghua",
+		DefaultJti:      "juetun",
 		DefaultAudience: "zgh",
-		DefaultIss:      "izghua",
-		SecretKey:       "izghua",
+		DefaultIss:      "juetun",
+		SecretKey:       "juetun",
 		TokenLife:       time.Hour * time.Duration(72),
 		TokenKey:        "login:token:",
 		RedisCache:      GetRedisClient(),

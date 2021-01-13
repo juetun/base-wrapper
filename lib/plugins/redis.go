@@ -3,13 +3,14 @@ package plugins
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"sync"
 
 	"github.com/go-redis/redis"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
-	"github.com/spf13/viper"
+	"gopkg.in/yaml.v2"
 )
 
 func PluginRedis() (err error) {
@@ -22,33 +23,21 @@ func PluginRedis() (err error) {
 
 func loadRedisConfig() (err error) {
 
-	io.SystemOutPrintln("Load Redis start")
-	configSource := viper.New()
-	configSource.SetConfigName("redis") // name of config file (without extension)
-	configSource.SetConfigType("yaml")  // REQUIRED if the config file does not have the extension in the name
-	dir := common.GetConfigFileDirectory()
+	io.SystemOutPrintln("Load redis start")
 
-	configSource.AddConfigPath(dir)   // path to look for the config file in
-	err = configSource.ReadInConfig() // Find and read the config file
-	if err != nil {                   // Handle errors reading the config file
-		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("Fatal error redis file: %v \n", err))
-		return
-	}
 	// 数据库配置信息存储对象
 	var config = make(map[string]Redis)
-
-	if err = configSource.Unmarshal(&config); err != nil {
-		io.SetInfoType(base.LogLevelInfo).
-			SystemOutPrintf("Load redis config failure  '%v' ", config)
-		panic(err)
+	var yamlFile []byte
+	if yamlFile, err = ioutil.ReadFile(common.GetConfigFilePath("redis.yaml")); err != nil {
+		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   #%v \n", err)
+	}
+	if err = yaml.Unmarshal(yamlFile, &config); err != nil {
+		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Load redis config config err(%#v) \n", err)
 	}
 	for key, value := range config {
 		initRedis(key, &value)
 	}
-
-	viper.WatchConfig()
-	viper.OnConfigChange(databaseFileChange)
-	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("redis load config finished \n"))
+	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("load redis config finished \n"))
 	return
 }
 

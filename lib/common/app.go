@@ -55,7 +55,8 @@ func PluginsApp() (err error) {
 	type app struct {
 		App *app_obj.Application `json:"app" yaml:"app"`
 	}
-	var data app
+	var data=app{App:app_obj.App}
+	data.App.Default()
 	var yamlFile []byte
 	filePath := GetConfigFilePath("app.yaml", true)
 	if yamlFile, err = ioutil.ReadFile(filePath); err != nil {
@@ -65,14 +66,6 @@ func PluginsApp() (err error) {
 		io.SystemOutFatalf("load app config err(%#v) \n", err)
 	}
 
-	if data.App.AppPort == 0 { // 默认80端口
-		data.App.AppPort = 80
-	}
-	if app_obj.App.AppEnv != "" && data.App.AppEnv == "" {
-		data.App.AppEnv = app_obj.App.AppEnv
-	}
-	data.App.AppVersion = "v" + data.App.AppVersion
-	app_obj.App = data.App
 	io.SystemOutPrintf("App Config is : '%#v' ", app_obj.App)
 	return
 }

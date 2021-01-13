@@ -3,6 +3,7 @@ package plugins
 import (
 	"crypto/tls"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"sync"
@@ -13,7 +14,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
-	"github.com/spf13/viper"
+	"gopkg.in/yaml.v2"
 )
 
 // ElasticSearch检索初始化入口
@@ -24,35 +25,25 @@ func PluginElasticSearchV7() (err error) {
 	defer syncLock.Unlock()
 
 	io.SystemOutPrintln("Load ElasticSearch start")
-	defer io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("ElasticSearch load config finished \n"))
+	defer io.SetInfoType(base.LogLevelInfo).
+		SystemOutPrintf(fmt.Sprintf("ElasticSearch load config finished \n"))
 
-	configSource := viper.New()
-	configSource.SetConfigName("elasticsearch") // name of config file (without extension)
-	configSource.SetConfigType("yaml")          // REQUIRED if the config file does not have the extension in the name
-	dir := common.GetConfigFileDirectory()
-
-	configSource.AddConfigPath(dir)   // path to look for the config file in
-	err = configSource.ReadInConfig() // Find and read the config file
-	if err != nil {                   // Handle errors reading the config file
-		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("Fatal error elastic_search file: %v \n", err))
-		return
+	var yamlFile []byte
+	if yamlFile, err = ioutil.ReadFile(common.GetConfigFilePath("elasticsearch.yaml")); err != nil {
+		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   #%v \n", err)
 	}
 	// 数据库配置信息存储对象
 	var configs = make(map[string]Config)
-
-	if err = configSource.Unmarshal(&configs); err != nil {
-		io.SetInfoType(base.LogLevelInfo).
-			SystemOutPrintf("Load elastic_search config failure  '%v' ", configs)
-		panic(err)
+	if err = yaml.Unmarshal(yamlFile, &configs); err != nil {
+		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Fatal error elastic_search file(%#v) \n", err)
 	}
+	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("Load elastic_search config is : '%#v' ", configs)
 
 	for key, value := range configs {
 		esConfig := orgConfig(&value)
 		initEs(key, esConfig)
 	}
-	// 监听配置变动
-	viper.WatchConfig()
-	viper.OnConfigChange(databaseFileChange)
+	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("Load elastic_search config finished ")
 	return
 }
 

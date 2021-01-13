@@ -9,12 +9,13 @@ package plugins
 
 import (
 	"fmt"
+	"io/ioutil"
 	"sync"
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
-	"github.com/spf13/viper"
+	"gopkg.in/yaml.v2"
 )
 
 func PluginAppMap() (err error) {
@@ -23,31 +24,18 @@ func PluginAppMap() (err error) {
 	defer syncLock.Unlock()
 
 	io.SystemOutPrintln("Load AppMap start")
-	defer io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("AppMap load config finished \n"))
+	defer io.SetInfoType(base.LogLevelInfo).
+		SystemOutPrintf(fmt.Sprintf("Load appMap config finished \n"))
 
-	configSource := viper.New()
-	configSource.SetConfigName("appmap") // name of config file (without extension)
-	configSource.SetConfigType("yaml")   // REQUIRED if the config file does not have the extension in the name
-	dir := common.GetConfigFileDirectory()
-
-	configSource.AddConfigPath(dir)   // path to look for the config file in
-	err = configSource.ReadInConfig() // Find and read the config file
-	if err != nil { // Handle errors reading the config file
-		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("Fatal error  AppMap file: %v \n", err))
-		return
+	var yamlFile []byte
+	if yamlFile, err = ioutil.ReadFile(common.GetConfigFilePath("appmap.yaml")); err != nil {
+		io.SystemOutFatalf("yamlFile.Get err #%v \n", err)
 	}
-	// 数据库配置信息存储对象
-	app_obj.AppMap = make(map[string]string)
-
-	if err = configSource.Unmarshal(&app_obj.AppMap); err != nil {
-		io.SetInfoType(base.LogLevelInfo).
-			SystemOutPrintf("Load  AppMap config failure  '%v' ", app_obj.AppMap)
-		panic(err)
+	if err = yaml.Unmarshal(yamlFile, &app_obj.AppMap); err != nil {
+		io.SystemOutFatalf("Load  appMap config failure(%#v) \n", err)
 	}
-	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("app map config :%+v", app_obj.AppMap)
-	// 监听配置变动
-	viper.WatchConfig()
-	viper.OnConfigChange(databaseFileChange)
+	io.SetInfoType(base.LogLevelInfo).
+		SystemOutPrintf("Load  appMap config is : '%#v' ", app_obj.AppMap)
 	return
 
 }

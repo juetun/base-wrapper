@@ -2,13 +2,14 @@ package plugins
 
 import (
 	"fmt"
+	"io/ioutil"
 	"sync"
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/juetun/base-wrapper/lib/plugins/short_message_impl"
-	"github.com/spf13/viper"
+	"gopkg.in/yaml.v2"
 )
 
 // 短信插件初始化
@@ -19,26 +20,16 @@ func PluginShortMessage() (err error) {
 	syncLock.Lock()
 	defer syncLock.Unlock()
 
-
-	configSource := viper.New()
-	configSource.SetConfigName("message") // name of config file (without extension)
-	configSource.SetConfigType("yaml")    // REQUIRED if the config file does not have the extension in the name
-	dir := common.GetConfigFileDirectory()
-
-	configSource.AddConfigPath(dir)   // path to look for the config file in
-	err = configSource.ReadInConfig() // Find and read the config file
-	if err != nil { // Handle errors reading the config file
-		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("Fatal error  short message file: %v \n", err))
-		return
-	}
 	// 数据库配置信息存储对象
 	var configs = make(map[string]ShortMessageConfig)
-
-	if err = configSource.Unmarshal(&configs); err != nil {
-		io.SetInfoType(base.LogLevelInfo).
-			SystemOutPrintf("Load  short message config failure  '%v' ", configs)
-		panic(err)
+	var yamlFile []byte
+	if yamlFile, err = ioutil.ReadFile(common.GetConfigFilePath("message.yaml")); err != nil {
+		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   #%v \n", err)
 	}
+	if err = yaml.Unmarshal(yamlFile, &configs); err != nil {
+		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Load short message err(%#v) \n", err)
+	}
+
 	// 初始化短信通道
 	shortHandle := map[string]app_obj.ShortMessageInter{}
 	for nameSpace, value := range configs {
@@ -46,10 +37,6 @@ func PluginShortMessage() (err error) {
 	}
 
 	app_obj.ShortMessageObj = app_obj.NewShortMessage(shortHandle)
-
-	// 监听配置变动
-	viper.WatchConfig()
-	viper.OnConfigChange(databaseFileChange)
 	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("ShortMessage load config finished \n"))
 	return
 

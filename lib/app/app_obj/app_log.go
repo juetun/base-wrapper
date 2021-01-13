@@ -19,11 +19,13 @@ var logApp *AppLog
 
 type AppLog struct {
 	Logger *logrus.Logger
+	GoPath string `json:"go_path"`
 }
 
 func newAppLog() (res *AppLog) {
 	logApp = &AppLog{
-		logrus.New(),
+		Logger: logrus.New(),
+		GoPath: os.Getenv("GOPATH"),
 	}
 	return logApp
 }
@@ -36,13 +38,20 @@ func GetLog() *AppLog {
 	return logApp
 }
 func (r *AppLog) getFields() (res logrus.Fields) {
-	var file = "-" //获取当前日志写入时的代码位置 （文件名称，函数名称）
+	var file = "-" // 获取当前日志写入时的代码位置 （文件名称，函数名称）
 	// 获取上层调用者PC，文件名，所在行	// 拼接文件名与所在行
 	if _, codePath, codeLine, ok := runtime.Caller(2); ok {
 		file = fmt.Sprintf("%s(line:%d)",
 			codePath,
-			//runtime.FuncForPC(pc).Name(),
+			// runtime.FuncForPC(pc).Name(),
 			codeLine)
+	}
+	if r.GoPath != "" {
+		res = logrus.Fields{
+			APP_LOG_KEY: App.AppName,
+			APP_LOG_LOC: "$GOPATH/" + strings.TrimLeft(file, r.GoPath),
+		}
+		return
 	}
 	res = logrus.Fields{
 		APP_LOG_KEY: App.AppName,

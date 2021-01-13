@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
+	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
 	"gopkg.in/yaml.v2"
 )
@@ -32,18 +33,16 @@ func PluginLog() (err error) {
 }
 func loadLogConfig() (mysqlConfig app_obj.OptionLog, err error) {
 
-	io.SystemOutPrintln("Load database start")
+	io.SetInfoType(base.LogLevelInfo).SystemOutPrintln("Load log start")
 
-
- 	var yamlFile []byte
-
+	var yamlFile []byte
 	if yamlFile, err = ioutil.ReadFile(common.GetConfigFilePath("log.yaml")); err != nil {
-		io.SystemOutFatalf("yamlFile.Get err   #%v \n", err)
+		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   #%v \n", err)
 	}
 	if err = yaml.Unmarshal(yamlFile, &mysqlConfig); err != nil {
-		io.SystemOutFatalf("Load log config config err(%#v) \n", err)
+		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Load log config config err(%#v) \n", err)
 	}
- 	io.SystemOutPrintf("Load log config is : '%#v' ", mysqlConfig)
+	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("Load log config is : '%#v' ", mysqlConfig)
 
 	return
 }
