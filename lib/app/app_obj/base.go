@@ -27,6 +27,7 @@ var App *Application
 
 // 应用基本的配置结构体
 type Application struct {
+	AppAlias             string `json:"app_alias" yaml:"alias"`
 	AppSystemName        string `json:"app_system_name" yaml:"system_name"`
 	AppEnv               string `json:"app_env" yaml:"env"`                               // 当前运行环境
 	AppName              string `json:"app_name" yaml:"name"`                             // 应用名称
