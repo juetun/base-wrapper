@@ -49,7 +49,7 @@ func (r *AppLog) getFields() (res logrus.Fields) {
 	if r.GoPath != "" {
 		res = logrus.Fields{
 			APP_LOG_KEY: App.AppName,
-			APP_LOG_LOC: "$GOPATH/" + strings.TrimLeft(file, r.GoPath),
+			APP_LOG_LOC: "$GOPATH/" + strings.TrimPrefix(file, r.GoPath),
 		}
 		return
 	}
