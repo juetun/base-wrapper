@@ -27,6 +27,7 @@ func newAppLog() (res *AppLog) {
 		Logger: logrus.New(),
 		GoPath: os.Getenv("GOPATH"),
 	}
+
 	return logApp
 }
 

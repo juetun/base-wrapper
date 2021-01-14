@@ -39,16 +39,17 @@ func delayExecGinLogCollect(start time.Time, c *gin.Context, path *url.URL, logg
 		// c.Set("body", string(bodyBytes))
 	}
 	fields := logrus.Fields{
-		"status":   c.Writer.Status(),
-		"method":   c.Request.Method,
-		"path":     path.String(),
-		"ip":       c.ClientIP(),
-		"duration": float64(time.Now().Sub(start) / 1e3), // 时长单位微秒
-		"request":  string(bodyBytes),
-		"header":   c.Request.Header,
+		app_obj.APP_FIELD_KEY: "GIN",
+		"status":              c.Writer.Status(),
+		"method":              c.Request.Method,
+		"path":                path.String(),
+		"ip":                  c.ClientIP(),
+		"duration":            float64(time.Now().Sub(start) / 1e3), // 时长单位微秒
+		"request":             string(bodyBytes),
+		"header":              c.Request.Header,
 	}
 	// 只收集 http code>400的错误日志
-	if c.Writer.Status() > 400 {
+	if c.Writer.Status() >= 400 {
 		blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
 		c.Writer = blw
 		fields["response"] = blw.body.String()
