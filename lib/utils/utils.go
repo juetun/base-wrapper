@@ -4,9 +4,7 @@
 package utils
 
 import (
-	"crypto/md5"
 	crand "crypto/rand"
-	"encoding/hex"
 	"fmt"
 	"math/rand"
 	"os"
@@ -39,8 +37,6 @@ func RandString(length int64) string {
 
 	return string(result)
 }
-
-
 
 // 生成0-max之间随机数
 func RandNumber(max int) int {

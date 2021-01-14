@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/OwnLocal/goes v1.0.0 // indirect
-	github.com/Tang-RoseChild/mahonia v0.0.0-20131226213531-0eef680515cc // indirect
+	github.com/Tang-RoseChild/mahonia v0.0.0-20131226213531-0eef680515cc
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/armon/consul-api v0.0.0-20180202201655-eb2c6b5be1b6 // indirect
 	github.com/astaxie/beego v1.12.3
@@ -21,6 +21,7 @@ require (
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/google/uuid v1.1.2
+	github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869 // indirect
 	github.com/jinzhu/gorm v1.9.16
 	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
@@ -38,17 +39,18 @@ require (
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/spf13/viper v1.7.1
+	github.com/spf13/viper v1.7.1 // indirect
 	github.com/stretchr/testify v1.6.1
-	github.com/swaggo/files v0.0.0-20190704085106-630677cd5c14
+	github.com/swaggo/files v0.0.0-20190704085106-630677cd5c14 // indirect
 	github.com/swaggo/gin-swagger v1.3.0
 	github.com/swaggo/swag v1.7.0
+	github.com/tebeka/strftime v0.1.5 // indirect
 	github.com/ugorji/go v1.2.0 // indirect
 	github.com/urfave/cli v1.22.5 // indirect
 	github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77 // indirect
 	golang.org/x/net v0.0.0-20201224014010-6772e930b67b
 	golang.org/x/sys v0.0.0-20201130171929-760e229fe7c5 // indirect
-	golang.org/x/tools v0.0.0-20201230224404-63754364767c
+	golang.org/x/tools v0.0.0-20201230224404-63754364767c // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
