@@ -44,15 +44,15 @@ func (r GOrmLog) Print(v ...interface{}) () {
 	case "sql":
 		fields["rows_returned"] = v[5]
  		fields["duration"] = float64(v[2].(time.Duration) / 1e3) // 时长单位微秒
-		r.logger.Info(nil, fields, fmt.Sprintf("SQL:%s [VALUE]:%#v", v[3].(string), v[4]))
+		r.logger.Info(nil, fields, fmt.Sprintf("SQL:%s [VAL]:%#v", v[3].(string), v[4]))
 	case "log":
 		for _, value := range v[2:] {
 			switch value.(type) {
 			case *mysql.MySQLError:
 				tmp := value.(*mysql.MySQLError)
-				r.logger.Error(nil, fields, fmt.Sprintf("%+v", *tmp))
+				r.logger.Error(nil, fields, fmt.Sprintf("%#v", *tmp))
 			default:
-				r.logger.Info(nil, fields, fmt.Sprintf("%+v", v[2]))
+				r.logger.Info(nil, fields, fmt.Sprintf("%#v", v[2]))
 			}
 		}
 	}
