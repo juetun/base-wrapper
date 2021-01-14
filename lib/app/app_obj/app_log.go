@@ -41,7 +41,7 @@ func GetLog() *AppLog {
 func (r *AppLog) getFields(data map[string]interface{}) (res logrus.Fields) {
 	var file = "-" // 获取当前日志写入时的代码位置 （文件名称，函数名称）
 	// 获取上层调用者PC，文件名，所在行	// 拼接文件名与所在行
-	if _, codePath, codeLine, ok := runtime.Caller(3); ok {
+	if _, codePath, codeLine, ok := runtime.Caller(4); ok {
 		file = fmt.Sprintf("%s(l:%d)", codePath, codeLine, ) // runtime.FuncForPC(pc).Name(),
 	}
 	res = logrus.Fields{APP_LOG_KEY: App.AppName,}
@@ -49,7 +49,7 @@ func (r *AppLog) getFields(data map[string]interface{}) (res logrus.Fields) {
 		return
 	}
 	if r.GoPath != "" {
-		res[APP_LOG_LOC] = "$GOPATH/" + strings.TrimPrefix(file, r.GoPath)
+		res[APP_LOG_LOC] = "$GOPATH" + strings.TrimPrefix(file, r.GoPath)
 		return
 	}
 	res[APP_LOG_LOC] = file
