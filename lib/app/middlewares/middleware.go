@@ -6,7 +6,7 @@ import (
 )
 
 var MiddleWareComponent = []gin.HandlerFunc{
-	CrossOriginResourceSharing(), //配置跨域逻辑
+	CrossOriginResourceSharing(), // 配置跨域逻辑
 }
 var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
 

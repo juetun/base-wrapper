@@ -23,13 +23,13 @@ func GinLogCollect(logger *app_obj.AppLog) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 		defer func() { // 异步操作写日志
-			go delayExecGinLogCollect(start, c, c.Request.URL, logger)
+			delayExecGinLogCollect(start, c, c.Request.URL, logger)
 		}()
 		c.Next()
 	}
 }
 
-//流量日志收集
+// 流量日志收集
 func delayExecGinLogCollect(start time.Time, c *gin.Context, path *url.URL, logger *app_obj.AppLog) {
 	c.Request.URL.RawQuery, _ = url.QueryUnescape(c.Request.URL.RawQuery)
 	var bodyBytes []byte
