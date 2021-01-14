@@ -37,44 +37,33 @@ func GetLog() *AppLog {
 	}
 	return logApp
 }
-func (r *AppLog) getFields() (res logrus.Fields) {
+func (r *AppLog) getFields(data map[string]interface{}) (res logrus.Fields) {
 	var file = "-" // 获取当前日志写入时的代码位置 （文件名称，函数名称）
 	// 获取上层调用者PC，文件名，所在行	// 拼接文件名与所在行
-	if _, codePath, codeLine, ok := runtime.Caller(2); ok {
-		file = fmt.Sprintf("%s(line:%d)",
-			codePath,
-			// runtime.FuncForPC(pc).Name(),
-			codeLine)
+	if _, codePath, codeLine, ok := runtime.Caller(3); ok {
+		file = fmt.Sprintf("%s(l:%d)", codePath, codeLine, ) // runtime.FuncForPC(pc).Name(),
 	}
-	if r.GoPath != "" {
-		res = logrus.Fields{
-			APP_LOG_KEY: App.AppName,
-			APP_LOG_LOC: "$GOPATH/" + strings.TrimPrefix(file, r.GoPath),
-		}
+	res = logrus.Fields{APP_LOG_KEY: App.AppName,}
+	if _, ok := data[APP_LOG_LOC]; ok { //如果已经设置了src的值，则不用重复设置了
 		return
 	}
-	res = logrus.Fields{
-		APP_LOG_KEY: App.AppName,
-		APP_LOG_LOC: file,
+	if r.GoPath != "" {
+		res[APP_LOG_LOC] = "$GOPATH/" + strings.TrimPrefix(file, r.GoPath)
+		return
 	}
+	res[APP_LOG_LOC] = file
 	return
 }
 
 func (r *AppLog) Error(context *gin.Context, data map[string]interface{}, message ...interface{}) {
-	fields := r.getFields()
-	if context != nil {
-		fields[TRACE_ID] = context.GetHeader(HTTP_TRACE_ID)
-	}
-
-	if len(data) > 0 {
-		for key, value := range data {
-			fields[key] = value
-		}
-	}
-	r.Logger.WithFields(fields).Error(message)
+	r.Logger.WithFields(r.orgFields(context, data)).Error(message)
 }
 func (r *AppLog) Info(context *gin.Context, data map[string]interface{}, message ...interface{}) {
-	fields := r.getFields()
+
+	r.Logger.WithFields(r.orgFields(context, data)).Info(message)
+}
+func (r *AppLog) orgFields(context *gin.Context, data map[string]interface{}) (fields logrus.Fields) {
+	fields = r.getFields(data)
 	if context != nil {
 		fields[TRACE_ID] = context.GetHeader(HTTP_TRACE_ID)
 	}
@@ -83,43 +72,18 @@ func (r *AppLog) Info(context *gin.Context, data map[string]interface{}, message
 			fields[key] = value
 		}
 	}
-	r.Logger.WithFields(fields).Info(message)
+	return
 }
 func (r *AppLog) Debug(context *gin.Context, data map[string]interface{}, message ...interface{}) {
-	fields := r.getFields()
-	if context != nil {
-		fields[TRACE_ID] = context.GetHeader(HTTP_TRACE_ID)
-	}
-	if len(data) > 0 {
-		for key, value := range data {
-			fields[key] = value
-		}
-	}
-	r.Logger.WithFields(fields).Debug(message)
+
+	r.Logger.WithFields(r.orgFields(context, data)).Debug(message)
 }
 func (r *AppLog) Fatal(context *gin.Context, data map[string]interface{}, message ...interface{}) {
-	fields := r.getFields()
-	if context != nil {
-		fields[TRACE_ID] = context.GetHeader(HTTP_TRACE_ID)
-	}
-	if len(data) > 0 {
-		for key, value := range data {
-			fields[key] = value
-		}
-	}
-	r.Logger.WithFields(fields).Fatal(message)
+
+	r.Logger.WithFields(r.orgFields(context, data)).Fatal(message)
 }
 func (r *AppLog) Warn(context *gin.Context, data map[string]interface{}, message ...interface{}) {
-	fields := r.getFields()
-	if context != nil {
-		fields[TRACE_ID] = context.GetHeader(HTTP_TRACE_ID)
-	}
-	if len(data) > 0 {
-		for key, value := range data {
-			fields[key] = value
-		}
-	}
-	r.Logger.WithFields(fields).Warn(message)
+	r.Logger.WithFields(r.orgFields(context, data)).Warn(message)
 }
 
 // 初始化日志操作对象
