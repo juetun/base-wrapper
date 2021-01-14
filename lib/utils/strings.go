@@ -17,6 +17,7 @@ import (
 	"strings"
 )
 
+//生成32位MD5摘要
 // 字符串加密 md5算法
 func Md5(str string) string {
 	c := md5.New()

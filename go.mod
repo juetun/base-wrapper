@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/OwnLocal/goes v1.0.0 // indirect
+	github.com/Tang-RoseChild/mahonia v0.0.0-20131226213531-0eef680515cc // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/armon/consul-api v0.0.0-20180202201655-eb2c6b5be1b6 // indirect
 	github.com/astaxie/beego v1.12.3

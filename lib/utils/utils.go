@@ -1,3 +1,6 @@
+// @Copyright (c) 2021.
+// @Author ${USER}
+// @Date ${DATE}
 package utils
 
 import (
@@ -37,13 +40,7 @@ func RandString(length int64) string {
 	return string(result)
 }
 
-// 生成32位MD5摘要
-func Md5(str string) string {
-	m := md5.New()
-	m.Write([]byte(str))
 
-	return hex.EncodeToString(m.Sum(nil))
-}
 
 // 生成0-max之间随机数
 func RandNumber(max int) int {
