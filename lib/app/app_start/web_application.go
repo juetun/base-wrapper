@@ -48,16 +48,22 @@ func NewWebApplication(privateMiddleWares ...gin.HandlerFunc) *WebApplication {
 		syslog:    base.NewSystemOut(),
 	}
 
+	// 日志对象获取,最先执行的中间件
+	var preMiddleWare = []gin.HandlerFunc{
+		func(c *gin.Context) { //链路追踪埋点
+			traceId := c.GetHeader(app_obj.HTTP_TRACE_ID)
+			c.Set(app_obj.TRACE_ID, traceId)
+			c.Next()
+		},
+		middlewares.GinLogCollect(app_obj.GetLog()),
+	}
+	privateMiddleWares = append(preMiddleWare, privateMiddleWares...)
+
 	// 加载GIN框架 中间件
 	middlewares.LoadMiddleWare(privateMiddleWares...)
 
 	// gin加载中间件
 	webApp.GinEngine.Use(middlewares.MiddleWareComponent...)
-
-	logger := app_obj.GetLog()
-
-	// 日志对象获取
-	webApp.GinEngine.Use(middlewares.GinLogCollect(logger))
 
 	return webApp
 }
