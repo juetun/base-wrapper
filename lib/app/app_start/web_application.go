@@ -24,9 +24,9 @@ import (
 type HandleRouter func(c *gin.Engine, urlPrefix string)
 
 var HandleFunc = make([]HandleRouter, 0)         // 路由函数切片
-var HandleFuncIntranet = make([]HandleRouter, 0) //内网路由函数切片
-var HandleFuncOuterNet = make([]HandleRouter, 0) //外网路由函数切片
-var HandleFuncPage = make([]HandleRouter, 0)     //外网路由函数切片
+var HandleFuncIntranet = make([]HandleRouter, 0) // 内网路由函数切片
+var HandleFuncOuterNet = make([]HandleRouter, 0) // 外网路由函数切片
+var HandleFuncPage = make([]HandleRouter, 0)     // 外网路由函数切片
 
 type WebApplication struct {
 	GinEngine *gin.Engine
@@ -50,7 +50,7 @@ func NewWebApplication(privateMiddleWares ...gin.HandlerFunc) *WebApplication {
 
 	// 日志对象获取,最先执行的中间件
 	var preMiddleWare = []gin.HandlerFunc{
-		func(c *gin.Context) { //链路追踪埋点
+		func(c *gin.Context) { // 链路追踪埋点
 			traceId := c.GetHeader(app_obj.HTTP_TRACE_ID)
 			c.Set(app_obj.TRACE_ID, traceId)
 			c.Next()
@@ -81,7 +81,8 @@ func (r *WebApplication) LoadRouter(routerHandler ...RouterHandler) (res *WebApp
 		}
 	}()
 	appConfig := common.GetAppConfig()
-	var UrlPrefix = fmt.Sprintf("%s/%s", appConfig.AppName, appConfig.AppApiVersion)
+	// var UrlPrefix = fmt.Sprintf("%s/%s", appConfig.AppName, appConfig.AppApiVersion)
+	var UrlPrefix = fmt.Sprintf("%s", appConfig.AppName)
 
 	fmt.Printf("\n\n")
 	r.syslog.SetInfoType(base.LogLevelInfo).
@@ -98,7 +99,7 @@ func (r *WebApplication) LoadRouter(routerHandler ...RouterHandler) (res *WebApp
 	r.syslog.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintln("注册业务路由....\n\n")
 
-	//操作路由相关动作
+	// 操作路由相关动作
 	for _, handler := range routerHandler {
 		if err = handler(r.GinEngine); err != nil {
 			return
@@ -162,7 +163,7 @@ func (r *WebApplication) start() {
 	}
 	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("Listen Addr  %s", srv.Addr)
 
-	go func() { //启动GIN服务动作
+	go func() { // 启动GIN服务动作
 		// service connections
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			r.syslog.SetInfoType(base.LogLevelInfo).SystemOutFatalf("listen: %s\n", err)
@@ -196,13 +197,13 @@ func (r *WebApplication) getListenPortString() string {
 // 工具路由注册（心跳检测、性能分析等）
 // 每个系统自动支持 /health 和 /index 访问
 func (r *WebApplication) toolRouteRegister(appConfig *app_obj.Application, UrlPrefix string) {
-	//注册默认的公共路由，如健康检查
+	// 注册默认的公共路由，如健康检查
 	r.registerDefaultRoute(UrlPrefix)
 
 	// 是否开启性能分析工具
 	r.pProf(appConfig)
 
-	//注册swagger路由
+	// 注册swagger路由
 	r.registerSwagger(appConfig)
 
 }
@@ -221,7 +222,7 @@ func (r *WebApplication) registerDefaultRoute(UrlPrefix string) {
 	})
 }
 func (r *WebApplication) registerSwagger(appConfig *app_obj.Application) {
-	//如果非线上(release)环境，则可以直接使用
+	// 如果非线上(release)环境，则可以直接使用
 	if app_obj.App.AppEnv != common.ENV_RELEASE {
 		return
 	}

@@ -73,7 +73,9 @@ func (r *Block) ParseHtml() (res string, err error) {
 	buf := new(bytes.Buffer)
 
 	// 拼接TemplateFile path
-	if tmp, err = template.ParseFiles(r.TempFile); err != nil {
+	if tmp, err = template.New(r.Name).
+		Funcs(app_obj.FuncMap).
+		ParseFiles(r.TempFile); err != nil {
 		return
 	} else {
 		tmp.Execute(buf, r.Data)
