@@ -55,8 +55,9 @@ func PluginsApp() (err error) {
 	type app struct {
 		App *app_obj.Application `json:"app" yaml:"app"`
 	}
-	var data=app{App:app_obj.App}
+	var data = app{App: app_obj.App}
 	data.App.Default()
+	data.App.AppTemplateDirectory = defaultAppTemplateDirectory(io)
 	var yamlFile []byte
 	filePath := GetConfigFilePath("app.yaml", true)
 	if yamlFile, err = ioutil.ReadFile(filePath); err != nil {
@@ -69,10 +70,8 @@ func PluginsApp() (err error) {
 	io.SystemOutPrintf("App Config is : '%#v' ", app_obj.App)
 	return
 }
-func defaultAppTemplateDirectory(io *base.SystemOut, dir string) (res string) {
-	if dir != "" {
-		res = dir
-	}
+func defaultAppTemplateDirectory(io *base.SystemOut) (res string) {
+	var dir string
 	var err error
 	if dir, err = os.Getwd(); err != nil {
 		return
@@ -115,7 +114,7 @@ func GetConfigFileDirectory(notEnv ...bool) (res string) {
 
 }
 
-//获取配置文件的路径
+// 获取配置文件的路径
 func GetConfigFilePath(fileName string, notEnv ...bool) (res string) {
 	dir := GetConfigFileDirectory(notEnv...)
 	res = fmt.Sprintf("%s%s", dir, fileName)
