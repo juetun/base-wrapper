@@ -23,7 +23,7 @@ func GinLogCollect(logger *app_obj.AppLog) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 		defer func() { // 异步操作写日志
-			delayExecGinLogCollect(start, c, c.Request.URL, logger)
+			go delayExecGinLogCollect(start, c, c.Request.URL, logger)
 		}()
 		c.Next()
 	}

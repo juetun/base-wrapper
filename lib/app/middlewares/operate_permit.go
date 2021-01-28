@@ -27,8 +27,7 @@ func GetRUri(c *gin.Context) string {
 func Auth(c *gin.Context) (exit bool) {
 
 	token := c.Request.Header.Get(app_obj.HTTP_USER_TOKEN)
-	traceId := c.GetHeader(app_obj.HTTP_TRACE_ID)
-	c.Set(app_obj.TRACE_ID, traceId)
+
 
 	if token == "" {
 		msg := "token is null"
