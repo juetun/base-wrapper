@@ -10,7 +10,9 @@ package app_obj
 import (
 	"fmt"
 
+	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
 )
 
 var DbMysql = make(map[string]*gorm.DB)
@@ -21,8 +23,21 @@ type GetDbClientDataCallBack func(db *gorm.DB) (err error)
 
 // 获取数据库连接 参数结构体
 type GetDbClientData struct {
+	Context     *gin.Context
 	DbNameSpace string                  `json:"db_name_space"`
 	CallBack    GetDbClientDataCallBack // 获取数据库回调信息
+}
+
+func (r *GetDbClientData) DefaultGetDbClientDataCallBack(db *gorm.DB) (err error) {
+	var s string
+	if nil != r.Context {
+		if tp, ok := r.Context.Get(app_obj.TRACE_ID); ok {
+			s = fmt.Sprintf("%v", tp)
+		}
+	}
+	db.InstantSet(app_obj.TRACE_ID, s)
+	return
+
 }
 
 // 获取Redis操作实例
@@ -43,7 +58,11 @@ func GetDbClient(params ...*GetDbClientData) (db *gorm.DB) {
 	}
 	var ok bool
 	if db, ok = DbMysql[arg.DbNameSpace]; ok {
-		arg.CallBack(db)
+		if arg.CallBack == nil {
+			arg.DefaultGetDbClientDataCallBack(db)
+		} else {
+			arg.CallBack(db)
+		}
 		return
 	}
 	panic(fmt.Sprintf("the Database connect(%s) is not exist", arg.DbNameSpace))

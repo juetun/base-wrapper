@@ -74,6 +74,7 @@ func (r *Context) InitContext() (c *Context) {
 	}
 	if r.Db == nil {
 		r.Db = app_obj.GetDbClient(&app_obj.GetDbClientData{
+			Context: r.GinContext,
 			CallBack: func(db *gorm.DB) (err error) {
 				db.InstantSet(app_obj.TRACE_ID, s)
 				return
