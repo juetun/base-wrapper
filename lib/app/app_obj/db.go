@@ -12,7 +12,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
-	"github.com/juetun/base-wrapper/lib/app/app_obj"
 )
 
 var DbMysql = make(map[string]*gorm.DB)
@@ -31,11 +30,11 @@ type GetDbClientData struct {
 func (r *GetDbClientData) DefaultGetDbClientDataCallBack(db *gorm.DB) (err error) {
 	var s string
 	if nil != r.Context {
-		if tp, ok := r.Context.Get(app_obj.TRACE_ID); ok {
+		if tp, ok := r.Context.Get(TRACE_ID); ok {
 			s = fmt.Sprintf("%v", tp)
 		}
 	}
-	db.InstantSet(app_obj.TRACE_ID, s)
+	db.InstantSet(TRACE_ID, s)
 	return
 
 }
