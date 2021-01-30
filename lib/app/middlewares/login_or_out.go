@@ -1,4 +1,3 @@
-
 package middlewares
 
 import (
@@ -9,14 +8,13 @@ import (
 	"github.com/juetun/base-wrapper/lib/common"
 )
 
-//用户身份验证成功
-//err的提示内容会在响应中输出
+// 用户身份验证成功
+// err的提示内容会在响应中输出
 type AuthenticationCallBack func(user *app_obj.JwtUserMessage, c *gin.Context) (err error)
 
-
-//不用严格判断登录，如果前端传递了令牌那么解析令牌,否则直接跳过
-//notStrictValue=true
-//token=""
+// 不用严格判断登录，如果前端传递了令牌那么解析令牌,否则直接跳过
+// notStrictValue=true
+// token=""
 func AuthParse(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var jwtUser app_obj.JwtUserMessage
@@ -25,13 +23,13 @@ func AuthParse(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 		//
 		jwtUser, _ = tokenValidate(c, true)
 
-		if callBacks == nil && len(callBacks) == 0 { //如果没配置回调 则直接结束
+		if callBacks == nil && len(callBacks) == 0 { // 如果没配置回调 则直接结束
 			c.Next()
 			return
 		}
 
 		for _, callBack := range callBacks {
-			//调用回调方法
+			// 调用回调方法
 			if err = callBack(&jwtUser, c); err != nil {
 				c.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusForbidden).SetMessage(err.Error()))
 				c.Abort()
@@ -42,25 +40,25 @@ func AuthParse(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 	}
 }
 
-//判断用户是否登录如果未登录则退出
+// 判断用户是否登录如果未登录则退出
 func Authentication(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var jwtUser app_obj.JwtUserMessage
 		var exitStatus bool
 		var err error
-		//验证token是否合法
+		// 验证token是否合法
 		if jwtUser, exitStatus = tokenValidate(c, false); exitStatus {
 			c.Abort()
 			return
 		}
 
-		if len(callBacks) == 0 { //如果没配置回调 则直接结束
+		if len(callBacks) == 0 { // 如果没配置回调 则直接结束
 			c.Next()
 			return
 		}
 
 		for _, callBack := range callBacks {
-			//调用回调方法
+			// 调用回调方法
 			if err = callBack(&jwtUser, c); err != nil {
 				c.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusForbidden).SetMessage(err.Error()))
 				c.Abort()
@@ -69,28 +67,28 @@ func Authentication(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 		}
 		c.Next()
 
-		//s := middlewares.GetRUri(c)
-		//var needValidateUrl = false
-		//if needValidateUrl {
+		// s := middlewares.GetRUri(c)
+		// var needValidateUrl = false
+		// if needValidateUrl {
 		//	//res = RequestPathPermit(c, s)
 		//	if !res {
 		//		return
 		//	}
-		//}
+		// }
 		return
 	}
 }
 
 // 用户登录逻辑处理
-//param  notStrictValue    	true:当token=""时跳过
-//return bool 					true:用户信息获取失败，false:正常操作
+// param  notStrictValue    	true:当token=""时跳过
+// return bool 					true:用户信息获取失败，false:正常操作
 func tokenValidate(c *gin.Context, notStrictValue bool) (jwtUser app_obj.JwtUserMessage, exit bool) {
 	jwtUser = app_obj.JwtUserMessage{}
 	var token string
 	c.Set(app_obj.TRACE_ID, c.GetHeader(app_obj.HTTP_TRACE_ID))
-	if token = c.Request.Header.Get(app_obj.HTTP_USER_TOKEN); token == "" { //如果token为空
+	if token = c.Request.Header.Get(app_obj.HTTP_USER_TOKEN); token == "" { // 如果token为空
 
-		//如果token为空且设置了空跳过，则直接退出
+		// 如果token为空且设置了空跳过，则直接退出
 		if notStrictValue == true {
 			return
 		}
@@ -104,7 +102,7 @@ func tokenValidate(c *gin.Context, notStrictValue bool) (jwtUser app_obj.JwtUser
 		return
 	}
 
-	if jwtUser, err := common.ParseToken(token, c); err != nil { //如果解析token失败
+	if jwtUser, err := common.ParseToken(token, c); err != nil { // 如果解析token失败
 
 		app_obj.GetLog().Error(c, map[string]interface{}{
 			"token": token,
@@ -113,7 +111,7 @@ func tokenValidate(c *gin.Context, notStrictValue bool) (jwtUser app_obj.JwtUser
 		c.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusForbidden).SetMessage(err.Error()))
 		exit = true
 
-	} else { //解析token成功 将用户信息放进gin 上下文对象context中
+	} else { // 解析token成功 将用户信息放进gin 上下文对象context中
 
 		c.Set(app_obj.ContextUserObjectKey, jwtUser)
 		c.Set(app_obj.ContextUserTokenKey, token)
@@ -123,7 +121,7 @@ func tokenValidate(c *gin.Context, notStrictValue bool) (jwtUser app_obj.JwtUser
 	return
 }
 
-//func RequestPathPermit(c *gin.Context, s string) (res bool) {
+// func RequestPathPermit(c *gin.Context, s string) (res bool) {
 //	res = true
 //	// 用户登录了的验证权限
 //	res = permissions.CheckPermissions(c, s)
@@ -145,4 +143,4 @@ func tokenValidate(c *gin.Context, notStrictValue bool) (jwtUser app_obj.JwtUser
 //		return
 //	}
 //	return
-//}
+// }

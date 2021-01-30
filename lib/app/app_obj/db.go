@@ -15,20 +15,36 @@ import (
 
 var DbMysql = make(map[string]*gorm.DB)
 
-// 获取Redis操作实例
-func GetDbClient(nameSpace ...string) *gorm.DB {
+const defaultNameSpace = "default"
 
-	var s string
-	switch len := len(nameSpace); len {
-	case 0:
-		s = "default"
-	case 1:
-		s = nameSpace[0]
-	default:
-		panic("nameSpace receive at most one parameter")
+type GetDbClientDataCallBack func(db *gorm.DB) (err error)
+
+// 获取数据库连接 参数结构体
+type GetDbClientData struct {
+	DbNameSpace string                  `json:"db_name_space"`
+	CallBack    GetDbClientDataCallBack // 获取数据库回调信息
+}
+
+// 获取Redis操作实例
+func GetDbClient(params ...*GetDbClientData) (db *gorm.DB) {
+	l := len(params)
+
+	var arg *GetDbClientData
+	if l > 1 {
+		panic("arg is more than one parameters")
+	} else if l == 1 {
+		arg = params[0]
+	} else {
+		arg = &GetDbClientData{DbNameSpace: defaultNameSpace}
 	}
-	if _, ok := DbMysql[s]; ok {
-		return DbMysql[s]
+
+	if arg.DbNameSpace == "" {
+		arg.DbNameSpace = defaultNameSpace
 	}
-	panic(fmt.Sprintf("the Database connect(%s) is not exist", s))
+	var ok bool
+	if db, ok = DbMysql[arg.DbNameSpace]; ok {
+		arg.CallBack(db)
+		return
+	}
+	panic(fmt.Sprintf("the Database connect(%s) is not exist", arg.DbNameSpace))
 }

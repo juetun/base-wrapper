@@ -15,8 +15,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/web/cons/outernet"
-	"github.com/juetun/base-wrapper/web/wrapper"
 	"github.com/juetun/base-wrapper/web/srvs/srv_impl"
+	"github.com/juetun/base-wrapper/web/wrapper"
 )
 
 type ConDefaultImpl struct {
@@ -57,6 +57,7 @@ func (r *ConDefaultImpl) TestEs(c *gin.Context) {
 
 	r.ResponseResult(c, result)
 }
+
 // @获取指定ID记录
 // @Description get record by ID
 // @Accept  json

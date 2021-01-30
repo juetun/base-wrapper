@@ -73,8 +73,12 @@ func (r *Context) InitContext() (c *Context) {
 		}
 	}
 	if r.Db == nil {
-		r.Db = app_obj.GetDbClient()
-		r.Db.InstantSet(app_obj.TRACE_ID, s)
+		r.Db = app_obj.GetDbClient(&app_obj.GetDbClientData{
+			CallBack: func(db *gorm.DB) (err error) {
+				db.InstantSet(app_obj.TRACE_ID, s)
+				return
+			},
+		})
 	}
 	if r.CacheClient == nil {
 		r.CacheClient = app_obj.GetRedisClient()

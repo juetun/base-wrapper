@@ -25,8 +25,8 @@ import (
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/juetun/base-wrapper/web/daos/dao_impl"
-	"github.com/juetun/base-wrapper/web/wrapper"
 	"github.com/juetun/base-wrapper/web/srvs"
+	"github.com/juetun/base-wrapper/web/wrapper"
 )
 
 type ServiceDefaultImpl struct {
@@ -36,6 +36,7 @@ type ServiceDefaultImpl struct {
 func NewServiceDefaultImpl(context ...*base.Context) (res srvs.ServiceDefault) {
 	p := &ServiceDefaultImpl{}
 	p.SetContext(context...)
+	res = p
 	return
 }
 func (r *ServiceDefaultImpl) Index(arg *wrapper.ArgumentDefault) (res *wrapper.ResultDefault, err error) {
@@ -68,7 +69,7 @@ func (r *ServiceDefaultImpl) TestEs(arg *wrapper.ArgumentDefault) (result interf
 	}
 	rByte, err := json.Marshal(data)
 
-	//添加数据
+	// 添加数据
 	opEs.Write(rByte)
 
 	// 2. Index documents concurrently
@@ -95,9 +96,9 @@ func (r *ServiceDefaultImpl) TestEs(arg *wrapper.ArgumentDefault) (result interf
 
 			// Perform the request with the client.
 			res, _ := req.Do(context.Background(), es)
-			//if err != nil {
+			// if err != nil {
 			//	log.Fatalf("Error getting response: %s", err)
-			//}
+			// }
 			defer res.Body.Close()
 			if res.IsError() {
 				log.Printf("[%s] Error indexing document ID=%d", res.Status(), i+1)
