@@ -11,6 +11,4 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-var DbMysql = make(map[string]*gorm.DB)
-
-
+var DbMysql = make(map[string]*gorm.DB, 2)
