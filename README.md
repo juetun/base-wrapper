@@ -19,11 +19,11 @@ GOHOSTARCH="amd64"
 GOHOSTOS="darwin"
 GOINSECURE=""
 GOMODCACHE="/Users/xxx/go/pkg/mod"
-GONOPROXY="gitlab.modianinc.com/md-go/library"
-GONOSUMDB="gitlab.modianinc.com/md-go/library"
+GONOPROXY="gitlab.xxx.com/md-go/library"
+GONOSUMDB="gitlab.xxx.com/md-go/library"
 GOOS="darwin"
 GOPATH="/Users/xxx/go"
-GOPRIVATE="gitlab.modianinc.com/md-go/library"
+GOPRIVATE="gitlab.xxx.com/md-go/library"
 GOPROXY="https://mirrors.aliyun.com/goproxy/,direct"
 GOROOT="/usr/local/go"
 GOSUMDB="sum.golang.org"
@@ -61,13 +61,13 @@ GO111MODULE  GOPROXY
 ####1、配置 GOPRIVATE 
 ```cassandraql
 // go env 查看GOPRIVATE 的值
-export GOPRIVATE="gitlab.modianinc.com/md-go/library"
+export GOPRIVATE="gitlab.xxx.com/md-go/library"
 ```
 
 ####2、拉取私有依赖包（二方包  insecure参数是切换 http包）
 
 ```cassandraql
-go get --insecure gitlab.modianinc.com/md-go/library
+go get --insecure gitlab.xxx.com/md-go/library
 ```
 
 ####3、拉取三方包
