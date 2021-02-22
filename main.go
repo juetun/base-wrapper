@@ -5,7 +5,7 @@
 * @Version: 1.0.0
 * @Date 2020/4/19 10:19 下午
  */
-////go:generate statik -src=./web/views
+// //go:generate statik -src=./web/views
 package main
 
 import (
@@ -22,8 +22,9 @@ import (
 type Authorization struct {
 }
 
-func (a *Authorization) Load() (map[string][]model.AdminAuthorization, error) {
-	panic("implement me")
+func (a *Authorization) Load() (res map[string][]model.AdminAuthorization, err error) {
+	res = map[string][]model.AdminAuthorization{}
+	return
 }
 
 var authorization Authorization
@@ -39,16 +40,17 @@ func main() {
 		// plugins.PluginOss,
 	).LoadPlugins() // 加载插件动作
 
+	loadRouter := func(r *gin.Engine) (err error) {
+		r.LoadHTMLGlob("web/views/**/*.htm")
+		r.Static("/static/home", "./static/home")
+		r.Static("/static/car", "./static/car")
+		r.StaticFile("/jd_root.txt", "./static/jd_root.txt")
+		r.StaticFile("/favicon.ico", "./static/favicon.ico")
+		return
+	}
 	// 启动GIN服务
-	app_start.NewWebApplication().
-		LoadRouter(func(r *gin.Engine) (err error) {
-			r.LoadHTMLGlob("web/views/**/*.htm")
-			r.Static("/static/home", "./static/home")
-			r.Static("/static/car", "./static/car")
-			r.StaticFile("/jd_root.txt", "./static/jd_root.txt")
-			r.StaticFile("/favicon.ico", "./static/favicon.ico")
-			return
-		}). // 记载gin 路由配置
+	_ = app_start.NewWebApplication().
+		LoadRouter(loadRouter). // 记载gin 路由配置
 		Run()
 
 }
