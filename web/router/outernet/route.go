@@ -28,6 +28,8 @@ func init() {
 			}))
 			p.GET("/test", c.Index)
 			p.GET("/test_es", c.TestEs)
+			p.GET("/auth", c.Auth)
+			p.GET("/auth_res", c.AuthRes)
 
 		}, )
 }

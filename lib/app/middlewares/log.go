@@ -10,6 +10,7 @@ package middlewares
 import (
 	"bytes"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"time"
 
@@ -27,6 +28,16 @@ func GinLogCollect(logger *app_obj.AppLog) gin.HandlerFunc {
 		}()
 		c.Next()
 	}
+}
+func getUseHeader(header *http.Header) (res http.Header) {
+	res = http.Header{}
+	for s, _ := range *header {
+		if s=="Accept"||s=="Accept-Encoding"||s=="Connection"{
+			continue
+		}
+		res.Set(s, header.Get(s))
+	}
+	return
 }
 
 // 流量日志收集
@@ -46,7 +57,7 @@ func delayExecGinLogCollect(start time.Time, c *gin.Context, path *url.URL, logg
 		"ip":                  c.ClientIP(),
 		"duration":            float64(time.Now().Sub(start) / 1e3), // 时长单位微秒
 		"request":             string(bodyBytes),
-		"header":              c.Request.Header,
+		"header":              getUseHeader(&c.Request.Header),
 	}
 	// 只收集 http code>400的错误日志
 	if c.Writer.Status() >= 400 {

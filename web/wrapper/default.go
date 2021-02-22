@@ -13,6 +13,7 @@ import (
 
 type (
 	ArgumentDefault struct {
+		IdKey string `json:"id_key" form:"id_key"`
 	}
 	ResultDefault struct {
 		Users []models.User

@@ -90,7 +90,7 @@ func (r *ConPageImpl) shortMessage(c *gin.Context) {
 		r.ResponseError(c, err)
 		return
 	}
-	srv := srv_impl.NewServiceDefaultImpl(GetControllerBaseContext(&r.ControllerBase, c))
+	srv := srv_impl.NewServiceDefaultImpl(CreateContext(&r.ControllerBase, c))
 	result.Data, err = srv.Tmain(&arg)
 	if err != nil {
 		r.ResponseError(c, err)
@@ -196,7 +196,7 @@ func (r *ConPageImpl) Main(c *gin.Context) {
 	if err = c.BindQuery(&arg); err != nil {
 		return
 	}
-	srv := srv_impl.NewServiceDefaultImpl(GetControllerBaseContext(&r.ControllerBase, c))
+	srv := srv_impl.NewServiceDefaultImpl(CreateContext(&r.ControllerBase, c))
 	ctx := context.WithValue(context.TODO(), "srv", srv)
 	blockChild1 := NewBlock(
 		Ctx(ctx),

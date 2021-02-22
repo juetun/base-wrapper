@@ -11,20 +11,19 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-redis/redis"
 	"github.com/juetun/base-wrapper/lib/base"
 )
 
 // customizeRdsStore An object implementing Store interface
 type CustomizeRdsStore struct {
-	RedisClient *redis.Client
+	//RedisClient *redis.Client
 	Context     *base.Context
 }
 
 
 // customizeRdsStore implementing Set method of  Store interface
 func (r *CustomizeRdsStore) Set(id string, value string) {
-	err := r.RedisClient.Set(id, value, time.Minute*10).Err()
+	err := r.Context.CacheClient.Set(id, value, time.Minute*10).Err()
 	if err != nil {
 		r.Context.Error(map[string]interface{}{
 			"message": "auth.AuthLogin",
@@ -35,7 +34,7 @@ func (r *CustomizeRdsStore) Set(id string, value string) {
 
 // customizeRdsStore implementing Get method of  Store interface
 func (r *CustomizeRdsStore) Get(id string, clear bool) (value string) {
-	val, err := r.RedisClient.Get(id).Result()
+	val, err := r.Context.CacheClient.Get(id).Result()
 	if err != nil {
 		r.Context.Error(map[string]interface{}{
 			"message": "auth.AuthLogin",
@@ -46,7 +45,7 @@ func (r *CustomizeRdsStore) Get(id string, clear bool) (value string) {
 	if !clear {
 		return val
 	}
-	err = r.RedisClient.Del(id).Err()
+	err = r.Context.CacheClient.Del(id).Err()
 	if err != nil {
 		r.Context.Error(map[string]interface{}{
 			"message": "auth.AuthLogin",

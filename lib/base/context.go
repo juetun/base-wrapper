@@ -17,7 +17,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 )
 
-func GetControllerBaseContext(controller *ControllerBase, c *gin.Context) (res *Context) {
+func CreateContext(controller *ControllerBase, c *gin.Context) (res *Context) {
 	return NewContext(Log(controller.Log), GinContext(c))
 }
 func NewContext(contextOption ...ContextOption) *Context {

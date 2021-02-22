@@ -18,4 +18,6 @@ import (
 type ConDefault interface {
 	TestEs(c *gin.Context)
 	Index(c *gin.Context)
+	Auth(c *gin.Context)
+	AuthRes(c *gin.Context)
 }

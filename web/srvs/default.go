@@ -15,4 +15,6 @@ type ServiceDefault interface {
 	Index(arg *wrapper.ArgumentDefault) (res *wrapper.ResultDefault, err error)
 	TestEs(arg *wrapper.ArgumentDefault) (result interface{}, err error)
 	Tmain(arg *wrapper.ArgumentDefault) (result interface{}, err error)
+	Auth(arg *wrapper.ArgumentDefault) (result interface{}, err error)
+	AuthRes(arg *wrapper.ArgumentDefault) (result interface{}, err error)
 }

@@ -15,6 +15,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/juetun/base-wrapper/lib/utils/identifying_code_pkg"
 	"log"
 	"strconv"
 	"strings"
@@ -37,6 +38,32 @@ func NewServiceDefaultImpl(context ...*base.Context) (res srvs.ServiceDefault) {
 	p := &ServiceDefaultImpl{}
 	p.SetContext(context...)
 	res = p
+	return
+}
+
+//验证码生成
+func (r *ServiceDefaultImpl) Auth(arg *wrapper.ArgumentDefault) (result interface{}, err error) {
+	type Result struct {
+		IdKey         string `json:"id_key"`
+		Base64Captcha string `json:"base_64_captcha"`
+	}
+	var res Result
+	// 生成验证码逻辑
+	res.IdKey, res.Base64Captcha, err = identifying_code_pkg.NewIdentifyingCode(
+		identifying_code_pkg.Context(&identifying_code_pkg.CustomizeRdsStore{
+			Context: r.Context,
+		})).CreateAndGetImgBase64Message()
+	result = res
+	return
+}
+
+//验证码校验逻辑
+func (r *ServiceDefaultImpl) AuthRes(arg *wrapper.ArgumentDefault) (result interface{}, err error) {
+	// 校验逻辑
+	result = identifying_code_pkg.NewIdentifyingCode(identifying_code_pkg.Context(&identifying_code_pkg.CustomizeRdsStore{
+		// 参数
+	})).Context.Verify(arg.IdKey, "anwser", true)
+
 	return
 }
 func (r *ServiceDefaultImpl) Index(arg *wrapper.ArgumentDefault) (res *wrapper.ResultDefault, err error) {
