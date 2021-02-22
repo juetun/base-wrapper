@@ -9,6 +9,7 @@ package plugins
 
 import (
 	"fmt"
+	"github.com/juetun/base-wrapper/lib/app/app_start"
 	"io/ioutil"
 	"sync"
 
@@ -18,7 +19,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func PluginAppMap() (err error) {
+func PluginAppMap(arg  *app_start.PluginsOperate) (err error) {
 	var syncLock sync.Mutex
 	syncLock.Lock()
 	defer syncLock.Unlock()

@@ -8,12 +8,13 @@
 package plugins
 
 import (
+	"github.com/juetun/base-wrapper/lib/app/app_start"
 	"sync"
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 )
 
-func PluginJwt() (err error) {
+func PluginJwt(arg *app_start.PluginsOperate) (err error) {
 
 	var syncLock sync.Mutex
 	syncLock.Lock()

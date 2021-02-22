@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"fmt"
+	"github.com/juetun/base-wrapper/lib/app/app_start"
 	"io/ioutil"
 	"sync"
 	"time"
@@ -22,7 +23,7 @@ type Mysql struct {
 	MaxOpenConns int    `json:"max_open_conns" yaml:"maxopenconns"`
 }
 
-func PluginMysql() (err error) {
+func PluginMysql(arg  *app_start.PluginsOperate) (err error) {
 	var syncLock sync.Mutex
 	syncLock.Lock()
 	defer syncLock.Unlock()

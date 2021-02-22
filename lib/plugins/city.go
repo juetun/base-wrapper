@@ -8,6 +8,7 @@
 package plugins
 
 import (
+	"github.com/juetun/base-wrapper/lib/app/app_start"
 	"sync"
 
 	"github.com/gin-gonic/gin"
@@ -17,7 +18,7 @@ import (
 const CityCookieName = "city"
 const MiddleCityCode = "city"
 
-func PluginLocation() (err error) {
+func PluginLocation(arg  *app_start.PluginsOperate) (err error) {
 	var syncLock sync.Mutex
 	syncLock.Lock()
 	defer syncLock.Unlock()

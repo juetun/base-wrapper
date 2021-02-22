@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"fmt"
+	"github.com/juetun/base-wrapper/lib/app/app_start"
 	"io/ioutil"
 	"sync"
 
@@ -13,7 +14,7 @@ import (
 )
 
 // 短信插件初始化
-func PluginShortMessage() (err error) {
+func PluginShortMessage(arg  *app_start.PluginsOperate) (err error) {
 
 	io.SystemOutPrintln("Load short message start")
 	var syncLock sync.Mutex

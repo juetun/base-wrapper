@@ -3,6 +3,7 @@ package plugins
 import (
 	"crypto/tls"
 	"fmt"
+	"github.com/juetun/base-wrapper/lib/app/app_start"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -18,7 +19,7 @@ import (
 )
 
 // ElasticSearch检索初始化入口
-func PluginElasticSearchV7() (err error) {
+func PluginElasticSearchV7(arg  *app_start.PluginsOperate) (err error) {
 
 	var syncLock sync.Mutex
 	syncLock.Lock()

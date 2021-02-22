@@ -8,6 +8,7 @@
 package plugins
 
 import (
+	"github.com/juetun/base-wrapper/lib/app/app_start"
 	"io/ioutil"
 	systemLog "log"
 	"sync"
@@ -32,7 +33,7 @@ type Oss struct {
 
 var oss = make(map[string]Oss)
 
-func PluginOss() (err error) {
+func PluginOss(arg  *app_start.PluginsOperate) (err error) {
 
 	systemLog.Printf("【INFO】Load oss config.")
 	var syncLock sync.Mutex

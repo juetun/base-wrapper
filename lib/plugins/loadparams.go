@@ -9,6 +9,7 @@ package plugins
 
 import (
 	"encoding/json"
+	"github.com/juetun/base-wrapper/lib/app/app_start"
 	"io/ioutil"
 
 	"github.com/juetun/base-wrapper/lib/base"
@@ -33,7 +34,7 @@ var config CommonConfig
 func GetCommonConfig() *CommonConfig {
 	return &config
 }
-func PluginLoadCommonParams() (err error) {
+func PluginLoadCommonParams(arg  *app_start.PluginsOperate) (err error) {
 	var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
 	io.SystemOutPrintln("Load common config start")
 	defer func() {
