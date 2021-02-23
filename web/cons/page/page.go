@@ -21,4 +21,5 @@ type ConPage interface {
 	Websocket(conn *websocket.Conn)
 	Tsst(c *gin.Context)
 	Main(c *gin.Context)
+	MainSign(c *gin.Context)
 }

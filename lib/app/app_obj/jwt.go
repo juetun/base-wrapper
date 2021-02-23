@@ -102,7 +102,6 @@ func (jp *JwtParam) SetRedisCache(rc *redis.Client) func(jp *JwtParam) interface
 }
 
 func (jp *JwtParam) JwtInit(options ...func(jp *JwtParam) interface{}) error {
-
 	q := &JwtParam{
 		DefaultJti:      "juetun",
 		DefaultAudience: "zgh",

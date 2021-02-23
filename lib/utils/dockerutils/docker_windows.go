@@ -1,4 +1,4 @@
 // +build windows
-package dockerutils
+package udockerutilstils
 type Docker struct {
 }

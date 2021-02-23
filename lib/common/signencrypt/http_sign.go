@@ -6,54 +6,26 @@ package signencrypt
 import (
 	"bytes"
 	"crypto/hmac"
-	"crypto/md5"
+	"crypto/sha1"
+	"encoding/base64"
+	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
+	"github.com/juetun/base-wrapper/lib/common"
+	"io/ioutil"
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
+	"time"
 )
 
 //签名的字符编码类型
-type GOLANG_CHARSET string
+type GolangCharset string
 
 //字符编码类型常量
-const (
-	CHARSET_ISO_2022_JP            GOLANG_CHARSET = "ISO-2022-JP"
-	CHARSET_ISO_2022_CN                           = "ISO-2022-CN"
-	CHARSET_ISO_2022_KR                           = "ISO-2022-KR"
-	CHARSET_ISO_8859_5                            = "ISO-8859-5"
-	CHARSET_ISO_8859_7                            = "ISO-8859-7"
-	CHARSET_ISO_8859_8                            = "ISO-8859-8"
-	CHARSET_BIG5                                  = "BIG5"
-	CHARSET_GB18030                               = "GB18030"
-	CHARSET_EUC_JP                                = "EUC-JP"
-	CHARSET_EUC_KR                                = "EUC-KR"
-	CHARSET_EUC_TW                                = "EUC-TW"
-	CHARSET_SHIFT_JIS                             = "SHIFT_JIS"
-	CHARSET_IBM855                                = "IBM855"
-	CHARSET_IBM866                                = "IBM866"
-	CHARSET_KOI8_R                                = "KOI8-R"
-	CHARSET_MACCYRILLIC                           = "x-mac-cyrillic"
-	CHARSET_WINDOWS_1251                          = "WINDOWS-1251"
-	CHARSET_WINDOWS_1252                          = "WINDOWS-1252"
-	CHARSET_WINDOWS_1253                          = "WINDOWS-1253"
-	CHARSET_WINDOWS_1255                          = "WINDOWS-1255"
-	CHARSET_UTF_8                                 = "UTF-8"
-	CHARSET_UTF_16BE                              = "UTF-16BE"
-	CHARSET_UTF_16LE                              = "UTF-16LE"
-	CHARSET_UTF_32BE                              = "UTF-32BE"
-	CHARSET_UTF_32LE                              = "UTF-32LE"
-	CHARSET_TIS_620                               = "WINDOWS-874"
-	CHARSET_HZ_GB_2312                            = "HZ-GB-2312"
-	CHARSET_X_ISO_10646_UCS_4_3412                = "X-ISO-10646-UCS-4-3412"
-	CHARSET_X_ISO_10646_UCS_4_2143                = "X-ISO-10646-UCS-4-2143"
-)
 
 //当前类的指针
 var sign *SignUtils
-
-//同步锁
-var signone sync.Once
 
 //签名类
 type SignUtils struct {
@@ -65,18 +37,17 @@ type MapExtend struct {
 
 func (r *MapExtend) GetKeys(data map[string]string) (res []string, err error) {
 	res = make([]string, 0, len(data))
-	for key, _ := range data {
+	for key := range data {
 		res = append(res, key)
 	}
 	return
 }
 
 //实例化签名
-func Sign() *SignUtils {
-	signone.Do(func() {
-		sign = new(SignUtils)
-		sign.mapExtend = new(MapExtend)
-	})
+func NewSign() *SignUtils {
+	sign = &SignUtils{
+		mapExtend: &MapExtend{},
+	}
 	return sign
 }
 
@@ -86,7 +57,7 @@ parameters 要签名的数据项
 secret 生成的publicKey
 signMethod 签名的字符编码
 */
-func (s *SignUtils) SignTopRequest(parameters map[string]string, secret string, signMethod GOLANG_CHARSET) (bb bytes.Buffer, err error) {
+func (s *SignUtils) SignTopRequest(parameters map[string]string, secret string) (bb bytes.Buffer, err error) {
 
 	/**
 	  1、第一步：把字典按Key的字母顺序排序
@@ -104,9 +75,9 @@ func (s *SignUtils) SignTopRequest(parameters map[string]string, secret string, 
 	}
 
 	//第二步：把所有参数名和参数值串在一起
-	if CHARSET_UTF_8 == signMethod {
-		bb.WriteString(secret)
-	}
+
+	bb.WriteString(secret)
+
 	for _, v := range keys {
 		if val := parameters[v]; len(val) > 0 {
 			bb.WriteString(v)
@@ -123,44 +94,132 @@ type ListenHandlerStruct struct {
 	FinishHandler ListenHandler //返回签名完成的字符串
 }
 
-func (s *SignUtils) Encrypt(argJoin string, secret string, signMethod GOLANG_CHARSET, listenHandlerStruct ListenHandlerStruct) (res string) {
+func (s *SignUtils) Encrypt(argJoin string, secret string, listenHandlerStruct ListenHandlerStruct) (res string) {
 
 	var bb bytes.Buffer
 	bb.WriteString(argJoin)
 
 	//第三步：使用MD5/HMAC加密
 	b := make([]byte, 0)
-	if CHARSET_UTF_8 == signMethod {
-		h := hmac.New(md5.New, []byte(secret))
-		h.Write(bb.Bytes())
-		b = h.Sum(nil)
-	} else {
-		bb.WriteString(secret)
-		h := md5.New()
-		h.Write(bb.Bytes())
-		b = h.Sum(nil)
-	}
 
+	h := hmac.New(sha1.New, []byte(secret))
+	h.Write(bb.Bytes())
+	b = h.Sum(nil)
+	b = []byte(base64.StdEncoding.EncodeToString(b))
+
+	//返回签名完成的字符串
+	res = strings.ToLower(string(b))
 	if listenHandlerStruct.MD5HMAC != nil {
 		listenHandlerStruct.MD5HMAC(string(b))
 	}
 	//第四步：把二进制转化为大写的十六进制
-	var result bytes.Buffer
-	for i := 0; i < len(b); i++ {
-		s := strconv.FormatInt(int64(b[i]&0xff), 16)
-		if len(s) == 1 {
-			result.WriteString("0")
-		}
-		result.WriteString(s)
-	}
 	if listenHandlerStruct.ByteTo16After != nil {
-		listenHandlerStruct.ByteTo16After(result.String())
+		listenHandlerStruct.ByteTo16After(res)
 	}
-	//返回签名完成的字符串
-	res = strings.ToLower(result.String())
+
 	if listenHandlerStruct.FinishHandler != nil {
-		listenHandlerStruct.FinishHandler(result.String())
+		listenHandlerStruct.FinishHandler(res)
 	}
+	return
+}
+
+type GetSecretHandler func(appName string) (secret string, err error)
+
+// http请求加密算法
+//c *gin.Context,
+func (s *SignUtils) SignGinRequest(c *gin.Context, getSecret GetSecretHandler) (validateResult bool, signResult string, err error) {
+	var appName, secret string
+	if appName, err = s.getHeaderAppName(c); err != nil {
+		return
+	}
+	if secret, err = getSecret(appName); err != nil {
+		return
+	}
+	var bt bytes.Buffer
+	var encryptionCode bytes.Buffer
+	bt.WriteString(c.Request.Method)
+	bt.WriteString(c.Request.URL.Path)
+
+	var t int
+	// 判断签名是否传递了时间
+	if headerT := c.GetHeader("X-Timestamp"); headerT == "" {
+		err = fmt.Errorf("the header must be include timestamp parameter(t)")
+		return
+	} else if t, err = strconv.Atoi(headerT); err != nil {
+		err = fmt.Errorf("格式不不正确(时间戳:X-Timestamp)")
+		return
+	} else if app_obj.App.AppEnv != common.ENV_RELEASE && int(time.Now().UnixNano()/1e6)-t > 86400000 { // 传递的时间格式必须大于当前时间-一天
+		err = fmt.Errorf("the header of  parameter(t) must be more than now desc one days")
+		return
+	} else {
+		bt.WriteString(headerT)
+	}
+
+	var body []byte
+	// 如果传JSON 单独处理
+	if strings.Contains(c.GetHeader("Content-Type"), "application/json") {
+		bt.WriteString(secret)
+		if body, err = ioutil.ReadAll(c.Request.Body); err != nil {
+			return
+		}
+	} else { // 如果是非JSON 传参
+		// 如果不是JSON 则直接过去FORM表单参数
+		if encryptionCode, err = s.sortParamsAndJoinData(s.getRequestParams(c), secret); err != nil {
+			return
+		}
+		body = encryptionCode.Bytes()
+	}
+	bt.Write(body)
+	encryptionString := strings.ToLower(bt.String())
+	base64Code := base64.StdEncoding.EncodeToString([]byte(encryptionString))
+	
+	// 配置回调输出
+	listenHandlerStruct := ListenHandlerStruct{}
+
+	// 如果不是线上环境,可输出签名格式 (此处代码为调试 签名是否能正常使用准备)
+	if app_obj.App.AppEnv != common.ENV_RELEASE && c.GetHeader("debug") != "" {
+		resp := c.Writer.Header()
+		resp.Set("Sign-format", encryptionString)
+		resp.Set("Sign-Base64Code", base64Code)
+		listenHandlerStruct = ListenHandlerStruct{
+			MD5HMAC:       func(s string) {},
+			ByteTo16After: func(s string) { resp.Set("Sign-ByteTo16", s) },
+			FinishHandler: func(s string) { resp.Set("Sign-f", s) },
+		}
+	}
+	signResult = s.Encrypt(base64Code, secret, listenHandlerStruct)
+	if signResult == c.GetHeader("X-Sign") {
+		validateResult = true
+	}
+	return
+}
+
+// 加密字符串
+func (s *SignUtils) sortParamsAndJoinData(data map[string]string, secret string) (res bytes.Buffer, err error) {
+	if res, err = s.SignTopRequest(data, secret);
+		err != nil {
+		return
+	}
+	return
+}
+
+func (s *SignUtils) getRequestParams(c *gin.Context) (valueMap map[string]string) {
+	valueMap = make(map[string]string, len(c.Request.PostForm))
+	_ = c.Request.ParseMultipartForm(128) // 保存表单缓存的内存大小128M
+	for k, v := range c.Request.Form {
+		valueMap[k] = strings.Join(v, ";")
+	}
+	return
+}
+
+func (s *SignUtils) getHeaderAppName(c *gin.Context) (appName string, err error) {
+	URI := c.Request.URL.Path
+	if URI == "" {
+		err = fmt.Errorf("get app name failure")
+		return
+	}
+	urlString := strings.Split(URI, "/")
+	appName = urlString[0]
 	return
 }
 

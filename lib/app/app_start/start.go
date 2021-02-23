@@ -20,13 +20,13 @@ type PluginHandleStruct struct {
 var PluginsHandleStruct = &[]PluginHandleStruct{}
 
 type AuthorizationStruct interface {
- 	Load() (map[string][]model.AdminAuthorization, error)
+	Load() (map[string][]model.AdminAuthorization, error)
 }
 type PluginsOperate struct {
 	Author AuthorizationStruct
 }
 
-func NewPluginsOperate(option ...PluginsOperateOptionHandler) (res *PluginsOperate) {
+func NewPlugins(option ...PluginsOperateOptionHandler) (res *PluginsOperate) {
 	res = &PluginsOperate{}
 	for _, handler := range option {
 		handler(res)
@@ -66,13 +66,17 @@ func (r *PluginsOperate) LoadPlugins() (res *PluginsOperate) {
 	stytemLog.Printf("")
 	return
 }
+func (r *PluginsOperate) Use(pluginFunc ...PluginHandleFunction) (res *PluginsOperate) {
+	res = r
+	Use(pluginFunc...)
+	return
+}
 
 // 注册系统插件
-func (r *PluginsOperate) Use(pluginFunc ...PluginHandleFunction) *PluginsOperate {
+func Use(pluginFunc ...PluginHandleFunction) {
 	for _, value := range pluginFunc {
 		*PluginsHandleStruct = append(*PluginsHandleStruct, PluginHandleStruct{
 			FuncHandler: value,
 		})
 	}
-	return r
 }

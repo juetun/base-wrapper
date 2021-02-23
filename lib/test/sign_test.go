@@ -6,7 +6,7 @@ package test
 import (
 	"testing"
 
-	"github.com/juetun/base-wrapper/lib/common/sign"
+	"github.com/juetun/base-wrapper/lib/common/signencrypt"
 )
 
 func TestSign(t *testing.T) {
@@ -14,5 +14,5 @@ func TestSign(t *testing.T) {
 		SignTopRequest(map[string]string{
 			"KK": "111",
 			"AA": "mmmk",
-		}, "aaa", signencrypt.CHARSET_UTF_8)
+		}, "aaa", signencrypt.CharsetUtf8)
 }
