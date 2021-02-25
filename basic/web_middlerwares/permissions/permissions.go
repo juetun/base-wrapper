@@ -85,6 +85,10 @@ var Permissions = []HttpPermit{
 		Method: []string{"GET"},
 		Uri:    `console/link`,
 	},
+	{
+		Method: []string{"GET"},
+		Uri:    `/base-wrapper/page/test`,
+	},
 }
 
 // 需要验证权限的配置列表

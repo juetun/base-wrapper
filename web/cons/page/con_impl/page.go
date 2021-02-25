@@ -14,7 +14,10 @@ package con_impl
 import (
 	"context"
 	"fmt"
+	"github.com/gin-gonic/gin/render"
+	"github.com/juetun/base-wrapper/lib/utils"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -96,6 +99,25 @@ func (r *ConPageImpl) shortMessage(c *gin.Context) {
 
 func (r *ConPageImpl) Tsst(c *gin.Context) {
 	_ = c
+	var err error
+	var res string
+	res, err = (&utils.QrCodeParams{
+		Width:         200,
+		Content:       "http://www.google.com",
+		TargetImgPath: "a.png",
+	}).CreateQrCodeAsBase64Code()
+
+	err = (&utils.QrCodeParams{
+		Width:         200,
+		Content:       "http://www.google.com",
+		TargetImgPath: "a.png",
+	}).CreateQrCodeToFile()
+	var msg string
+	if err != nil {
+		msg = err.Error()
+	}
+	_ = msg
+  	c.Render(http.StatusOK,render.String{Format: "string",Data: []interface{}{res}}   )
 	return
 }
 
@@ -142,7 +164,7 @@ func (r *ConPageImpl) Main(c *gin.Context) {
 }
 func (r *ConPageImpl) MainSign(c *gin.Context) {
 	var err error
-	res,sign, err := signencrypt.NewSign().
+	res, sign, err := signencrypt.NewSign().
 		SignGinRequest(c, func(appName string) (secret string, err error) {
 			secret = "signxxx"
 			//TODO通过appName获取签名值
