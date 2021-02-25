@@ -167,7 +167,7 @@ func (r *ConPageImpl) MainSign(c *gin.Context) {
 	res, sign, err := signencrypt.NewSign().
 		SignGinRequest(c, func(appName string) (secret string, err error) {
 			secret = "signxxx"
-			//TODO通过appName获取签名值
+			// TODO通过appName获取签名值
 			return
 		})
 	var msg string
