@@ -12,7 +12,6 @@
 package con_impl
 
 import (
-	"context"
 	"fmt"
 	"github.com/gin-gonic/gin/render"
 	"github.com/juetun/base-wrapper/lib/utils"
@@ -129,15 +128,15 @@ func (r *ConPageImpl) Main(c *gin.Context) {
 	if err = c.BindQuery(&arg); err != nil {
 		return
 	}
-	srv := srv_impl.NewServiceDefaultImpl(CreateContext(&r.ControllerBase, c))
-	ctx := context.WithValue(context.TODO(), "srv", srv)
 
-	blockChild1 := NewBlock(Ctx(ctx), Name("controller_main_1"), Data(gin.H{"data": "haha"}), TempFile("a1.html"))
+	_ = srv_impl.NewServiceDefaultImpl(CreateContext(&r.ControllerBase, c))
 
-	blockChild2 := NewBlock(Ctx(ctx), Name("controller_main_2"), Data(gin.H{"data": "haha"}), TempFile("a2.html"))
+	blockChild1 := NewBlock(Name("controller_main_1"), TempFile("a1.html"))
+
+	blockChild2 := NewBlock(Name("controller_main_2"), TempFile("a2.html"))
 
 	h := gin.H{"data": "haha"}
-	block := NewBlock(Ctx(ctx), Name("controller_main"), Data(gin.H{"data": "haha"}), TempFile("a.html"), CacheBlockOption(ExpireTime(80*time.Second)), ChildBock(blockChild1, blockChild2), RunAfter(func(block *Block) (err error) { return }))
+	block := NewBlock(Name("controller_main"), Data(gin.H{"data": "haha"}), TempFile("a.html"), CacheBlockOption(ExpireTime(80*time.Second)), ChildBock(blockChild1, blockChild2), RunAfter(func(block *Block) (err error) { return }))
 
 	if h["show"], err = block.Run(); err != nil {
 		r.ResponseError(c, err)

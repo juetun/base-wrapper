@@ -7,7 +7,6 @@ package page_block
 
 import (
 	"bytes"
-	"context"
 	"encoding/base64"
 	"fmt"
 	"html/template"
@@ -27,18 +26,18 @@ type HandlerBlockCache func(block *BlockCache) (err error)
 // 1、如果父block的缓存时间大于0，则子BLOCK设置了缓存时间无效，
 // 2、如果父BLOCK的缓存时间为0，则子BLOCK的缓存时间有效
 type Block struct {
-	Ctx                   context.Context `json:"ctx"`                     // 上下文的操作对象 ，此处主要用来传递上下文参数
-	ParentBlockCache      *BlockCache     `json:"parent_block_cache"`      // 当前Block的父Block
-	Name                  string          `json:"name"`                    // 当前Block的系统唯一名字
-	Data                  gin.H           `json:"data"`                    // 当前Block的参数
-	TempFile              string          `json:"temp_file"`               // html文件地址
-	TemplateBaseDirectory string          `json:"template_base_directory"` // html模板文件所在的公共基础路径
-	BlockCache            *BlockCache     `json:"cache"`                   // 当前模块缓存的基本参数
-	RunChildBefore        []Handler       `json:"-"`                       // 子BLOCK运行之前的动作
-	RunBefore             []Handler       `json:"-"`                       // 渲染完数据后执行此方法，主要用来调试数据使用 //渲染完数据后执行此方法，主要用来调试数据使用,返回值为true时跳出
-	RunAfter              []Handler       `json:"-"`                       // 渲染完数据前执行此方法，主要用来调试数据使用 //渲染完数据前执行此方法，主要用来调试数据使用,返回值为true时跳出
-	ChildBock             []*Block        `json:"child_bock"`              // 当前的子BLOCK
-	RefreshForceCache     bool            `json:"refresh_force_cache"`     //是否强制刷新缓存
+	//Ctx                   context.Context `json:"ctx"`                     // 上下文的操作对象 ，此处主要用来传递上下文参数
+	ParentBlockCache      *BlockCache `json:"parent_block_cache"`      // 当前Block的父Block
+	Name                  string      `json:"name"`                    // 当前Block的系统唯一名字
+	Data                  gin.H       `json:"data"`                    // 当前Block的参数
+	TempFile              string      `json:"temp_file"`               // html文件地址
+	TemplateBaseDirectory string      `json:"template_base_directory"` // html模板文件所在的公共基础路径
+	BlockCache            *BlockCache `json:"cache"`                   // 当前模块缓存的基本参数
+	RunChildBefore        []Handler   `json:"-"`                       // 子BLOCK运行之前的动作
+	RunBefore             []Handler   `json:"-"`                       // 渲染完数据后执行此方法，主要用来调试数据使用 //渲染完数据后执行此方法，主要用来调试数据使用,返回值为true时跳出
+	RunAfter              []Handler   `json:"-"`                       // 渲染完数据前执行此方法，主要用来调试数据使用 //渲染完数据前执行此方法，主要用来调试数据使用,返回值为true时跳出
+	ChildBock             []*Block    `json:"child_bock"`              // 当前的子BLOCK
+	RefreshForceCache     bool        `json:"refresh_force_cache"`     //是否强制刷新缓存
 }
 
 // 判断文件目录是否存在
@@ -99,7 +98,7 @@ func (r *Block) setChildContext(item *Block) {
 	}
 
 	item.Data = data
-	item.Ctx = r.Ctx
+	//item.Ctx = r.Ctx
 	item.ParentBlockCache = r.BlockCache
 }
 
@@ -115,7 +114,7 @@ func (r *Block) getCache() (res string, err error) {
 // 将数据写入缓存
 func (r *Block) writeToCache(data string) (err error) {
 
-	if r.BlockCache.ExpireTime.IsZero() {
+	if r.BlockCache.ExpireTime.IsZero() || r.BlockCache.ExpireTime.Unix() < time.Now().Unix() {
 		return
 	}
 
@@ -234,8 +233,9 @@ func (r *Block) Run() (res template.HTML, err error) {
 	defer func() {
 		res = template.HTML(r.BlockCache.CacheData)
 	}()
+
 	// 初始化默认值
-	if err = r.defaultValue(); err != nil {
+	if err = r.defaultOption(); err != nil {
 		return
 	}
 
@@ -243,8 +243,9 @@ func (r *Block) Run() (res template.HTML, err error) {
 	if err = r.before(); err != nil {
 		return
 	}
-	// 如果没有缓存
-	if r.BlockCache == nil {
+
+	// 如果没有缓存,获取过期时间已过期
+	if r.BlockCache == nil || r.BlockCache.ExpireTime.Unix() < time.Now().Unix() {
 		if res, err = r.hasNotCacheDo(); err != nil {
 			return
 		}
@@ -268,7 +269,7 @@ func (r *Block) defaultCacheBlock() {
 }
 
 // BLOCK 默认数据逻辑处理
-func (r *Block) defaultValue() (err error) {
+func (r *Block) defaultOption() (err error) {
 
 	if r.Data == nil && len(r.Data) == 0 {
 		r.Data = gin.H{}
@@ -285,10 +286,6 @@ func (r *Block) defaultValue() (err error) {
 
 	// 默认初始化当前模板文件所在位置
 	r.defaultTemplateBaseDirectory()
-
-	if r.Ctx == nil {
-		r.Ctx = context.TODO()
-	}
 
 	// 初始化过期时间
 	r.initExpireTime()
@@ -365,6 +362,7 @@ func RunChildBefore(runChildBefore ...Handler) BlockOption {
 	}
 }
 
+//
 func CacheBlock(cacheBlock *BlockCache) BlockOption {
 	return func(block *Block) {
 		block.BlockCache = cacheBlock
@@ -412,8 +410,9 @@ func ParentBlockCache(value *BlockCache) BlockOption {
 		block.ParentBlockCache = value
 	}
 }
-func Ctx(value context.Context) BlockOption {
-	return func(block *Block) {
-		block.Ctx = value
-	}
-}
+
+//func Ctx(value context.Context) BlockOption {
+//	return func(block *Block) {
+//		block.Ctx = value
+//	}
+//}
