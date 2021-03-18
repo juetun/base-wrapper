@@ -20,6 +20,11 @@ import (
 type Handler func(block *Block) (err error)
 type HandlerBlockCache func(block *BlockCache) (err error)
 
+//URL请求获取参数结构体中使用
+type BlockArgumentSupport struct {
+	RefreshForceCache bool `json:"refresh_force_cache" form:"refresh_force_cache"` //是否强制刷新缓存
+}
+
 // 页面操作对象 一个html由BLOCK拼凑而成 本结构体设计目的为实现页面局部数据缓存控制
 // 每个BLOCK具备独立的缓存对象，独立从数据库、redis、或其他数据源获取数据的能力获取数据的能力
 // 缓存规则：
@@ -36,7 +41,7 @@ type Block struct {
 	RunBefore             []Handler   `json:"-"`                       // 渲染完数据后执行此方法，主要用来调试数据使用 //渲染完数据后执行此方法，主要用来调试数据使用,返回值为true时跳出
 	RunAfter              []Handler   `json:"-"`                       // 渲染完数据前执行此方法，主要用来调试数据使用 //渲染完数据前执行此方法，主要用来调试数据使用,返回值为true时跳出
 	ChildBock             []*Block    `json:"child_bock"`              // 当前的子BLOCK
-	RefreshForceCache     bool        `json:"refresh_force_cache"`     //是否强制刷新缓存
+	BlockArgumentSupport
 }
 
 // 判断文件目录是否存在
@@ -56,16 +61,14 @@ func (r *Block) tempFilePath() {
 	r.TempFile = r.TemplateBaseDirectory + r.TempFile
 }
 
-// 将HTML模板文件绑定参数
+//parseHtml 将HTML模板文件绑定参数
 func (r *Block) parseHtml() (res string, err error) {
 	var tmp *template.Template
 	r.tempFilePath()
 
 	if !r.exists(r.TempFile) {
-		if err = fmt.Errorf("the template file(%s) is not exists",
-			r.TempFile); err != nil {
-			return
-		}
+		err = fmt.Errorf("the template file(%s) is not exists",
+			r.TempFile)
 		return
 	}
 
@@ -77,7 +80,10 @@ func (r *Block) parseHtml() (res string, err error) {
 		ParseFiles(r.TempFile); err != nil {
 		return
 	} else {
-		tmp.Execute(buf, r.Data)
+		if err = tmp.Execute(buf, r.Data); err != nil {
+			return
+		}
+
 		//tmp.ExecuteTemplate(buf, r.Name, r.Data)
 	}
 
@@ -120,7 +126,7 @@ func (r *Block) writeToCache(data string) (err error) {
 	// 缓存时间
 	if lt := r.BlockCache.ExpireTime.Unix() - time.Now().Unix(); lt > 0 {
 		lTime := time.Duration(r.BlockCache.ExpireTime.Unix() - time.Now().Unix())
-		r.BlockCache.Cache.Set(r.getCacheKey(), data, lTime*time.Second)
+		err = r.BlockCache.Cache.Set(r.getCacheKey(), data, lTime*time.Second)
 	}
 
 	return
