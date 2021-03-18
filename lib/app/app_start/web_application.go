@@ -31,6 +31,7 @@ var HandleFuncPage = make([]HandleRouter, 0)     // 外网路由函数切片
 type WebApplication struct {
 	GinEngine *gin.Engine
 	syslog    *base.SystemOut
+	FlagMicro bool //如果是支持微服务
 }
 
 // privateMiddleWares 项目自定义的GIN中间件
@@ -69,6 +70,12 @@ func NewWebApplication(privateMiddleWares ...gin.HandlerFunc) *WebApplication {
 }
 
 type RouterHandler func(r *gin.Engine) (err error)
+
+func (r *WebApplication) SetFlagMicro(flagMicro bool) (res *WebApplication) {
+	res = r
+	r.FlagMicro = flagMicro
+	return
+}
 
 // 加载API路由
 func (r *WebApplication) LoadRouter(routerHandler ...RouterHandler) (res *WebApplication) {
@@ -149,7 +156,20 @@ func (r *WebApplication) Run() (err error) {
 	r.syslog.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintln("General start ")
 
-	r.GinEngine.Run(r.getListenPortString()) // listen and serve on 0.0.0.0:8080
+	if !r.microRun() {
+		r.GinEngine.Run(r.getListenPortString()) // listen and serve on 0.0.0.0:8080
+	}
+	return
+}
+
+func (r *WebApplication) microRun() (res bool) {
+	if r.FlagMicro { //如果支持微服务
+		r.syslog.SetInfoType(base.LogLevelInfo).
+			SystemOutPrintln("Run as micro!")
+		r.RunAsMicro()
+		return
+	}
+	res = true
 	return
 }
 func (r *WebApplication) start() {
@@ -164,9 +184,12 @@ func (r *WebApplication) start() {
 	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("Listen Addr  %s", srv.Addr)
 
 	go func() { // 启动GIN服务动作
-		// service connections
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			r.syslog.SetInfoType(base.LogLevelInfo).SystemOutFatalf("listen: %s\n", err)
+
+		if r.microRun() {
+			// service connections
+			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				r.syslog.SetInfoType(base.LogLevelInfo).SystemOutFatalf("listen: %s\n", err)
+			}
 		}
 	}()
 

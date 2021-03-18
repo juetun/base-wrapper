@@ -24,7 +24,7 @@ type HandlerBlockCache func(block *BlockCache) (err error)
 // 页面操作对象 一个html由BLOCK拼凑而成 本结构体设计目的为实现页面局部数据缓存控制
 // 每个BLOCK具备独立的缓存对象，独立从数据库、redis、或其他数据源获取数据的能力获取数据的能力
 // 缓存规则：
-// 1、如果父block的缓存时间大于0，则子BLOCK设置了时间也不缓存，
+// 1、如果父block的缓存时间大于0，则子BLOCK设置了缓存时间无效，
 // 2、如果父BLOCK的缓存时间为0，则子BLOCK的缓存时间有效
 type Block struct {
 	Ctx                   context.Context `json:"ctx"`                     // 上下文的操作对象 ，此处主要用来传递上下文参数
@@ -38,6 +38,7 @@ type Block struct {
 	RunBefore             []Handler       `json:"-"`                       // 渲染完数据后执行此方法，主要用来调试数据使用 //渲染完数据后执行此方法，主要用来调试数据使用,返回值为true时跳出
 	RunAfter              []Handler       `json:"-"`                       // 渲染完数据前执行此方法，主要用来调试数据使用 //渲染完数据前执行此方法，主要用来调试数据使用,返回值为true时跳出
 	ChildBock             []*Block        `json:"child_bock"`              // 当前的子BLOCK
+	RefreshForceCache     bool            `json:"refresh_force_cache"`     //是否强制刷新缓存
 }
 
 // 判断文件目录是否存在
@@ -79,6 +80,7 @@ func (r *Block) ParseHtml() (res string, err error) {
 		return
 	} else {
 		tmp.Execute(buf, r.Data)
+		//tmp.ExecuteTemplate(buf, r.Name, r.Data)
 	}
 
 	res = buf.String()
@@ -169,13 +171,18 @@ func (r *Block) after() (err error) {
 }
 
 func (r *Block) haveCacheDo() (res template.HTML, err error) {
-	// 从缓存中拿数据
-	if r.BlockCache.CacheData, err = r.getCache(); err != nil {
-		if res != "" {
-			err = r.after()
-			return
+
+	//如果不是强制刷新缓存
+	if !r.RefreshForceCache {
+		// 从缓存中拿数据
+		if r.BlockCache.CacheData, err = r.getCache(); err != nil {
+			if res != "" {
+				err = r.after()
+				return
+			}
 		}
 	}
+
 	for _, item := range r.ChildBock {
 		r.setChildContext(item) // 传递上下文参数
 		if r.Data[item.Name], err = item.Run(); err != nil {
@@ -325,6 +332,13 @@ func (r *Block) defaultTemplateBaseDirectory() {
 }
 
 type BlockOption func(block *Block)
+
+// 是否强制刷新缓存
+func RefreshForceCache(refreshForceCache bool) BlockOption {
+	return func(block *Block) {
+		block.RefreshForceCache = refreshForceCache
+	}
+}
 
 // 当前BLOCK的子Block
 func ChildBock(childBock ...*Block) BlockOption {

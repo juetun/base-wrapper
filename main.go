@@ -50,6 +50,7 @@ func main() {
 	}
 	// 启动GIN服务
 	_ = app_start.NewWebApplication().
+		//SetFlagMicro(true).
 		LoadRouter(loadRouter). // 记载gin 路由配置
 		Run()
 

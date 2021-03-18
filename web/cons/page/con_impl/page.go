@@ -66,7 +66,9 @@ func (r *ConPageImpl) Websocket(conn *websocket.Conn) {
 			return
 		}
 	}
+
 }
+
 func (r *ConPageImpl) shortMessage(c *gin.Context) {
 	keyList := app_obj.ShortMessageObj.GetChannelKey()
 	fmt.Println("当前支持的通道号有:", keyList)
@@ -117,7 +119,7 @@ func (r *ConPageImpl) Tsst(c *gin.Context) {
 		msg = err.Error()
 	}
 	_ = msg
-  	c.Render(http.StatusOK,render.String{Format: "string",Data: []interface{}{res}}   )
+	c.Render(http.StatusOK, render.String{Format: "string", Data: []interface{}{res}})
 	return
 }
 
@@ -129,36 +131,19 @@ func (r *ConPageImpl) Main(c *gin.Context) {
 	}
 	srv := srv_impl.NewServiceDefaultImpl(CreateContext(&r.ControllerBase, c))
 	ctx := context.WithValue(context.TODO(), "srv", srv)
-	blockChild1 := NewBlock(
-		Ctx(ctx),
-		Name("controller_main_1"),
-		Data(gin.H{"data": "haha"}),
-		TempFile("a1.html"),
-	)
-	blockChild2 := NewBlock(
-		Ctx(ctx),
-		Name("controller_main_2"),
-		Data(gin.H{"data": "haha"}),
-		TempFile("a2.html"),
-	)
+
+	blockChild1 := NewBlock(Ctx(ctx), Name("controller_main_1"), Data(gin.H{"data": "haha"}), TempFile("a1.html"))
+
+	blockChild2 := NewBlock(Ctx(ctx), Name("controller_main_2"), Data(gin.H{"data": "haha"}), TempFile("a2.html"))
 
 	h := gin.H{"data": "haha"}
-	block := NewBlock(
-		CacheBlockOption(ExpireTime(80*time.Second)),
-		Ctx(ctx),
-		Name("controller_main"),
-		Data(h),
-		TempFile("a.html"),
-		ChildBock(blockChild1, blockChild2),
-		RunAfter(func(block *Block) (err error) {
-			return
-		}),
-	)
+	block := NewBlock(Ctx(ctx), Name("controller_main"), Data(gin.H{"data": "haha"}), TempFile("a.html"), CacheBlockOption(ExpireTime(80*time.Second)), ChildBock(blockChild1, blockChild2), RunAfter(func(block *Block) (err error) { return }))
 
 	if h["show"], err = block.Run(); err != nil {
 		r.ResponseError(c, err)
 		return
 	}
+
 	r.ResponseHtml(c, r.MainTplFile, h)
 
 }

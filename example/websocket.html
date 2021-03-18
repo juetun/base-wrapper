@@ -6,26 +6,27 @@
     <title>Document</title>
 </head>
 <body>
-    
+
 <script>
     var socket; //websocket的实例
     var lockReconnect = false; //避免重复连接
     getwebsocket();
+
     function getwebsocket() { //新建websocket的函数 页面初始化 断开连接时重新调用
         var wsUrl = "ws://localhost:8192/base-wrapper/v1/ws";
         socket = new WebSocket(wsUrl);
-        socket.onerror = function(event) {
+        socket.onerror = function (event) {
             //console.log('websocket服务出错了');
             reconnect(wsUrl);
         };
-        socket.onclose = function(event) {
+        socket.onclose = function (event) {
             //console.log('websocket服务关闭了');
             reconnect(wsUrl);
         };
-        socket.onopen = function(event) {
+        socket.onopen = function (event) {
             heartCheck.reset().start(); //传递信息
         };
-        socket.onmessage = function(event) {
+        socket.onmessage = function (event) {
             //如果获取到消息，心跳检测重置
             //拿到任何消息都说明当前连接是正常的
             //console.log('websocket服务获得数据了');
@@ -33,43 +34,45 @@
             doWithMsg(event.data);
             heartCheck.reset().start();
         };
+
         //收到消息推送
         function doWithMsg(msg) {
-            console.log("收到信息",msg);
-         }
+            console.log("收到信息", msg);
+        }
     }
 
     function reconnect(url) {
         if (lockReconnect) return;
         lockReconnect = true;
         //没连接上会一直重连，设置延迟避免请求过多
-        setTimeout(function() {
+        setTimeout(function () {
             getwebsocket();
             lockReconnect = false;
         }, 2000);
     }
+
     //心跳检测
     var heartCheck = {
-            timeout: 1000, //60秒
-            timeoutObj: null,
-            serverTimeoutObj: null,
-            reset: function() {
-                clearTimeout(this.timeoutObj);
-                clearTimeout(this.serverTimeoutObj);
-                return this;
-            },
-            start: function() {
-                var self = this;
-                this.timeoutObj = setInterval(function() {
-                    //这里发送一个心跳，后端收到后，返回一个心跳消息，
-                    //onmessage拿到返回的心跳就说明连接正常
-                    socket.send("心跳测试");
-                    self.serverTimeoutObj = setTimeout(function() { //如果超过一定时间还没重置，说明后端主动断开了
-                        socket.close(); //如果onclose会执行reconnect，我们执行ws.close()就行了.如果直接执行reconnect 会触发onclose导致重连两次
-                    }, self.timeout)
-                }, this.timeout)
-            }
+        timeout: 1000, //60秒
+        timeoutObj: null,
+        serverTimeoutObj: null,
+        reset: function () {
+            clearTimeout(this.timeoutObj);
+            clearTimeout(this.serverTimeoutObj);
+            return this;
+        },
+        start: function () {
+            var self = this;
+            this.timeoutObj = setInterval(function () {
+                //这里发送一个心跳，后端收到后，返回一个心跳消息，
+                //onmessage拿到返回的心跳就说明连接正常
+                socket.send("心跳测试");
+                self.serverTimeoutObj = setTimeout(function () { //如果超过一定时间还没重置，说明后端主动断开了
+                    socket.close(); //如果onclose会执行reconnect，我们执行ws.close()就行了.如果直接执行reconnect 会触发onclose导致重连两次
+                }, self.timeout)
+            }, this.timeout)
         }
-    </script>
+    }
+</script>
 </body>
 </html>

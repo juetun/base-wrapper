@@ -7,6 +7,7 @@ require (
 	github.com/Tang-RoseChild/mahonia v0.0.0-20131226213531-0eef680515cc
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/armon/consul-api v0.0.0-20180202201655-eb2c6b5be1b6 // indirect
+	github.com/asim/go-micro/v3 v3.5.0
 	github.com/astaxie/beego v1.12.3
 	github.com/boombuler/barcode v1.0.1 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
@@ -29,6 +30,8 @@ require (
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/lestrrat-go/strftime v1.0.3 // indirect
 	github.com/magiconair/properties v1.8.4 // indirect
+	github.com/micro/cli/v2 v2.1.2
+	github.com/micro/go-micro v1.18.0 // indirect
 	github.com/mitchellh/mapstructure v1.4.0 // indirect
 	github.com/mojocn/base64Captcha v1.3.1
 	github.com/pelletier/go-toml v1.8.1 // indirect
