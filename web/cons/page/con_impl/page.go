@@ -136,8 +136,10 @@ func (r *ConPageImpl) Main(c *gin.Context) {
 	blockChild2 := NewBlock(Name("controller_main_2"), TempFile("a2.html"))
 
 	h := gin.H{"data": "haha"}
-	block := NewBlock(Name("controller_main"), Data(gin.H{"data": "haha"}), TempFile("a.html"), CacheBlockOption(ExpireTime(80*time.Second)), ChildBock(blockChild1, blockChild2), RunAfter(func(block *Block) (err error) { return }))
-
+	block := NewBlock(Name("controller_main"), Data(gin.H{"data": "haha"}), TempFile("a.html"),
+		CacheBlockOption(ExpireTime(80*time.Second)),
+		ChildBock(blockChild1, blockChild2),
+		RunAfter(func(block *Block) (err error) { return }))
 	if h["show"], err = block.Run(); err != nil {
 		r.ResponseError(c, err)
 		return
@@ -146,6 +148,7 @@ func (r *ConPageImpl) Main(c *gin.Context) {
 	r.ResponseHtml(c, r.MainTplFile, h)
 
 }
+
 func (r *ConPageImpl) MainSign(c *gin.Context) {
 	var err error
 	res, sign, err := signencrypt.NewSign().

@@ -26,7 +26,6 @@ type HandlerBlockCache func(block *BlockCache) (err error)
 // 1、如果父block的缓存时间大于0，则子BLOCK设置了缓存时间无效，
 // 2、如果父BLOCK的缓存时间为0，则子BLOCK的缓存时间有效
 type Block struct {
-	//Ctx                   context.Context `json:"ctx"`                     // 上下文的操作对象 ，此处主要用来传递上下文参数
 	ParentBlockCache      *BlockCache `json:"parent_block_cache"`      // 当前Block的父Block
 	Name                  string      `json:"name"`                    // 当前Block的系统唯一名字
 	Data                  gin.H       `json:"data"`                    // 当前Block的参数
@@ -41,7 +40,7 @@ type Block struct {
 }
 
 // 判断文件目录是否存在
-func (r *Block) Exists(path string) bool {
+func (r *Block) exists(path string) bool {
 	_, err := os.Stat(path) // os.Stat获取文件信息
 	if err != nil {
 		if os.IsExist(err) {
@@ -58,11 +57,11 @@ func (r *Block) tempFilePath() {
 }
 
 // 将HTML模板文件绑定参数
-func (r *Block) ParseHtml() (res string, err error) {
+func (r *Block) parseHtml() (res string, err error) {
 	var tmp *template.Template
 	r.tempFilePath()
 
-	if !r.Exists(r.TempFile) {
+	if !r.exists(r.TempFile) {
 		if err = fmt.Errorf("the template file(%s) is not exists",
 			r.TempFile); err != nil {
 			return
@@ -159,6 +158,7 @@ func (r *Block) before() (err error) {
 	}
 	return
 }
+
 func (r *Block) after() (err error) {
 	// 如果配置了运行后执行
 	for _, runAfter := range r.RunAfter {
@@ -190,7 +190,7 @@ func (r *Block) haveCacheDo() (res template.HTML, err error) {
 	}
 
 	// 解析HTML模板代码
-	if r.BlockCache.CacheData, err = r.ParseHtml(); err != nil {
+	if r.BlockCache.CacheData, err = r.parseHtml(); err != nil {
 		return
 	}
 
@@ -215,7 +215,7 @@ func (r *Block) hasNotCacheDo() (res template.HTML, err error) {
 	}
 
 	// 解析HTML模板代码
-	if r.BlockCache.CacheData, err = r.ParseHtml(); err != nil {
+	if r.BlockCache.CacheData, err = r.parseHtml(); err != nil {
 		return
 	}
 
@@ -311,19 +311,19 @@ func (r *Block) initExpireTime() {
 
 }
 
+// 默认初始化当前模板文件所在位置
+func (r *Block) defaultTemplateBaseDirectory() {
+	if r.TemplateBaseDirectory == "" {
+		r.TemplateBaseDirectory = app_obj.App.AppTemplateDirectory
+	}
+	return
+}
+
 func NewBlock(option ...BlockOption) (block *Block) {
 
 	block = &Block{}
 	for _, handler := range option {
 		handler(block)
-	}
-	return
-}
-
-// 默认初始化当前模板文件所在位置
-func (r *Block) defaultTemplateBaseDirectory() {
-	if r.TemplateBaseDirectory == "" {
-		r.TemplateBaseDirectory = app_obj.App.AppTemplateDirectory
 	}
 	return
 }
@@ -410,9 +410,3 @@ func ParentBlockCache(value *BlockCache) BlockOption {
 		block.ParentBlockCache = value
 	}
 }
-
-//func Ctx(value context.Context) BlockOption {
-//	return func(block *Block) {
-//		block.Ctx = value
-//	}
-//}
