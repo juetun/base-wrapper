@@ -34,7 +34,7 @@ type Block struct {
 	ParentBlockCache      *BlockCache `json:"parent_block_cache"`      // 当前Block的父Block
 	Name                  string      `json:"name"`                    // 当前Block的系统唯一名字
 	Data                  gin.H       `json:"data"`                    // 当前Block的参数
-	TempFile              string      `json:"temp_file"`               // html文件地址
+	TempFile              []string    `json:"temp_file"`               // html文件地址
 	TemplateBaseDirectory string      `json:"template_base_directory"` // html模板文件所在的公共基础路径
 	BlockCache            *BlockCache `json:"cache"`                   // 当前模块缓存的基本参数
 	RunChildBefore        []Handler   `json:"-"`                       // 子BLOCK运行之前的动作
@@ -57,8 +57,16 @@ func (r *Block) exists(path string) bool {
 }
 
 // 模板文件路径
-func (r *Block) tempFilePath() {
-	r.TempFile = r.TemplateBaseDirectory + r.TempFile
+func (r *Block) tempFilePath() (err error) {
+	for i, s := range r.TempFile {
+		r.TempFile[i] = fmt.Sprintf("%s%s", r.TemplateBaseDirectory, s)
+		if !r.exists(r.TempFile[i]) {
+			err = fmt.Errorf("the template file(%s) is not exists",
+				r.TempFile[i])
+			return
+		}
+	}
+	return
 }
 
 //parseHtml 将HTML模板文件绑定参数
@@ -66,18 +74,12 @@ func (r *Block) parseHtml() (res string, err error) {
 	var tmp *template.Template
 	r.tempFilePath()
 
-	if !r.exists(r.TempFile) {
-		err = fmt.Errorf("the template file(%s) is not exists",
-			r.TempFile)
-		return
-	}
-
 	buf := new(bytes.Buffer)
 
 	// 拼接TemplateFile path
 	if tmp, err = template.New(r.Name).
 		Funcs(app_obj.FuncMap).
-		ParseFiles(r.TempFile); err != nil {
+		ParseFiles(r.TempFile...); err != nil {
 		return
 	} else {
 		if err = tmp.Execute(buf, r.Data); err != nil {
@@ -381,7 +383,7 @@ func CacheBlockOption(cacheBlock ...BlockCacheOption) BlockOption {
 	}
 }
 
-func TempFile(tempFile string) BlockOption {
+func TempFile(tempFile ...string) BlockOption {
 	return func(block *Block) {
 		block.TempFile = tempFile
 	}
