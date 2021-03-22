@@ -30,7 +30,7 @@ require (
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/lestrrat-go/strftime v1.0.3 // indirect
 	github.com/magiconair/properties v1.8.4 // indirect
-	github.com/micro/cli/v2 v2.1.2
+	github.com/micro/cli/v2 v2.1.2 // indirect
 	github.com/micro/go-micro v1.18.0 // indirect
 	github.com/mitchellh/mapstructure v1.4.0 // indirect
 	github.com/mojocn/base64Captcha v1.3.1
@@ -54,6 +54,7 @@ require (
 	github.com/ugorji/go v1.2.0 // indirect
 	github.com/urfave/cli v1.22.5 // indirect
 	github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77 // indirect
+	go.etcd.io/etcd v3.3.25+incompatible
 	golang.org/x/net v0.0.0-20201224014010-6772e930b67b
 	golang.org/x/sys v0.0.0-20201130171929-760e229fe7c5 // indirect
 	golang.org/x/tools v0.0.0-20201230224404-63754364767c // indirect
