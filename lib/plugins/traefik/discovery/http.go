@@ -3,71 +3,76 @@
 // @Date ${DATE}
 package discovery
 
-import (
-	"fmt"
-	"strconv"
-)
+import "time"
 
-type TraefikService struct {
-	RouterName  string          `json:"router_name"`
-	Rule        string          `json:"rule"`
-	Service     string          `json:"service"`
-	EntryPoints []string        `json:"entry_points"`
-	Middlewares []string        `json:"middlewares"`
-	ServiceList []ServiceConfig `json:"service_list"`
-	Priority    int             `json:"priority"`
-	Tls         *Tls            `json:"tls"`
+type TraefikHttpMiddleware struct {
+	Plugin interface{} `yaml:"plugin,omitempty" key_value:"plugin,omitempty"`
 }
-type ServiceConfig struct {
-	ServiceName  string       `json:"service_name"`
-	LoadBalancer LoadBalancer `json:"load_balancer"`
-	Mirroring    Mirroring    `json:"mirroring"`
-	Weighted     Weighted     `json:"weighted"`
+type TraefikHttpRouters struct {
+	EntryPoints []string `yaml:"entry_points,omitempty" key_value:"entrypoints,omitempty"`
+	Rule        string   `yaml:"rule,omitempty" key_value:"rule,omitempty"`
+	Service     string   `yaml:"service,omitempty" key_value:"service,omitempty"`
+	Middlewares []string `yaml:"middlewares,omitempty" key_value:"middlewares,omitempty"`
+
+	//ServiceList []ServiceConfig `yaml:"service_list,omitempty"`
+	//Priority    int             `yaml:"priority,omitempty"`
+	//Tls         *Tls            `yaml:"tls,omitempty"`
+}
+type TraefikHttpServiceConfig struct {
+	LoadBalancer *LoadBalancer `yaml:"loadBalancer,omitempty" key_value:"loadbalancer,omitempty"`
+	Mirroring    *Mirroring    `yaml:"mirroring,omitempty" key_value:"mirroring,omitempty"`
+	Weighted     *Weighted     `yaml:"weighted,omitempty" key_value:"weighted,omitempty"`
 }
 type Mirroring struct {
-	Service string    `json:"service"`
-	Mirrors []Mirrors `json:"mirrors"`
+	Service string    `yaml:"service,omitempty" key_value:"service,omitempty"`
+	Mirrors []Mirrors `yaml:"mirrors,omitempty" key_value:"mirrors,omitempty"`
 }
 type Mirrors struct {
-	Name    string `json:"name"`
-	Percent int    `json:"percent"`
+	Name    string `yaml:"name,omitempty" key_value:"name,omitempty"`
+	Percent int    `yaml:"percent,omitempty" key_value:"percent,omitempty"`
 }
 type Weighted struct {
-	Services []WeightedService `json:"services"`
-	Sticky   *Sticky           `json:"sticky"`
+	Services []WeightedService `yaml:"services,omitempty" key_value:"services,omitempty"`
+	Sticky   *Sticky           `yaml:"sticky,omitempty" key_value:"sticky,omitempty"`
 }
 type WeightedService struct {
-	Name   string `json:"name"`
-	Weight int    `json:"weight"`
+	Name   string `yaml:"name,omitempty" key_value:"name,omitempty"`
+	Weight int    `yaml:"weight,omitempty" key_value:"weight,omitempty"`
 }
+
 type LoadBalancer struct {
-	Servers            []LoadBalancerServer
-	ServersTransport   string            `json:"serverstransport"`
-	HealthCheck        HealthCheck       `json:"health_check"`
-	Sticky             *Sticky           `json:"sticky"`
-	ResponseForwarding map[string]string `json:"responseforwarding"`
+	Servers            []LoadBalancerServer `yaml:"servers,omitempty" key_value:"servers,omitempty"`
+	PassHostHeader     bool                 `yaml:"passHostHeader,omitempty" key_value:"passhostheader,omitempty"`
+	ServersTransport   string               `yaml:"serverstransport,omitempty" key_value:"serverstransport,omitempty"`
+	HealthCheck        *HealthCheck         `yaml:"healthCheck,omitempty" key_value:"healthcheck,omitempty"`
+	Sticky             *Sticky              `yaml:"sticky,omitempty" key_value:"sticky,omitempty"`
+	ResponseForwarding ResponseForwarding   `yaml:"responseforwarding,omitempty" key_value:"responseforwarding,omitempty"`
 }
+type ResponseForwarding struct {
+	FlushInterval time.Duration `json:"flushinterval" yaml:"flushinterval,omitempty" key_value:"flushinterval,omitempty"`
+}
+
 type Sticky struct {
-	Value  bool   `json:"value"`
-	Cookie Cookie `json:"cookie"`
+	Value  bool    `yaml:"value,omitempty" key_value:"value,omitempty"`
+	Cookie *Cookie `yaml:"cookie,omitempty" key_value:"cookie,omitempty"`
 }
 type Cookie struct {
-	HttpOnly bool   `json:"httponly"`
-	Name     string `json:"name"`
-	Secure   bool   `json:"secure"`
-	SameSite string `json:"samesite"`
+	HttpOnly bool   `yaml:"httponly,omitempty" key_value:"httponly,omitempty"`
+	Name     string `yaml:"name,omitempty" key_value:"name,omitempty"`
+	Secure   bool   `yaml:"secure,omitempty" key_value:"secure,omitempty"`
+	SameSite string `yaml:"samesite,omitempty" key_value:"samesite,omitempty"`
 }
 type HealthCheck struct {
-	Headers  map[string]string `json:"headers"`
-	Hostname string            `json:"hostname"`
-	Interval int               `json:"interval"`
-	Path     string            `json:"path"`
-	Port     int               `json:"port"`
-	Scheme   string            `json:"scheme"`
-	Timeout  int               `json:"timeout"`
+	Headers  map[string]string `json:"headers" yaml:"headers,omitempty" key_value:"headers,omitempty"`
+	Hostname string            `json:"hostname" yaml:"hostname,omitempty" key_value:"hostname,omitempty"`
+	Interval time.Duration            `json:"interval" yaml:"interval,omitempty" key_value:"interval,omitempty"`
+	Path     string            `json:"path" yaml:"path,omitempty" key_value:"path,omitempty"`
+	Port     int               `json:"port" yaml:"port,omitempty" key_value:"port,omitempty"`
+	Scheme   string            `json:"scheme" yaml:"scheme,omitempty" key_value:"scheme,omitempty"`
+	Timeout  time.Duration            `json:"timeout" yaml:"timeout,omitempty" key_value:"timeout,omitempty"`
 }
 type LoadBalancerServer struct {
-	Url string `json:"url"`
+	Url string `json:"url" yaml:"url,omitempty" key_value:"url,omitempty"`
 }
 type Tls struct {
 	Value        bool            `json:"value"`
@@ -83,127 +88,4 @@ type TlsDomainItem struct {
 	Domain      string   `json:"domain"`
 	DomainValue string   `json:"value"`
 	Sans        []string `json:"sans"`
-}
-
-
-func (r *TraefikConfig) serviceList() {
-
-}
-func (r *TraefikConfig) tls() {
-	for _, item := range r.RouterHttpConfig {
-		if item.Tls == nil {
-			continue
-		}
-		r.MapValue = append(r.MapValue, KeyValue{
-			Key: fmt.Sprintf("traefik/http/routers/%s/tls",
-				item.RouterName),
-			Value: fmt.Sprintf("%v", item.Tls.Value),
-		})
-
-		if item.Tls.CertResolver != "" {
-
-			r.MapValue = append(r.MapValue, KeyValue{
-				Key:   fmt.Sprintf("traefik/http/routers/%s/tls/certresolver", item.RouterName),
-				Value: item.Tls.CertResolver,
-			})
-
-		}
-		if len(item.Tls.Domains) > 0 {
-			for k, domain := range item.Tls.Domains {
-				r.MapValue = append(r.MapValue, KeyValue{
-					Key: fmt.Sprintf("traefik/http/routers/%s/tls/domains/%d/%s",
-						item.RouterName, k, domain.Domain),
-					Value: domain.DomainValue,
-				})
-				for i, v := range domain.Sans {
-					r.MapValue = append(r.MapValue, KeyValue{
-						Key: fmt.Sprintf("traefik/http/routers/%s/tls/domains/%d/sans/%d",
-							item.RouterName, k, i),
-						Value: v,
-					})
-
-				}
-			}
-		}
-		if item.Tls.Options != "" {
-			r.MapValue = append(r.MapValue, KeyValue{
-				Key: fmt.Sprintf("traefik/http/routers/%s/tls/options",
-					item.RouterName),
-				Value: item.Tls.Options,
-			})
-
-		}
-	}
-}
-
-func (r *TraefikConfig) middlewares() {
-	for _, item := range r.RouterHttpConfig {
-		for k, middleware := range item.Middlewares {
-			if middleware == "" {
-				continue
-			}
-			r.MapValue = append(r.MapValue, KeyValue{
-				Key: fmt.Sprintf("traefik/http/routers/%s/middlewares/%d",
-					item.RouterName, k),
-				Value: middleware,
-			})
-
-		}
-	}
-}
-
-func (r *TraefikConfig) router() {
-	for _, item := range r.RouterHttpConfig {
-		if item.RouterName == "" {
-			continue
-		}
-		r.MapValue = append(r.MapValue, KeyValue{
-			Key:   fmt.Sprintf("traefik/http/routers/%s/rule", item.RouterName),
-			Value: item.Rule,
-		})
-	}
-	return
-}
-
-func (r *TraefikConfig) entryPoints() {
-	for _, item := range r.RouterHttpConfig {
-		for k, it := range item.EntryPoints {
-			if it == "" {
-				continue
-			}
-			r.MapValue = append(r.MapValue, KeyValue{
-				Key: fmt.Sprintf("traefik/http/routers/%s/entrypoints/%d",
-					item.RouterName, k),
-				Value: it,
-			})
-
-		}
-	}
-}
-
-func (r *TraefikConfig) service() {
-	for _, item := range r.RouterHttpConfig {
-		if item.Service == "" {
-			continue
-		}
-		r.MapValue = append(r.MapValue, KeyValue{
-			Key: fmt.Sprintf("traefik/http/routers/%s/service",
-				item.RouterName),
-			Value: item.Service,
-		})
-
-	}
-}
-
-func (r *TraefikConfig) priority() {
-	for _, item := range r.RouterHttpConfig {
-		if item.Priority == 0 {
-			continue
-		}
-		r.MapValue = append(r.MapValue, KeyValue{
-			Key: fmt.Sprintf("traefik/http/routers/%s/priority",
-				item.RouterName),
-			Value: strconv.Itoa(item.Priority),
-		})
-	}
 }
