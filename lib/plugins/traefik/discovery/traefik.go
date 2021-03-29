@@ -15,17 +15,10 @@ import (
 )
 
 type TraefikDynamic struct {
-	Http TraefikHttp `yaml:"http,omitempty" key_value:"http,omitempty"`
-	Tcp  TraefikTcp  `yaml:"tcp,omitempty" key_value:"tcp,omitempty"`
+	Http HttpTraefik `yaml:"http,omitempty" key_value:"http,omitempty"`
+	Tcp  TcpTraefik  `yaml:"tcp,omitempty" key_value:"tcp,omitempty"`
 }
-type TraefikTcp struct {
-	RouterTcpConfig map[string]TraefikTcpService //TCP请求参数
-}
-type TraefikHttp struct {
-	Routers     map[string]TraefikHttpRouters       `yaml:"routers,omitempty" key_value:"routers,omitempty"`
-	Services    map[string]TraefikHttpServiceConfig `yaml:"services,omitempty" key_value:"services,omitempty"`
-	Middlewares map[string]TraefikHttpMiddleware    `yaml:"middlewares,omitempty" key_value:"middlewares,omitempty"`
-}
+
 
 type TraefikConfig struct {
 	TraefikDynamic
@@ -35,8 +28,8 @@ type TraefikConfig struct {
 func NewTraefikConfig() (res *TraefikConfig) {
 	res = &TraefikConfig{
 		TraefikDynamic: TraefikDynamic{
-			Http: TraefikHttp{
-				Routers: map[string]TraefikHttpRouters{
+			Http: HttpTraefik{
+				Routers: map[string]HttpTraefikRouters{
 					"<router_name>": {
 						Rule: "Host(`api.test.com`) && PathPrefix(`/api-user`)",
 						EntryPoints: []string{
@@ -45,21 +38,33 @@ func NewTraefikConfig() (res *TraefikConfig) {
 						},
 						Service:     "api-user",
 						Middlewares: []string{"my-plugin"},
+						Priority:    10,
+						Tls: &HttpTls{
+							Value:        true,
+							CertResolver: "myresolver",
+							Domains: []HttpDomainTlsItem{
+								{
+									Main: "example.org",
+									Sans: []string{"test.example.org", "dev.example.org"},
+								},
+							},
+							Options: "foobar",
+						},
 					},
 				},
-				Services: map[string]TraefikHttpServiceConfig{
+				Services: map[string]HttpTraefikServiceConfig{
 					"<service_name>": {
-						LoadBalancer: &LoadBalancer{
-							Servers: []LoadBalancerServer{
+						LoadBalancer: &HttpLoadBalancer{
+							Servers: []HttpLoadBalancerServer{
 								{
 									Url: "http://localhost:8093",
 								},
 							},
-							ResponseForwarding: ResponseForwarding{
+							ResponseForwarding: HttpResponseForwarding{
 								FlushInterval: 10 * time.Hour,
 							},
 							PassHostHeader: true,
-							HealthCheck: &HealthCheck{
+							HealthCheck: &HttpHealthCheck{
 								Headers:  map[string]string{"Content-type": "application/json"},
 								Hostname: "example.org",
 								Interval: 10 * time.Second,
@@ -68,18 +73,62 @@ func NewTraefikConfig() (res *TraefikConfig) {
 								Scheme:   "https",
 								Timeout:  15 * time.Second,
 							},
-							Sticky: &Sticky{
+							Sticky: &HttpSticky{
 								Value: true,
-								Cookie: &Cookie{
+								Cookie: &HttpCookie{
 									HttpOnly: true,
 								},
 							},
 						},
 					},
 				},
-				Middlewares: map[string]TraefikHttpMiddleware{
+				Middlewares: map[string]HttpTraefikMiddleware{
 					"my-plugin": {
 						Plugin: "123123",
+					},
+				},
+			},
+			Tcp: TcpTraefik{
+				Routers: map[string]TcpTraefikRouters{
+					"<router_name>": TcpTraefikRouters{
+						EntryPoints: []string{"ep1", "ep2"},
+						Rule:        "HostSNI(`example.com`)",
+						Service:     "myservice",
+						Tls: &TCPTls{
+							Value:        true,
+							CertResolver: "myresolver",
+							Domains: []TcpDomainTlsItem{
+								{
+									Main: "example.org",
+									Sans: []string{"test.example.org", "dev.example.org"},
+								},
+							},
+							Options:     "foobar",
+							PassThrough: true,
+						},
+					},
+				},
+				Services: map[string]TcpTraefikServiceConfig{
+					"<service_name>": {
+						Weighted: &TcpWeighted{
+							Services: []TcpWeightedService{
+								{
+									Name:   "foobar",
+									Weight: 42,
+								},
+							},
+						},
+						LoadBalancer: &TcpLoadBalancer{
+							ProxyProtocol: TcpProxyProtocol{
+								Version: "1",
+							},
+							TerminationDelay: 100,
+							Servers: []TcpLoadBalancerServer{
+								{
+									Url: "xx.xx.xx.xx:xx",
+								},
+							},
+						},
 					},
 				},
 			},

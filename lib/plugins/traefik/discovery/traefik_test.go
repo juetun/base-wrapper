@@ -10,7 +10,7 @@ import (
 func TestTraefikConfig_AppendToFile(t *testing.T) {
 	type fields struct {
 		RouterHttpConfig []TraefikDynamic
-		RouterTcpConfig  []TraefikTcpService
+		RouterTcpConfig  []TcpTraefikRouters
 		MapValue         []KeyValue
 	}
 	type args struct {

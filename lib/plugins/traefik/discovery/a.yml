@@ -1,0 +1,74 @@
+http:
+  routers:
+    <router_name>:
+      entry_points:
+      - web
+      - websecure
+      rule: Host(`api.test.com`) && PathPrefix(`/api-user`)
+      service: api-user
+      middlewares:
+      - my-plugin
+      priority: 10
+      tls:
+        value: true
+        certresolver: myresolver
+        domains:
+        - main: example.org
+          sans:
+          - test.example.org
+          - dev.example.org
+        options: foobar
+  services:
+    <service_name>:
+      loadBalancer:
+        servers:
+        - url: http://localhost:8093
+        passHostHeader: true
+        healthCheck:
+          headers:
+            Content-type: application/json
+          hostname: example.org
+          interval: 10s
+          path: /foo
+          port: 8080
+          scheme: https
+          timeout: 15s
+        sticky:
+          value: true
+          cookie:
+            httponly: true
+        responseforwarding:
+          flushinterval: 10h0m0s
+  middlewares:
+    my-plugin:
+      plugin: "123123"
+tcp:
+  routers:
+    <router_name>:
+      entry_points:
+      - ep1
+      - ep2
+      rule: HostSNI(`example.com`)
+      service: myservice
+      tls:
+        value: true
+        certresolver: myresolver
+        domains:
+        - main: example.org
+          sans:
+          - test.example.org
+          - dev.example.org
+        options: foobar
+        passthrough: true
+  services:
+    <service_name>:
+      loadBalancer:
+        servers:
+        - url: xx.xx.xx.xx:xx
+        terminationdelay: 100
+        proxyprotocol:
+          version: "1"
+      weighted:
+        services:
+        - name: foobar
+          weight: 42
