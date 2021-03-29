@@ -1,47 +1,102 @@
 http:
   routers:
-    <router_name>:
-      entry_points:
-      - web
-      - websecure
-      rule: Host(`api.test.com`) && PathPrefix(`/api-user`)
-      service: api-user
+    Router0:
+      entryPoints:
+      - foobar
+      - foobar
       middlewares:
-      - my-plugin
-      priority: 10
+      - foobar
+      - foobar
+      service: foobar
+      rule: foobar
+      priority: 42
       tls:
-        value: true
-        certresolver: myresolver
-        domains:
-        - main: example.org
-          sans:
-          - test.example.org
-          - dev.example.org
         options: foobar
+        certResolver: foobar
+        domains:
+        - main: foobar
+          sans:
+          - foobar
+          - foobar
+        - main: foobar
+          sans:
+          - foobar
+          - foobar
+    Router1:
+      entryPoints:
+      - foobar
+      - foobar
+      middlewares:
+      - foobar
+      - foobar
+      service: foobar
+      rule: foobar
+      priority: 42
+      tls:
+        options: foobar
+        certResolver: foobar
+        domains:
+        - main: foobar
+          sans:
+          - foobar
+          - foobar
+        - main: foobar
+          sans:
+          - foobar
+          - foobar
   services:
-    <service_name>:
+    Service01:
       loadBalancer:
-        servers:
-        - url: http://localhost:8093
-        passHostHeader: true
-        healthCheck:
-          headers:
-            Content-type: application/json
-          hostname: example.org
-          interval: 10s
-          path: /foo
-          port: 8080
-          scheme: https
-          timeout: 15s
         sticky:
-          value: true
           cookie:
-            httponly: true
-        responseforwarding:
-          flushinterval: 10h0m0s
+            name: foobar
+            secure: true
+            httpOnly: true
+            sameSite: foobar
+        servers:
+        - url: foobar
+        - url: foobar
+        healthCheck:
+          scheme: foobar
+          path: foobar
+          port: 42
+          interval: 10s
+          timeout: 15s
+          hostname: foobar
+          followRedirects: true
+          headers:
+            name0: foobar
+            name1: foobar
+        passHostHeader: true
+        responseForwarding:
+          flushInterval: 10h0m0s
+        serversTransport: foobar
+    Service02:
+      mirroring:
+        service: foobar
+        maxBodySize: 42
+        mirrors:
+        - name: foobar
+          percent: 42
+        - name: foobar
+          percent: 42
+    Service03:
+      weighted:
+        services:
+        - name: foobar
+          weight: 42
+        - name: foobar
+          weight: 42
+        sticky:
+          cookie:
+            name: foobar
+            secure: true
+            httpOnly: true
+            sameSite: foobar
   middlewares:
-    my-plugin:
-      plugin: "123123"
+    Middleware00:
+      addPrefix:
+        prefix: foobar
 tcp:
   routers:
     <router_name>:

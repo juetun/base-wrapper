@@ -6,6 +6,7 @@ package discovery
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/juetun/base-wrapper/lib/plugins/traefik/middleware_traefik"
 	"gopkg.in/yaml.v2"
 	"os"
 	"reflect"
@@ -19,7 +20,6 @@ type TraefikDynamic struct {
 	Tcp  TcpTraefik  `yaml:"tcp,omitempty" key_value:"tcp,omitempty"`
 }
 
-
 type TraefikConfig struct {
 	TraefikDynamic
 	MapValue []KeyValue //数据结果
@@ -30,61 +30,138 @@ func NewTraefikConfig() (res *TraefikConfig) {
 		TraefikDynamic: TraefikDynamic{
 			Http: HttpTraefik{
 				Routers: map[string]HttpTraefikRouters{
-					"<router_name>": {
-						Rule: "Host(`api.test.com`) && PathPrefix(`/api-user`)",
+					"Router0": {
+						Rule: "foobar",
 						EntryPoints: []string{
-							"web",
-							"websecure",
+							"foobar",
+							"foobar",
 						},
-						Service:     "api-user",
-						Middlewares: []string{"my-plugin"},
-						Priority:    10,
+						Service:     "foobar",
+						Middlewares: []string{"foobar", "foobar"},
+						Priority:    42,
 						Tls: &HttpTls{
 							Value:        true,
-							CertResolver: "myresolver",
+							Options:      "foobar",
+							CertResolver: "foobar",
 							Domains: []HttpDomainTlsItem{
 								{
-									Main: "example.org",
-									Sans: []string{"test.example.org", "dev.example.org"},
+									Main: "foobar",
+									Sans: []string{"foobar", "foobar"},
+								},
+								{
+									Main: "foobar",
+									Sans: []string{"foobar", "foobar"},
 								},
 							},
-							Options: "foobar",
+						},
+					},
+					"Router1": {
+						Rule: "foobar",
+						EntryPoints: []string{
+							"foobar",
+							"foobar",
+						},
+						Service:     "foobar",
+						Middlewares: []string{"foobar", "foobar"},
+						Priority:    42,
+						Tls: &HttpTls{
+							Value:        true,
+							Options:      "foobar",
+							CertResolver: "foobar",
+							Domains: []HttpDomainTlsItem{
+								{
+									Main: "foobar",
+									Sans: []string{"foobar", "foobar"},
+								},
+								{
+									Main: "foobar",
+									Sans: []string{"foobar", "foobar"},
+								},
+							},
 						},
 					},
 				},
 				Services: map[string]HttpTraefikServiceConfig{
-					"<service_name>": {
+					"Service01": {
 						LoadBalancer: &HttpLoadBalancer{
+							Sticky: &HttpSticky{
+								Value: true,
+								Cookie: &HttpCookie{
+									Name:     "foobar",
+									Secure:   true,
+									SameSite: "foobar",
+									HttpOnly: true,
+								},
+							},
 							Servers: []HttpLoadBalancerServer{
 								{
-									Url: "http://localhost:8093",
+									Url: "foobar",
 								},
+								{
+									Url: "foobar",
+								},
+							},
+							HealthCheck: &HttpHealthCheck{
+								Scheme:          "foobar",
+								Path:            "foobar",
+								Port:            42,
+								Headers:         map[string]string{"name0": "foobar", "name1": "foobar"},
+								Hostname:        "foobar",
+								Interval:        10 * time.Second,
+								Timeout:         15 * time.Second,
+								FollowRedirects: true,
 							},
 							ResponseForwarding: HttpResponseForwarding{
 								FlushInterval: 10 * time.Hour,
 							},
-							PassHostHeader: true,
-							HealthCheck: &HttpHealthCheck{
-								Headers:  map[string]string{"Content-type": "application/json"},
-								Hostname: "example.org",
-								Interval: 10 * time.Second,
-								Path:     "/foo",
-								Port:     8080,
-								Scheme:   "https",
-								Timeout:  15 * time.Second,
+							PassHostHeader:   true,
+							ServersTransport: "foobar",
+						},
+					},
+					"Service02": {
+						Mirroring: &HttpMirroring{
+							Service:     "foobar",
+							MaxBodySize: 42,
+							Mirrors: []HttpMirrors{
+								{
+									Name:    "foobar",
+									Percent: 42,
+								},
+								{
+									Name:    "foobar",
+									Percent: 42,
+								},
+							},
+						},
+					},
+					"Service03": {
+						Weighted: &HttpWeighted{
+							Services: []HttpWeightedService{
+								{
+									Name:   "foobar",
+									Weight: 42,
+								},
+								{
+									Name:   "foobar",
+									Weight: 42,
+								},
 							},
 							Sticky: &HttpSticky{
-								Value: true,
 								Cookie: &HttpCookie{
+									Name:     "foobar",
+									Secure:   true,
 									HttpOnly: true,
+									SameSite: "foobar",
 								},
 							},
 						},
 					},
 				},
 				Middlewares: map[string]HttpTraefikMiddleware{
-					"my-plugin": {
-						Plugin: "123123",
+					"Middleware00": middleware_traefik.HttpAddPrefix{
+						AddPrefix: middleware_traefik.HttpAddPrefixArg{
+							Prefix: "foobar",
+						},
 					},
 				},
 			},

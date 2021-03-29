@@ -27,6 +27,7 @@ func NewTraefikEtcd() (res *TraefikEtcd) {
 	res.ctx, res.cancel = context.WithTimeout(context.Background(), res.Timeout)
 	return
 }
+
 func (r *TraefikEtcd) Put(Key, val string) (res bool, err error) {
 	var resp *clientv3.PutResponse
 	if resp, r.Err = r.Client.Put(r.ctx, Key, val); r.Err != nil {
