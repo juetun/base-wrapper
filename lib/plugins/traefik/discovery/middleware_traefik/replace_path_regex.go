@@ -4,7 +4,7 @@
 package middleware_traefik
 
 type HttpMiddlewareReplacePathRegex struct {
-	replacePathRegex HttpMiddlewareReplacePathRegexArg `json:"replace_path_regex" yaml:"replacePathRegex,omitempty" key_value:"replacePathRegex,omitempty"`
+	ReplacePathRegex HttpMiddlewareReplacePathRegexArg `json:"replace_path_regex" yaml:"replacePathRegex,omitempty" key_value:"replacePathRegex,omitempty"`
 }
 type HttpMiddlewareReplacePathRegexArg struct {
 	Regex       string `json:"regex" yaml:"regex,omitempty" key_value:"regex,omitempty"`

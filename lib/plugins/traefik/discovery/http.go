@@ -6,11 +6,29 @@ package discovery
 import "time"
 
 type HttpTraefik struct {
-	Routers     map[string]HttpTraefikRouters       `json:"routers" yaml:"routers,omitempty" key_value:"routers,omitempty"`
-	Services    map[string]HttpTraefikServiceConfig `json:"services" yaml:"services,omitempty" key_value:"services,omitempty"`
-	Middlewares map[string]HttpTraefikMiddleware    `json:"middlewares" yaml:"middlewares,omitempty" key_value:"middlewares,omitempty"`
+	Routers           map[string]HttpTraefikRouters           `json:"routers" yaml:"routers,omitempty" key_value:"routers,omitempty"`
+	Services          map[string]HttpTraefikServiceConfig     `json:"services" yaml:"services,omitempty" key_value:"services,omitempty"`
+	Middlewares       map[string]HttpTraefikMiddleware        `json:"middlewares" yaml:"middlewares,omitempty" key_value:"middlewares,omitempty"`
+	ServersTransports map[string]HttpTraefikServersTransports `json:"servers_transports" yaml:"serversTransports,omitempty" key_value:"serversTransports,omitempty"`
 }
 
+type HttpTraefikServersTransports struct {
+	ServerName          string                                         `json:"server_name" yaml:"serverName,omitempty" key_value:"serverName,omitempty"`
+	InsecureSkipVerify  bool                                           `json:"insecure_skip_verify" yaml:"insecureSkipVerify,omitempty" key_value:"insecureSkipVerify,omitempty"`
+	RootCAs             []string                                       `json:"root_cas" yaml:"rootCAs,omitempty" key_value:"rootCAs,omitempty"`
+	Certificates        []HttpTraefikServersTransportsCertificates     `json:"certificates" yaml:"certificates,omitempty" key_value:"certificates,omitempty"`
+	MaxIdleConnsPerHost int                                            `json:"max_idle_conns_per_host" yaml:"maxIdleConnsPerHost,omitempty" key_value:"maxIdleConnsPerHost,omitempty"`
+	ForwardingTimeouts  HttpTraefikServersTransportsForwardingTimeouts `json:"forwarding_timeouts" yaml:"forwardingTimeouts,omitempty" key_value:"forwardingTimeouts,omitempty"`
+}
+type HttpTraefikServersTransportsForwardingTimeouts struct {
+	DialTimeout           time.Duration `json:"dial_timeout" yaml:"dialTimeout,omitempty" key_value:"dialTimeout,omitempty"`
+	ResponseHeaderTimeout time.Duration `json:"response_header_timeout" yaml:"responseHeaderTimeout,omitempty" key_value:"responseHeaderTimeout,omitempty"`
+	IdleConnTimeout       time.Duration `json:"idle_conn_timeout" yaml:"idleConnTimeout,omitempty" key_value:"idleConnTimeout,omitempty"`
+}
+type HttpTraefikServersTransportsCertificates struct {
+	CertFile string `json:"cert_file" yaml:"certFile,omitempty" key_value:"certFile,omitempty"`
+	KeyFile  string `json:"key_file" yaml:"keyFile,omitempty" key_value:"keyFile,omitempty"`
+}
 type HttpTraefikMiddleware interface{} //`json:"plugin" yaml:"plugin,omitempty" key_value:"plugin,omitempty"`
 
 type HttpTraefikRouters struct {

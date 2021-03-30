@@ -7,7 +7,7 @@ type HttpMiddlewarePlugin struct {
 	Plugin interface{} `json:"plugin" yaml:"plugin,omitempty" key_value:"plugin,omitempty"`
 }
 type HttpMiddlewarePluginArg struct {
-	PluginConf HttpMiddlewarePluginConfArg `json:"plugin" yaml:"plugin,omitempty" key_value:"plugin,omitempty"`
+	PluginConf HttpMiddlewarePluginConfArg `json:"plugin_conf" yaml:"PluginConf,omitempty" key_value:"PluginConf,omitempty"`
 }
 
 type HttpMiddlewarePluginConfArg struct {

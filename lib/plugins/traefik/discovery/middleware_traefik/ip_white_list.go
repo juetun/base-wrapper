@@ -4,7 +4,7 @@
 package middleware_traefik
 
 type HttpMiddlewareIpWhiteList struct {
-	Headers HttpMiddlewareIpWhiteListArg `json:"headers" yaml:"ipWhiteList,omitempty" key_value:"ipWhiteList,omitempty"`
+	IpWhiteList HttpMiddlewareIpWhiteListArg `json:"ipWhiteList" yaml:"ipWhiteList,omitempty" key_value:"ipWhiteList,omitempty"`
 }
 type HttpMiddlewareIpWhiteListArg struct {
 	SourceRange []string                               `json:"source_range" yaml:"sourceRange,omitempty" key_value:"sourceRange,omitempty"`

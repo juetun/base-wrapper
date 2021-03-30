@@ -6,7 +6,7 @@ package discovery
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/juetun/base-wrapper/lib/plugins/traefik/middleware_traefik"
+	"github.com/juetun/base-wrapper/lib/plugins/traefik/discovery/middleware_traefik"
 	"gopkg.in/yaml.v2"
 	"os"
 	"reflect"
@@ -18,6 +18,8 @@ import (
 type TraefikDynamic struct {
 	Http HttpTraefik `yaml:"http,omitempty" key_value:"http,omitempty"`
 	Tcp  TcpTraefik  `yaml:"tcp,omitempty" key_value:"tcp,omitempty"`
+	Udp  UdpTraefik  `yaml:"udp,omitempty" key_value:"udp,omitempty"`
+	Tls  TlsTraefik  `yaml:"tls,omitempty" key_value:"tls,omitempty"`
 }
 
 type TraefikConfig struct {
@@ -163,21 +165,312 @@ func NewTraefikConfig() (res *TraefikConfig) {
 							Prefix: "foobar",
 						},
 					},
+					"Middleware01": middleware_traefik.HttpMiddlewareBasicAuth{
+						BasicAuth: middleware_traefik.HttpMiddlewareBasicAuthArg{
+							Users:        []string{"foobar", "foobar"},
+							UsersFile:    "foobar",
+							Realm:        "foobar",
+							RemoveHeader: true,
+							HeaderField:  "foobar",
+						},
+					},
+					"Middleware02": middleware_traefik.HttpMiddlewareBuffering{
+						Buffering: middleware_traefik.HttpBufferingArg{
+							MaxRequestBodyBytes:  42,
+							MemRequestBodyBytes:  42,
+							MaxResponseBodyBytes: 42,
+							MemResponseBodyBytes: 42,
+							RetryExpression:      "foobar",
+						},
+					},
+					"Middleware03": middleware_traefik.HttpMiddlewareChain{
+						Chain: middleware_traefik.HttpChainArg{
+							Middlewares: []string{"foobar", "foobar"},
+						},
+					},
+					"Middleware04": middleware_traefik.HttpMiddlewareCircuitBreaker{
+						CircuitBreaker: middleware_traefik.HttpCircuitBreakerArg{
+							Expression: "foobar",
+						},
+					},
+					"Middleware05": middleware_traefik.HttpMiddlewareCompress{
+						Compress: middleware_traefik.HttpCompressArg{
+							ExcludedContentTypes: []string{"foobar", "foobar"},
+						},
+					},
+					"Middleware06": middleware_traefik.HttpMiddlewareContentType{
+						ContentType: middleware_traefik.HttpContentTypeArg{
+							AutoDetect: true,
+						},
+					},
+					"Middleware07": middleware_traefik.HttpMiddlewareDigestAuth{
+						DigestAuth: middleware_traefik.HttpDigestAuthArg{
+							Users:        []string{"foobar", "foobar"},
+							UsersFile:    "foobar",
+							RemoveHeader: true,
+							Realm:        "foobar",
+							HeaderField:  "foobar",
+						},
+					},
+					"Middleware08": middleware_traefik.HttpMiddlewareErrors{
+						Errors: middleware_traefik.HttpMiddlewareErrorsArg{
+							Status:  []string{"foobar", "foobar"},
+							Service: "foobar",
+							Query:   "foobar",
+						},
+					},
+					"Middleware09": middleware_traefik.HttpMiddlewareForwardAuth{
+						ForwardAuth: middleware_traefik.HttpMiddlewareForwardAuthArg{
+
+							Address: "foobar",
+							Tls: middleware_traefik.HttpMiddlewareForwardAuthArgTls{
+								CA:                 "foobar",
+								CaOptional:         true,
+								Cert:               "foobar",
+								Key:                "foobar",
+								InsecureSkipVerify: true,
+							},
+							TrustForwardHeader:       true,
+							AuthResponseHeaders:      []string{"foobar", "foobar"},
+							AuthResponseHeadersRegex: "foobar",
+							AuthRequestHeaders:       []string{"foobar", "foobar"},
+						},
+					},
+					"Middleware10": middleware_traefik.HttpMiddlewareHeaders{
+						Headers: middleware_traefik.HttpMiddlewareHeadersArg{
+							CustomRequestHeaders:              map[string]string{"name0": "foobar", "name1": "foobar"},
+							CustomResponseHeaders:             map[string]string{"name0": "foobar", "name1": "foobar"},
+							AccessControlAllowCredentials:     true,
+							AccessControlAllowHeaders:         []string{"foobar", "foobar"},
+							AccessControlAllowMethods:         []string{"foobar", "foobar"},
+							AccessControlAllowOrigin:          "foobar",
+							AccessControlAllowOriginList:      []string{"foobar", "foobar"},
+							AccessControlAllowOriginListRegex: []string{"foobar", "foobar"},
+							AccessControlExposeHeaders:        []string{"foobar", "foobar"},
+							AccessControlMaxAge:               42,
+							AddVaryHeader:                     true,
+							AllowedHosts:                      []string{"foobar", "foobar"},
+							HostsProxyHeaders:                 []string{"foobar", "foobar"},
+							SslRedirect:                       true,
+							SslTemporaryRedirect:              true,
+							SslHost:                           "foobar",
+							SslProxyHeaders:                   map[string]string{"name0": "foobar", "name1": "foobar"},
+							SslForceHost:                      true,
+							StsSeconds:                        42,
+							StsIncludeSubdomains:              true,
+							StsPreload:                        true,
+							ForceSTSHeader:                    true,
+							FrameDeny:                         true,
+							CustomFrameOptionsValue:           "foobar",
+							ContentTypeNosniff:                true,
+							BrowserXssFilter:                  true,
+							CustomBrowserXSSValue:             "foobar",
+							ContentSecurityPolicy:             "foobar",
+							PublicKey:                         "foobar",
+							ReferrerPolicy:                    "foobar",
+							FeaturePolicy:                     "foobar",
+							IsDevelopment:                     true,
+						},
+					},
+					"Middleware11": middleware_traefik.HttpMiddlewareIpWhiteList{
+						IpWhiteList: middleware_traefik.HttpMiddlewareIpWhiteListArg{
+							SourceRange: []string{"foobar", "foobar"},
+							IpStrategy: middleware_traefik.HttpMiddlewareIpWhiteListArgIpStrategy{
+								Depth:       42,
+								ExcludedIPs: []string{"foobar", "foobar"},
+							},
+						},
+					},
+					"Middleware12": middleware_traefik.HttpMiddlewareInFlightReq{
+						InFlightReq: middleware_traefik.HttpMiddlewareInFlightReqArg{
+							Amount: 42,
+							SourceCriterion: middleware_traefik.HttpMiddlewareInFlightReqSourceCriterionArg{
+								IpStrategy: middleware_traefik.HttpMiddlewareInFlightReqSourceCriterionIpStrategyArg{
+									Depth:       42,
+									ExcludedIPs: []string{"foobar", "foobar"},
+								},
+								RequestHeaderName: "foobar",
+								RequestHost:       true,
+							},
+						},
+					},
+					"Middleware13": middleware_traefik.HttpMiddlewarePassTLSClientCert{
+						PassTLSClientCert: middleware_traefik.HttpMiddlewarePassTLSClientCertArg{
+							Pem: true,
+							Info: middleware_traefik.HttpMiddlewarePassTLSClientCertArgInfo{
+								NotAfter:  true,
+								NotBefore: true,
+								Sans:      true,
+								Subject: middleware_traefik.HttpMiddlewarePassTLSClientCertArgSubject{
+									Country:         true,
+									Province:        true,
+									Locality:        true,
+									Organization:    true,
+									CommonName:      true,
+									SerialNumber:    true,
+									DomainComponent: true,
+								},
+								Issuer: middleware_traefik.HttpMiddlewarePassTLSClientCertArgSubject{
+									Country:         true,
+									Province:        true,
+									Locality:        true,
+									Organization:    true,
+									CommonName:      true,
+									SerialNumber:    true,
+									DomainComponent: true,
+								},
+								SerialNumber: true,
+							},
+						},
+					},
+					"Middleware14": middleware_traefik.HttpMiddlewarePlugin{
+						Plugin: middleware_traefik.HttpMiddlewarePluginArg{
+							PluginConf: middleware_traefik.HttpMiddlewarePluginConfArg{
+								Foo: "bar",
+							},
+						},
+					},
+					"Middleware15": middleware_traefik.HttpMiddlewareRateLimit{
+						RateLimit: middleware_traefik.HttpMiddlewareRateLimitArg{
+							Average: 42,
+							Period:  42,
+							Burst:   42,
+							SourceCriterion: middleware_traefik.HttpMiddlewareRateLimitSourceCriterionArg{
+								IpStrategy: middleware_traefik.HttpMiddlewareRateLimitSourceCriterionIpStrategy{
+									Depth:       42,
+									ExcludedIPs: []string{"foobar", "foobar"},
+								},
+								RequestHeaderName: "foobar",
+								RequestHost:       true,
+							},
+						},
+					},
+					"Middleware16": middleware_traefik.HttpMiddlewareRedirectRegex{
+						RedirectRegex: middleware_traefik.HttpMiddlewareRedirectRegexArg{
+							Regex:       "foobar",
+							Replacement: "foobar",
+							Permanent:   true,
+						},
+					},
+					"Middleware17": middleware_traefik.HttpMiddlewareRedirectScheme{
+						RedirectScheme: middleware_traefik.HttpMiddlewareRedirectSchemeArg{
+							Scheme:    "foobar",
+							Port:      "foobar",
+							Permanent: true,
+						},
+					},
+					"Middleware18": middleware_traefik.HttpMiddlewareReplacePath{
+						ReplacePath: middleware_traefik.HttpMiddlewareReplacePathArg{
+							Path: "foobar",
+						},
+					},
+					"Middleware19": middleware_traefik.HttpMiddlewareReplacePathRegex{
+						ReplacePathRegex: middleware_traefik.HttpMiddlewareReplacePathRegexArg{
+							Regex:       "foobar",
+							Replacement: "foobar",
+						},
+					},
+					"Middleware20": middleware_traefik.HttpMiddlewareRetry{
+						Retry: middleware_traefik.HttpMiddlewareRetryArg{
+							Attempts:        42,
+							InitialInterval: 42,
+						},
+					},
+					"Middleware21": middleware_traefik.HttpMiddlewareStripPrefix{
+						StripPrefix: middleware_traefik.HttpMiddlewareStripPrefixArg{
+							Prefixes:   []string{"foobar", "foobar"},
+							ForceSlash: true,
+						},
+					},
+					"Middleware22": middleware_traefik.HttpMiddlewareStripPrefixRegex{
+						StripPrefixRegex: middleware_traefik.HttpMiddlewareStripPrefixRegexArg{
+							Regex: []string{"foobar", "foobar"},
+						},
+					},
+				},
+				ServersTransports: map[string]HttpTraefikServersTransports{
+					"ServersTransport0": {
+						ServerName:         "foobar",
+						InsecureSkipVerify: true,
+						RootCAs:            []string{"foobar", "foobar"},
+						Certificates: []HttpTraefikServersTransportsCertificates{
+							{
+								CertFile: "foobar",
+								KeyFile:  "foobar",
+							},
+							{
+								CertFile: "foobar",
+								KeyFile:  "foobar",
+							},
+						},
+						MaxIdleConnsPerHost: 42,
+						ForwardingTimeouts: HttpTraefikServersTransportsForwardingTimeouts{
+							DialTimeout:           42 * time.Second,
+							ResponseHeaderTimeout: 42 * time.Second,
+							IdleConnTimeout:       42 * time.Second,
+						},
+					},
+					"ServersTransport1": {
+						ServerName:         "foobar",
+						InsecureSkipVerify: true,
+						RootCAs:            []string{"foobar", "foobar"},
+						Certificates: []HttpTraefikServersTransportsCertificates{
+							{
+								CertFile: "foobar",
+								KeyFile:  "foobar",
+							},
+							{
+								CertFile: "foobar",
+								KeyFile:  "foobar",
+							},
+						},
+						MaxIdleConnsPerHost: 42,
+						ForwardingTimeouts: HttpTraefikServersTransportsForwardingTimeouts{
+							DialTimeout:           42 * time.Second,
+							ResponseHeaderTimeout: 42 * time.Second,
+							IdleConnTimeout:       42 * time.Second,
+						},
+					},
 				},
 			},
 			Tcp: TcpTraefik{
 				Routers: map[string]TcpTraefikRouters{
-					"<router_name>": TcpTraefikRouters{
-						EntryPoints: []string{"ep1", "ep2"},
-						Rule:        "HostSNI(`example.com`)",
-						Service:     "myservice",
+					"TCPRouter0": {
+						EntryPoints: []string{"foobar", "foobar"},
+						Rule:        "foobar",
+						Service:     "foobar",
 						Tls: &TCPTls{
-							Value:        true,
-							CertResolver: "myresolver",
+							//Value:        true,
+							CertResolver: "foobar",
 							Domains: []TcpDomainTlsItem{
 								{
-									Main: "example.org",
-									Sans: []string{"test.example.org", "dev.example.org"},
+									Main: "foobar",
+									Sans: []string{"foobar", "foobar"},
+								},
+								{
+									Main: "foobar",
+									Sans: []string{"foobar", "foobar"},
+								},
+							},
+							Options:     "foobar",
+							PassThrough: true,
+						},
+					},
+					"TCPRouter1": {
+						EntryPoints: []string{"foobar", "foobar"},
+						Rule:        "foobar",
+						Service:     "foobar",
+						Tls: &TCPTls{
+							//Value:        true,
+							CertResolver: "foobar",
+							Domains: []TcpDomainTlsItem{
+								{
+									Main: "foobar",
+									Sans: []string{"foobar", "foobar"},
+								},
+								{
+									Main: "foobar",
+									Sans: []string{"foobar", "foobar"},
 								},
 							},
 							Options:     "foobar",
@@ -186,24 +479,63 @@ func NewTraefikConfig() (res *TraefikConfig) {
 					},
 				},
 				Services: map[string]TcpTraefikServiceConfig{
-					"<service_name>": {
+					"TCPService01": {
+						LoadBalancer: &TcpLoadBalancer{
+							ProxyProtocol: TcpProxyProtocol{
+								Version: 42,
+							},
+							TerminationDelay: 42,
+							Servers: []TcpLoadBalancerServer{
+								{
+									Address: "foobar",
+								},
+								{
+									Address: "foobar",
+								},
+							},
+						},
+					},
+					"TCPService02": {
 						Weighted: &TcpWeighted{
 							Services: []TcpWeightedService{
 								{
 									Name:   "foobar",
 									Weight: 42,
 								},
+								{
+									Name:   "foobar",
+									Weight: 42,
+								},
 							},
 						},
-						LoadBalancer: &TcpLoadBalancer{
-							ProxyProtocol: TcpProxyProtocol{
-								Version: "1",
+					},
+				},
+			},
+			Udp: UdpTraefik{
+				Routers: map[string]UdpTraefikRouters{
+					"UDPRouter0": {
+						EntryPoints: []string{"foobar", "foobar"},
+						Service:     "foobar",
+					},
+					"UDPRouter1": {
+						EntryPoints: []string{"foobar", "foobar"},
+						Service:     "foobar",
+					},
+				},
+				Services: map[string]UdpTraefikServiceConfig{
+					"UDPService01": {
+						LoadBalancer: &UdpLoadBalancer{
+							Servers: []UdpLoadBalancerServer{
+								{Address: "foobar"},
+								{Address: "foobar"},
 							},
-							TerminationDelay: 100,
-							Servers: []TcpLoadBalancerServer{
-								{
-									Url: "xx.xx.xx.xx:xx",
-								},
+						},
+					},
+					"UDPService02": {
+						Weighted: &UdpWeighted{
+							Services: []UdpWeightedService{
+								{Name: "foobar", Weight: 42},
+								{Name: "foobar", Weight: 42},
 							},
 						},
 					},
