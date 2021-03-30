@@ -158,7 +158,7 @@ func NewTraefikConfig() (res *TraefikConfig) {
 					},
 				},
 				Middlewares: map[string]HttpTraefikMiddleware{
-					"Middleware00": middleware_traefik.HttpAddPrefix{
+					"Middleware00": middleware_traefik.HttpMiddlewareAddPrefix{
 						AddPrefix: middleware_traefik.HttpAddPrefixArg{
 							Prefix: "foobar",
 						},
