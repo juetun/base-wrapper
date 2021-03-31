@@ -8,7 +8,7 @@ type TcpTraefik struct {
 	Services map[string]TcpTraefikServiceConfig `yaml:"services,omitempty" key_value:"services,omitempty"`
 }
 type TcpTraefikRouters struct {
-	EntryPoints []string `json:"entry_points" yaml:"entryPoints,omitempty" key_value:"entrypoints,omitempty"`
+	EntryPoints []string `json:"entry_points" yaml:"entryPoints,omitempty" key_value:"entryPoints,omitempty"`
 	Service     string   `json:"service" yaml:"service,omitempty" key_value:"service,omitempty"`
 	Rule        string   `json:"rule" yaml:"rule,omitempty" key_value:"rule,omitempty"`
 	Tls         *TCPTls  `json:"tls" yaml:"tls,omitempty" key_value:"tls,omitempty"`
@@ -18,39 +18,22 @@ type TCPTls struct {
 	PassThrough bool   `json:"passthrough" yaml:"passthrough,omitempty" key_value:"passthrough,omitempty"`
 	Options     string `json:"options" yaml:"options,omitempty" key_value:"options,omitempty"`
 	//Value        bool               `json:"value" yaml:"value,omitempty" key_value:"value,omitempty"`
-	CertResolver string             `json:"cert_resolver" yaml:"certResolver,omitempty" key_value:"certresolver,omitempty"`
+	CertResolver string             `json:"cert_resolver" yaml:"certResolver,omitempty" key_value:"certResolver,omitempty"`
 	Domains      []TcpDomainTlsItem `json:"domains" yaml:"domains,omitempty" key_value:"domains,omitempty"`
 }
 type TcpTraefikServiceConfig struct {
-	LoadBalancer *TcpLoadBalancer `yaml:"loadBalancer,omitempty" key_value:"loadbalancer,omitempty"`
+	LoadBalancer *TcpLoadBalancer `yaml:"loadBalancer,omitempty" key_value:"loadBalancer,omitempty"`
 	Weighted     *TcpWeighted     `yaml:"weighted,omitempty" key_value:"weighted,omitempty"`
 }
 
-//type TcpServiceConfig struct {
-//	ServiceName  string          `json:"service_name"`
-//	LoadBalancer LoadTcpBalancer `json:"loadbalancer"`
-//	Weighted     TcpWeighted     `json:"weighted"`
-//}
-
-//type LoadTcpBalancer struct {
-//	Servers          []TcpLoadBalancerServer `json:"servers" yaml:"servers,omitempty" key_value:"servers,omitempty"`
-//	TerminationDelay string                  `json:"terminationdelay" yaml:"terminationDelay,omitempty" key_value:"terminationdelay,omitempty"`
-//	ProxyProtocol    struct {
-//		Version int `json:"version" yaml:"version,omitempty" key_value:"version,omitempty"`
-//	} `json:"proxyprotocol" yaml:"proxyProtocol,omitempty" key_value:"proxyprotocol,omitempty"`
-//}
-
-//type TlsDomain struct {
-//	List []TlsDomainItem
-//}
 type TcpDomainTlsItem struct {
 	Main        string   `json:"main" yaml:"main,omitempty" key_value:"main,omitempty"`
 	DomainValue string   `json:"value" yaml:"value,omitempty" key_value:"value,omitempty"`
 	Sans        []string `json:"sans" yaml:"sans,omitempty" key_value:"sans,omitempty"`
 }
 type TcpLoadBalancer struct {
-	TerminationDelay int                     `json:"terminationdelay" yaml:"terminationDelay,omitempty" key_value:"terminationdelay,omitempty"`
-	ProxyProtocol    TcpProxyProtocol        `json:"proxyprotocol" yaml:"proxyProtocol,omitempty" key_value:"proxyprotocol,omitempty"`
+	TerminationDelay int                     `json:"terminationdelay" yaml:"terminationDelay,omitempty" key_value:"terminationDelay,omitempty"`
+	ProxyProtocol    TcpProxyProtocol        `json:"proxyprotocol" yaml:"proxyProtocol,omitempty" key_value:"proxyProtocol,omitempty"`
 	Servers          []TcpLoadBalancerServer `json:"servers" yaml:"servers,omitempty" key_value:"servers,omitempty"`
 }
 type TcpWeighted struct {

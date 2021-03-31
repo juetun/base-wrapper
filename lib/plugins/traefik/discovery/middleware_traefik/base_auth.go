@@ -4,7 +4,7 @@
 package middleware_traefik
 
 type HttpMiddlewareBasicAuth struct {
-	BasicAuth HttpMiddlewareBasicAuthArg `json:"basic_auth" yaml:"basicAuth,omitempty" key_value:"basic_auth,omitempty"`
+	BasicAuth HttpMiddlewareBasicAuthArg `json:"basic_auth" yaml:"basicAuth,omitempty" key_value:"basicAuth,omitempty"`
 }
 type HttpMiddlewareBasicAuthArg struct {
 	Users        []string `json:"users" yaml:"users,omitempty" key_value:"users,omitempty"`

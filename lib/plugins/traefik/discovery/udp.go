@@ -8,11 +8,11 @@ type UdpTraefik struct {
 	Services map[string]UdpTraefikServiceConfig `yaml:"services,omitempty" key_value:"services,omitempty"`
 }
 type UdpTraefikRouters struct {
-	EntryPoints []string `json:"entry_points" yaml:"entryPoints,omitempty" key_value:"entrypoints,omitempty"`
+	EntryPoints []string `json:"entry_points" yaml:"entryPoints,omitempty" key_value:"entryPoints,omitempty"`
 	Service     string   `json:"service" yaml:"service,omitempty" key_value:"service,omitempty"`
 }
 type UdpTraefikServiceConfig struct {
-	LoadBalancer *UdpLoadBalancer `yaml:"loadBalancer,omitempty" key_value:"loadbalancer,omitempty"`
+	LoadBalancer *UdpLoadBalancer `yaml:"loadBalancer,omitempty" key_value:"loadBalancer,omitempty"`
 	Weighted     *UdpWeighted     `yaml:"weighted,omitempty" key_value:"weighted,omitempty"`
 }
 type UdpLoadBalancer struct {

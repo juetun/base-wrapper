@@ -10,6 +10,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"os"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -29,6 +30,11 @@ type TraefikConfig struct {
 
 func NewTraefikConfig() (res *TraefikConfig) {
 	res = &TraefikConfig{
+	}
+	return
+}
+func NewTraefikConfigTest() (res *TraefikConfig) {
+	res = &TraefikConfig{
 		TraefikDynamic: TraefikDynamic{
 			Http: HttpTraefik{
 				Routers: map[string]HttpTraefikRouters{
@@ -42,7 +48,6 @@ func NewTraefikConfig() (res *TraefikConfig) {
 						Middlewares: []string{"foobar", "foobar"},
 						Priority:    42,
 						Tls: &HttpTls{
-							Value:        true,
 							Options:      "foobar",
 							CertResolver: "foobar",
 							Domains: []HttpDomainTlsItem{
@@ -67,7 +72,6 @@ func NewTraefikConfig() (res *TraefikConfig) {
 						Middlewares: []string{"foobar", "foobar"},
 						Priority:    42,
 						Tls: &HttpTls{
-							Value:        true,
 							Options:      "foobar",
 							CertResolver: "foobar",
 							Domains: []HttpDomainTlsItem{
@@ -87,7 +91,6 @@ func NewTraefikConfig() (res *TraefikConfig) {
 					"Service01": {
 						LoadBalancer: &HttpLoadBalancer{
 							Sticky: &HttpSticky{
-								Value: true,
 								Cookie: &HttpCookie{
 									Name:     "foobar",
 									Secure:   true,
@@ -541,6 +544,82 @@ func NewTraefikConfig() (res *TraefikConfig) {
 					},
 				},
 			},
+			Tls: TlsTraefik{
+				Certificates: []TlsTraefikCertificates{
+					{
+						CertFile: "foobar",
+						KeyFile:  "foobar",
+						Stores: []string{
+							"foobar", "foobar",
+						},
+					},
+					{
+						CertFile: "foobar",
+						KeyFile:  "foobar",
+						Stores: []string{
+							"foobar", "foobar",
+						},
+					},
+				},
+				Options: map[string]TlsTraefikOptions{
+					"Options0": {
+						MinVersion: "foobar",
+						MaxVersion: "foobar",
+						CipherSuites: []string{
+							"foobar",
+							"foobar",
+						},
+						CurvePreferences: []string{
+							"foobar",
+							"foobar",
+						},
+						ClientAuth: TlsTraefikOptionsClientAuth{
+							CaFiles: []string{
+								"foobar",
+								"foobar",
+							},
+							ClientAuthType: "foobar",
+						},
+						SniStrict:                true,
+						PreferServerCipherSuites: true,
+					},
+					"Options1": {
+						MinVersion: "foobar",
+						MaxVersion: "foobar",
+						CipherSuites: []string{
+							"foobar",
+							"foobar",
+						},
+						CurvePreferences: []string{
+							"foobar",
+							"foobar",
+						},
+						ClientAuth: TlsTraefikOptionsClientAuth{
+							CaFiles: []string{
+								"foobar",
+								"foobar",
+							},
+							ClientAuthType: "foobar",
+						},
+						SniStrict:                true,
+						PreferServerCipherSuites: true,
+					},
+				},
+				Stores: map[string]TlsTraefikStores{
+					"Store0": {
+						DefaultCertificate: TlsTraefikStoresDefaultCertificate{
+							CertFile: "foobar",
+							KeyFile:  "foobar",
+						},
+					},
+					"Store1": {
+						DefaultCertificate: TlsTraefikStoresDefaultCertificate{
+							CertFile: "foobar",
+							KeyFile:  "foobar",
+						},
+					},
+				},
+			},
 		},
 	}
 	return
@@ -709,9 +788,29 @@ func (r *TraefikConfig) ToKV() (res map[string]string) {
 }
 func (r *TraefikConfig) KVShow() {
 	stringMap := r.ToKV()
-	for i, i2 := range stringMap {
-		fmt.Printf("%s \t %s \n", i, i2)
+	var keySortSlice KeySortSlice = make([]string, 0, len(stringMap))
+	for i, _ := range stringMap {
+		keySortSlice = append(keySortSlice, i)
 	}
+	sort.Sort(&keySortSlice)
+	for _, s := range keySortSlice {
+		fmt.Printf("%s\t%s\n", s, stringMap[s])
+	}
+
+}
+
+type KeySortSlice []string
+
+func (k KeySortSlice) Len() int {
+	return len(k)
+}
+
+func (k KeySortSlice) Less(i, j int) bool {
+	return k[i] < k[j]
+}
+
+func (k KeySortSlice) Swap(i, j int) {
+	k[i], k[j] = k[j], k[i]
 }
 
 func (r *TraefikConfig) writeToFile(filename string, data []byte) (n int, err1 error) {

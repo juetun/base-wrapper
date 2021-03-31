@@ -31,7 +31,7 @@ func TestTraefikConfig_AppendToFile(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := NewTraefikConfig()
+			r := NewTraefikConfigTest()
 			if err := r.AppendToFile(tt.args.filename); (err != nil) != tt.wantErr {
 				t.Errorf("AppendToFile() error = %v, wantErr %v", err, tt.wantErr)
 			}
