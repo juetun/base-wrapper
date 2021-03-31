@@ -29,8 +29,7 @@ type TraefikConfig struct {
 }
 
 func NewTraefikConfig() (res *TraefikConfig) {
-	res = &TraefikConfig{
-	}
+	res = &TraefikConfig{}
 	return
 }
 func NewTraefikConfigTest() (res *TraefikConfig) {
@@ -624,12 +623,10 @@ func NewTraefikConfigTest() (res *TraefikConfig) {
 	}
 	return
 }
-
 type KeyValue struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 }
-
 func (r *TraefikConfig) parseTag(tagValue string) (name string, omitempty, ignore bool) {
 	tagList := strings.Split(tagValue, ",")
 	name = tagList[0]
@@ -736,7 +733,6 @@ func (r *TraefikConfig) ergodic(data interface{}, prefixName string, res map[str
 		}
 	}
 }
-
 func (r *TraefikConfig) formatValueToString(name string, valueStruct reflect.Value, fieldStruct reflect.StructField) (res string) {
 	switch fieldStruct.Type.String() {
 	case "time.Duration":
@@ -748,7 +744,6 @@ func (r *TraefikConfig) formatValueToString(name string, valueStruct reflect.Val
 	}
 	return
 }
-
 func (r *TraefikConfig) generalType(value reflect.Value) (res bool) {
 	switch value.Kind() {
 	case reflect.String, reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
@@ -761,7 +756,6 @@ func (r *TraefikConfig) generalType(value reflect.Value) (res bool) {
 	}
 	return
 }
-
 func (r *TraefikConfig) isBlank(value reflect.Value) bool {
 	switch value.Kind() {
 	case reflect.String:
@@ -779,7 +773,6 @@ func (r *TraefikConfig) isBlank(value reflect.Value) bool {
 	}
 	return reflect.DeepEqual(value.Interface(), reflect.Zero(value.Type()).Interface())
 }
-
 func (r *TraefikConfig) ToKV() (res map[string]string) {
 	res = make(map[string]string, 200)
 	prefixName := "traefik"
@@ -798,21 +791,16 @@ func (r *TraefikConfig) KVShow() {
 	}
 
 }
-
 type KeySortSlice []string
-
 func (k KeySortSlice) Len() int {
 	return len(k)
 }
-
 func (k KeySortSlice) Less(i, j int) bool {
 	return k[i] < k[j]
 }
-
 func (k KeySortSlice) Swap(i, j int) {
 	k[i], k[j] = k[j], k[i]
 }
-
 func (r *TraefikConfig) writeToFile(filename string, data []byte) (n int, err1 error) {
 
 	var f *os.File
@@ -825,14 +813,12 @@ func (r *TraefikConfig) writeToFile(filename string, data []byte) (n int, err1 e
 	}
 	return
 }
-
 func (r *TraefikConfig) AppendToFile(filename string) (err error) {
 	var data []byte
 	data, err = yaml.Marshal(r.TraefikDynamic)
 	r.writeToFile(filename, data)
 	return
 }
-
 func (r *TraefikConfig) checkFileIsExist(fileName string) (res bool) {
 	res = true
 	if _, err := os.Stat(fileName); os.IsNotExist(err) {
@@ -848,7 +834,6 @@ func (r *TraefikConfig) ResultToJson() (res string, err error) {
 	res = string(d)
 	return
 }
-
 func (r *TraefikConfig) ResultToYaml() (res string, err error) {
 	d, err := yaml.Marshal(&r.MapValue)
 	if err != nil {
