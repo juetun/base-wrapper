@@ -5,6 +5,7 @@ package etcd
 
 import (
 	"context"
+	"github.com/juetun/base-wrapper/lib/plugins/service_discory"
 	"go.etcd.io/etcd/clientv3"
 	"time"
 )
@@ -19,7 +20,7 @@ type TraefikEtcd struct {
 	cancel  context.CancelFunc
 }
 
-func NewTraefikEtcd() (res *TraefikEtcd) {
+func NewTraefikEtcd(serverRegistry *service_discory.ServerRegistry) (res *TraefikEtcd) {
 	res = &TraefikEtcd{}
 	res.Client, res.Err = clientv3.New(clientv3.Config{
 		Endpoints:   []string{"http://localhost:2379"},
@@ -27,6 +28,9 @@ func NewTraefikEtcd() (res *TraefikEtcd) {
 	})
 	ctx := context.Background()
 	res.ctx, res.cancel = context.WithTimeout(ctx, res.Timeout)
+	return
+}
+func (r *TraefikEtcd) Action() (err error) {
 	return
 }
 func (r *TraefikEtcd) PutByTxt(mapValue map[string]string) (res *clientv3.TxnResponse, err error) {

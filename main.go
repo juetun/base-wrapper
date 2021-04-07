@@ -32,6 +32,7 @@ var authorization Authorization
 // https://github.com/izghua/go-blog
 func main() {
 	app_start.NewPlugins(app_start.Authorization(&authorization)).Use(
+		PluginRegistry,
 		PluginJwt, // 加载用户验证插件,必须放在Redis插件后
 		// PluginElasticSearchV7,
 		PluginShortMessage,
