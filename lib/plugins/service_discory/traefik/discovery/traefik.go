@@ -6,7 +6,7 @@ package discovery
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/juetun/base-wrapper/lib/plugins/traefik/discovery/middleware_traefik"
+	"github.com/juetun/base-wrapper/lib/plugins/service_discory/traefik/discovery/middleware_traefik"
 	"gopkg.in/yaml.v2"
 	"os"
 	"reflect"
@@ -623,10 +623,12 @@ func NewTraefikConfigTest() (res *TraefikConfig) {
 	}
 	return
 }
+
 type KeyValue struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 }
+
 func (r *TraefikConfig) parseTag(tagValue string) (name string, omitempty, ignore bool) {
 	tagList := strings.Split(tagValue, ",")
 	name = tagList[0]
@@ -791,7 +793,9 @@ func (r *TraefikConfig) KVShow() {
 	}
 
 }
+
 type KeySortSlice []string
+
 func (k KeySortSlice) Len() int {
 	return len(k)
 }

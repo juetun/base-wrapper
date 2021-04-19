@@ -6,6 +6,10 @@
 * @Date 2020/4/19 10:19 下午
  */
 // //go:generate statik -src=./web/views
+
+// @Copyright (c) 2021.
+// @Author ${USER}
+// @Date ${DATE}
 package main
 
 import (
@@ -49,9 +53,10 @@ func main() {
 		r.StaticFile("/favicon.ico", "./static/favicon.ico")
 		return
 	}
+
 	// 启动GIN服务
 	_ = app_start.NewWebApplication().
-		//SetFlagMicro(true).
+		SetFlagMicro(true).
 		LoadRouter(loadRouter). // 记载gin 路由配置
 		Run()
 

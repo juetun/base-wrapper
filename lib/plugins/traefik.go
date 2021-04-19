@@ -6,10 +6,9 @@ package plugins
 import (
 	"fmt"
 	"github.com/juetun/base-wrapper/lib/app/app_start"
+	"github.com/juetun/base-wrapper/lib/app/micro_service"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
-	"github.com/juetun/base-wrapper/lib/plugins/service_discory"
-	"github.com/juetun/base-wrapper/lib/plugins/service_discory/traefik/etcd"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"sync"
@@ -28,17 +27,18 @@ func loadRegistryConfig() (err error) {
 	io.SystemOutPrintln("Load micro server registry start")
 
 	// 数据库配置信息存储对象
-	var config service_discory.ServerRegistry
 	var yamlFile []byte
 	if yamlFile, err = ioutil.ReadFile(common.GetConfigFilePath("registry.yaml")); err != nil {
 		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   #%v \n", err)
 	}
-	if err = yaml.Unmarshal(yamlFile, &config); err != nil {
+
+	if err = yaml.Unmarshal(yamlFile, &micro_service.ServiceConfig); err != nil {
 		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Load micro server registry err(%#v) \n", err)
 	}
-	if err = etcd.NewTraefikEtcd(&config).Action(); err != nil {
-		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Load micro server registry err(%#v) \n", err)
-	}
+
+	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("registry server (%#v) \n", micro_service.ServiceConfig)
+	//
+
 	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("load micro server registry finished \n"))
 	return
 }

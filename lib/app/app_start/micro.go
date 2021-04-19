@@ -7,32 +7,69 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	httpServer "github.com/asim/go-micro/plugins/server/http/v3"
 	"github.com/asim/go-micro/v3"
-	"github.com/asim/go-micro/v3/registry"
 	"github.com/asim/go-micro/v3/util/addr"
 	"github.com/google/uuid"
-	"github.com/juetun/base-wrapper/lib/app/app_obj"
+	"github.com/juetun/base-wrapper/lib/app/micro_service"
+	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/common"
+	"github.com/juetun/base-wrapper/lib/plugins/service_discory/traefik/etcd"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/asim/go-micro/v3/registry"
+	"github.com/asim/go-micro/v3/server"
+	"github.com/gin-gonic/gin"
 )
 
 var (
 	DefaultId = uuid.New().String()
 )
 
-func (r *WebApplication) RunAsMicro() {
-	service := micro.NewService(
-		micro.Name(app_obj.App.AppName), //注册的服务名称
-		micro.Registry(newEtcdRegistry()),
-		micro.RegisterInterval(time.Second*15), //每隔15秒重新注册一次
-		micro.RegisterTTL(time.Second*30),      //注册服务的过期时间
+//使用go-micro实现服务注册与发现
+func (r *WebApplication) RunAsMicro(gin *gin.Engine) {
+	var err error
+	address := r.GetListenPortString()
+	srv := httpServer.NewServer(
+
+		server.Name(common.GetAppConfig().AppName),
+		server.Address(address),
+		server.RegisterTTL(time.Second*20),
+		server.RegisterInterval(time.Second*15),
 	)
+	r.syslog.SetInfoType(base.LogLevelInfo).
+		SystemOutPrintf("Server address:%s", address)
+	hd := srv.NewHandler(gin)
+	if err = srv.Handle(hd); err != nil {
+		r.syslog.SetInfoType(base.LogLevelFatal).
+			SystemOutFatalf("Register micro router failure!")
+		return
+	}
 
+	service := micro.NewService(
+		micro.Server(srv),
+		micro.Registry(
+			newEtcdRegistry(
+				r.syslog,
+				registry.Addrs(micro_service.ServiceConfig.Endpoints...),
+				registry.Timeout(20*time.Second),
+				registry.Secure(true),
+			),
+		),
+	)
+	//if err = etcd.NewTraefikEtcd(&micro_service.ServiceConfig).Action(); err != nil {
+	//	r.syslog.SetInfoType(base.LogLevelFatal).SystemOutFatalf("registry server err(%#v) \n", err)
+	//}
 	service.Init()
-
+	r.syslog.SetInfoType(base.LogLevelInfo).
+		SystemOutPrintf("Server init finished")
+	fmt.Println("")
+	fmt.Println("")
 	service.Run()
 
 }
@@ -53,60 +90,21 @@ type EtcdRegistry struct {
 	running bool
 	static  bool
 	exit    chan chan error
+
+	syslog *base.SystemOut
 }
 
-func newEtcdRegistry(opts ...registry.Option) (res EtcdRegistry) {
+func newEtcdRegistry(syslog *base.SystemOut, opts ...registry.Option) registry.Registry {
 	options := NewOptions(opts...)
-	res = EtcdRegistry{
+	res := &EtcdRegistry{
 		ServerId: DefaultId,
 		opts:     options,
 		mux:      http.NewServeMux(),
 		static:   true,
+		syslog:   syslog,
 	}
-	res.srv = res.genSrv()
+	res.GenSrv()
 	return res
-}
-func (e *EtcdRegistry) genSrv() *registry.Service {
-	// default host:port
-	parts := strings.Split(e.Address, ":")
-	host := strings.Join(parts[:len(parts)-1], ":")
-	port, _ := strconv.Atoi(parts[len(parts)-1])
-
-	// check the advertise address first
-	// if it exists then use it, otherwise
-	// use the address
-	if len(e.Advertise) > 0 {
-		parts = strings.Split(e.Advertise, ":")
-
-		// we have host:port
-		if len(parts) > 1 {
-			// set the host
-			host = strings.Join(parts[:len(parts)-1], ":")
-
-			// get the port
-			if aport, _ := strconv.Atoi(parts[len(parts)-1]); aport > 0 {
-				port = aport
-			}
-		} else {
-			host = parts[0]
-		}
-	}
-
-	addressIp, err := addr.Extract(host)
-	if err != nil {
-		// best effort localhost
-		addressIp = "127.0.0.1"
-	}
-
-	return &registry.Service{
-		Name:    e.AppName,
-		Version: e.AppVersion,
-		Nodes: []*registry.Node{{
-			Id:       e.ServerId,
-			Address:  fmt.Sprintf("%s:%d", addressIp, port),
-			Metadata: e.Metadata,
-		}},
-	}
 }
 
 func NewOptions(opts ...registry.Option) registry.Options {
@@ -127,7 +125,52 @@ func NewOptions(opts ...registry.Option) registry.Options {
 	return opt
 }
 
-func (e EtcdRegistry) Init(opts ...registry.Option) error {
+func (r EtcdRegistry) GenSrv() {
+
+	// default host:port
+	parts := strings.Split(r.Address, ":")
+	host := strings.Join(parts[:len(parts)-1], ":")
+	port, _ := strconv.Atoi(parts[len(parts)-1])
+
+	// check the advertise address first
+	// if it exists then use it, otherwise
+	// use the address
+	if len(r.Advertise) > 0 {
+		parts = strings.Split(r.Advertise, ":")
+
+		// we have host:port
+		if len(parts) > 1 {
+			// set the host
+			host = strings.Join(parts[:len(parts)-1], ":")
+
+			// get the port
+			if aport, _ := strconv.Atoi(parts[len(parts)-1]); aport > 0 {
+				port = aport
+			}
+		} else {
+			host = parts[0]
+		}
+	}
+
+	addressIp, err := addr.Extract(host)
+	if err != nil {
+		addressIp = "127.0.0.1"
+	}
+
+	r.srv = &registry.Service{
+		Name:    r.AppName,
+		Version: r.AppVersion,
+		Nodes: []*registry.Node{{
+			Id:       r.ServerId,
+			Address:  fmt.Sprintf("%s:%d", addressIp, port),
+			Metadata: r.Metadata,
+		}},
+	}
+	return
+}
+
+func (r EtcdRegistry) Init(opts ...registry.Option) error {
+
 	//for _, o := range opts {
 	//	o(&e.opts)
 	//}
@@ -184,31 +227,38 @@ func (e EtcdRegistry) Init(opts ...registry.Option) error {
 	return nil
 }
 
-func (e EtcdRegistry) Options() registry.Options {
-	return e.opts
+func (r EtcdRegistry) Options() registry.Options {
+	return r.opts
 }
 
-func (e EtcdRegistry) Register(service *registry.Service, option ...registry.RegisterOption) (err error) {
-	panic("implement me")
+func (r EtcdRegistry) Register(service *registry.Service, option ...registry.RegisterOption) (err error) {
+	log.Println("implement me Register")
+	if err = etcd.NewTraefikEtcd(&micro_service.ServiceConfig).Action(); err != nil {
+		r.syslog.SetInfoType(base.LogLevelFatal).SystemOutFatalf("registry server err(%#v) \n", err)
+	}
+	return
 }
 
-func (e EtcdRegistry) Deregister(service *registry.Service, option ...registry.DeregisterOption) (err error) {
+func (r EtcdRegistry) Deregister(service *registry.Service, option ...registry.DeregisterOption) (err error) {
 	registry.Deregister(service)
 	return
 }
 
-func (e EtcdRegistry) GetService(s string, option ...registry.GetOption) ([]*registry.Service, error) {
-	panic("implement me")
+func (r EtcdRegistry) GetService(s string, option ...registry.GetOption) (res []*registry.Service,err error) {
+	log.Println("implement me GetService")
+	return
 }
 
-func (e EtcdRegistry) ListServices(option ...registry.ListOption) ([]*registry.Service, error) {
-	panic("implement me")
+func (r *EtcdRegistry) ListServices(option ...registry.ListOption) (res []*registry.Service, err error) {
+	log.Println("implement me ListServices")
+	return
 }
 
-func (e EtcdRegistry) Watch(option ...registry.WatchOption) (registry.Watcher, error) {
-	panic("implement me")
+func (r *EtcdRegistry) Watch(option ...registry.WatchOption) (res registry.Watcher,err error) {
+	log.Println("implement me Watch")
+	return
 }
 
-func (e EtcdRegistry) String() string {
-	panic("implement me")
+func (r *EtcdRegistry) String() string {
+	return "EtcdRegistry"
 }

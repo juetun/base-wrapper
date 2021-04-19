@@ -1,3 +1,6 @@
+// @Copyright (c) 2021.
+// @Author ${USER}
+// @Date ${DATE}
 package app_start
 
 import (
@@ -156,17 +159,17 @@ func (r *WebApplication) Run() (err error) {
 	r.syslog.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintln("General start ")
 
-	if !r.microRun() {
-		r.GinEngine.Run(r.getListenPortString()) // listen and serve on 0.0.0.0:8080
+	if !r.microRun(r.GinEngine) {
+		r.GinEngine.Run(r.GetListenPortString()) // listen and serve on 0.0.0.0:8080
 	}
 	return
 }
 
-func (r *WebApplication) microRun() (res bool) {
+func (r *WebApplication) microRun(engine *gin.Engine) (res bool) {
 	if r.FlagMicro { //如果支持微服务
 		r.syslog.SetInfoType(base.LogLevelInfo).
 			SystemOutPrintln("Run as micro!")
-		r.RunAsMicro()
+		r.RunAsMicro(engine)
 		return
 	}
 	res = true
@@ -178,14 +181,14 @@ func (r *WebApplication) start() {
 		SystemOutPrintln("Support grace reload")
 
 	srv := &http.Server{
-		Addr:    r.getListenPortString(),
+		Addr:    r.GetListenPortString(),
 		Handler: r.GinEngine,
 	}
 	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("Listen Addr  %s", srv.Addr)
 
 	go func() { // 启动GIN服务动作
 
-		if r.microRun() {
+		if r.microRun(r.GinEngine) {
 			// service connections
 			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 				r.syslog.SetInfoType(base.LogLevelInfo).SystemOutFatalf("listen: %s\n", err)
@@ -213,7 +216,7 @@ func (r *WebApplication) start() {
 
 	close(quit)
 }
-func (r *WebApplication) getListenPortString() string {
+func (r *WebApplication) GetListenPortString() string {
 	return ":" + strconv.Itoa(common.GetAppConfig().AppPort)
 }
 
