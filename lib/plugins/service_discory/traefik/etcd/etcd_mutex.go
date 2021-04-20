@@ -23,41 +23,41 @@ type MutexEtcd struct {
 }
 
 //初始化锁
-func (em *MutexEtcd) init() error {
-	em.m.Lock()
-	if em.Key == "" {
-		em.Key = "platLock"
+func (r *MutexEtcd) init() error {
+	r.m.Lock()
+	if r.Key == "" {
+		r.Key = "platLock"
 	}
 	var err error
 	var ctx context.Context
-	client, err := clientv3.New(em.Conf)
+	client, err := clientv3.New(r.Conf)
 	if err != nil {
 		return err
 	}
-	em.txn = clientv3.NewKV(client).Txn(context.TODO())
-	em.lease = clientv3.NewLease(client)
-	leaseResp, err := em.lease.Grant(context.TODO(), em.Ttl)
+	r.txn = clientv3.NewKV(client).Txn(context.TODO())
+	r.lease = clientv3.NewLease(client)
+	leaseResp, err := r.lease.Grant(context.TODO(), r.Ttl)
 	if err != nil {
 		return err
 	}
-	ctx, em.cancel = context.WithCancel(context.TODO())
-	em.leaseID = leaseResp.ID
-	_, err = em.lease.KeepAlive(ctx, em.leaseID)
+	ctx, r.cancel = context.WithCancel(context.TODO())
+	r.leaseID = leaseResp.ID
+	_, err = r.lease.KeepAlive(ctx, r.leaseID)
 	return err
 }
 
 //获取锁:
-func (em *MutexEtcd) Lock() (err error) {
+func (r *MutexEtcd) Lock() (err error) {
 
-	if err = em.init(); err != nil {
+	if err = r.init(); err != nil {
 		return
 	}
 	//LOCK:
-	em.txn.If(clientv3.Compare(clientv3.CreateRevision(em.Key), "=", 0)).
-		Then(clientv3.OpPut(em.Key, "", clientv3.WithLease(em.leaseID))).
+	r.txn.If(clientv3.Compare(clientv3.CreateRevision(r.Key), "=", 0)).
+		Then(clientv3.OpPut(r.Key, "", clientv3.WithLease(r.leaseID))).
 		Else()
 	var txnResp *clientv3.TxnResponse
-	if txnResp, err = em.txn.Commit(); err != nil {
+	if txnResp, err = r.txn.Commit(); err != nil {
 		return
 	}
 	if !txnResp.Succeeded { //判断txn.if条件是否成立
@@ -69,31 +69,31 @@ func (em *MutexEtcd) Lock() (err error) {
 }
 
 //释放锁：
-func (em *MutexEtcd) UnLock() {
-	em.cancel()
-	em.lease.Revoke(context.TODO(), em.leaseID)
-	em.m.Unlock()
+func (r *MutexEtcd) UnLock() {
+	r.cancel()
+	r.lease.Revoke(context.TODO(), r.leaseID)
+	r.m.Unlock()
 	fmt.Println("释放了锁")
 }
 
-func (em *MutexEtcd) callExample() {
+func (r *MutexEtcd) callExample() {
 	var conf = clientv3.Config{
-		Endpoints:   []string{"172.16.196.129:2380", "192.168.50.250:2380"},
+		Endpoints:   []string{"127.0.0.1:2379"},
 		DialTimeout: 5 * time.Second,
 	}
-	eMutex1 := &MutexEtcd{
+	rutex1 := &MutexEtcd{
 		Conf: conf,
 		Ttl:  10,
 		Key:  "lock",
 	}
-	eMutex2 := &MutexEtcd{
+	rutex2 := &MutexEtcd{
 		Conf: conf,
 		Ttl:  10,
 		Key:  "lock",
 	}
 	//groutine1
 	go func() {
-		err := eMutex1.Lock()
+		err := rutex1.Lock()
 		if err != nil {
 			fmt.Println("groutine1抢锁失败")
 			fmt.Println(err)
@@ -102,12 +102,12 @@ func (em *MutexEtcd) callExample() {
 		//可以做点其他事，比如访问和操作分布式资源
 		fmt.Println("groutine1抢锁成功")
 		time.Sleep(10 * time.Second)
-		defer eMutex1.UnLock()
+		defer rutex1.UnLock()
 	}()
 
 	//groutine2
 	go func() {
-		err := eMutex2.Lock()
+		err := rutex2.Lock()
 		if err != nil {
 			fmt.Println("groutine2抢锁失败")
 			fmt.Println(err)
@@ -115,7 +115,7 @@ func (em *MutexEtcd) callExample() {
 		}
 		//可以做点其他事，比如访问和操作分布式资源
 		fmt.Println("groutine2抢锁成功")
-		defer eMutex2.UnLock()
+		defer rutex2.UnLock()
 	}()
 	time.Sleep(30 * time.Second)
 }
