@@ -36,16 +36,15 @@ func (r *WebApplication) RunAsMicro(gin *gin.Engine) {
 	var err error
 	address := r.GetListenPortString()
 	srv := httpServer.NewServer(
-
 		server.Name(common.GetAppConfig().AppName),
 		server.Address(address),
-		server.RegisterTTL(time.Second*20),
-		server.RegisterInterval(time.Second*15),
+		server.RegisterTTL(time.Second*10),
+		server.RegisterInterval(time.Second*5),
 	)
 	r.syslog.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintf("Server address:%s", address)
-	hd := srv.NewHandler(gin)
-	if err = srv.Handle(hd); err != nil {
+
+	if err = srv.Handle(srv.NewHandler(gin)); err != nil {
 		r.syslog.SetInfoType(base.LogLevelFatal).
 			SystemOutFatalf("Register micro router failure!")
 		return
@@ -92,6 +91,8 @@ type EtcdRegistry struct {
 	exit    chan chan error
 
 	syslog *base.SystemOut
+
+	etcdTraefik *etcd.TraefikEtcd
 }
 
 func newEtcdRegistry(syslog *base.SystemOut, opts ...registry.Option) registry.Registry {
@@ -109,13 +110,11 @@ func newEtcdRegistry(syslog *base.SystemOut, opts ...registry.Option) registry.R
 
 func NewOptions(opts ...registry.Option) registry.Options {
 	opt := registry.Options{
-		Addrs:   []string{""},
-		Timeout: 30 * time.Second,
-		Secure:  false,
-		TLSConfig: &tls.Config{
-
-		},
-		Context: context.Background(),
+		Addrs:     []string{""},
+		Timeout:   22 * time.Second,
+		Secure:    false,
+		TLSConfig: &tls.Config{},
+		Context:   context.Background(),
 	}
 
 	for _, o := range opts {
@@ -152,8 +151,10 @@ func (r EtcdRegistry) GenSrv() {
 		}
 	}
 
-	addressIp, err := addr.Extract(host)
-	if err != nil {
+	var addressIp string
+	var err error
+
+	if addressIp, err = addr.Extract(host); err != nil {
 		addressIp = "127.0.0.1"
 	}
 
@@ -170,59 +171,10 @@ func (r EtcdRegistry) GenSrv() {
 }
 
 func (r EtcdRegistry) Init(opts ...registry.Option) error {
-
-	//for _, o := range opts {
-	//	o(&e.opts)
-	//}
-	//
-	//serviceOpts := []micro.Option{}
-	//
-	//if len(e.opts.Flags) > 0 {
-	//	serviceOpts = append(serviceOpts, micro.Flags(s.opts.Flags...))
-	//}
-	//
-	//if s.opts.Registry != nil {
-	//	serviceOpts = append(serviceOpts, micro.Registry(s.opts.Registry))
-	//}
-	//
-	//serviceOpts = append(serviceOpts, micro.Action(func(ctx *cli.Context) {
-	//	if ttl := ctx.Int("register_ttl"); ttl > 0 {
-	//		e.opts.RegisterTTL = time.Duration(ttl) * time.Second
-	//	}
-	//
-	//	if interval := ctx.Int("register_interval"); interval > 0 {
-	//		e.opts.RegisterInterval = time.Duration(interval) * time.Second
-	//	}
-	//
-	//	if name := ctx.String("server_name"); len(name) > 0 {
-	//		e.opts.Name = name
-	//	}
-	//
-	//	if ver := ctx.String("server_version"); len(ver) > 0 {
-	//		e.opts.Version = ver
-	//	}
-	//
-	//	if id := ctx.String("server_id"); len(id) > 0 {
-	//		e.opts.Id = id
-	//	}
-	//
-	//	if addr := ctx.String("server_address"); len(addr) > 0 {
-	//		e.opts.Address = addr
-	//	}
-	//
-	//	if adv := ctx.String("server_advertise"); len(adv) > 0 {
-	//		e.opts.Advertise = adv
-	//	}
-	//
-	//	if e.opts.Action != nil {
-	//		e.opts.Action(ctx)
-	//	}
-	//}))
-	//
-	//e.opts.Service.Init(serviceOpts...)
-	//srv := e.genSrv()
-	//srv.Endpoints = e.srv.Endpoints
-	//e.srv = srv
+	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintln("EtcdRegistry implement me Init")
+	for _, o := range opts {
+		o(&r.opts)
+	}
 
 	return nil
 }
@@ -232,8 +184,13 @@ func (r EtcdRegistry) Options() registry.Options {
 }
 
 func (r EtcdRegistry) Register(service *registry.Service, option ...registry.RegisterOption) (err error) {
+
 	log.Println("implement me Register")
-	if err = etcd.NewTraefikEtcd(&micro_service.ServiceConfig).Action(); err != nil {
+	if r.etcdTraefik == nil {
+		r.etcdTraefik = etcd.NewTraefikEtcd(&micro_service.ServiceConfig, r.syslog)
+	}
+	//if err = etcd.NewTraefikEtcd(&micro_service.ServiceConfig).Action(); err != nil {
+	if err = r.etcdTraefik.Action(); err != nil {
 		r.syslog.SetInfoType(base.LogLevelFatal).SystemOutFatalf("registry server err(%#v) \n", err)
 	}
 	return
@@ -244,7 +201,7 @@ func (r EtcdRegistry) Deregister(service *registry.Service, option ...registry.D
 	return
 }
 
-func (r EtcdRegistry) GetService(s string, option ...registry.GetOption) (res []*registry.Service,err error) {
+func (r EtcdRegistry) GetService(s string, option ...registry.GetOption) (res []*registry.Service, err error) {
 	log.Println("implement me GetService")
 	return
 }
@@ -254,7 +211,7 @@ func (r *EtcdRegistry) ListServices(option ...registry.ListOption) (res []*regis
 	return
 }
 
-func (r *EtcdRegistry) Watch(option ...registry.WatchOption) (res registry.Watcher,err error) {
+func (r *EtcdRegistry) Watch(option ...registry.WatchOption) (res registry.Watcher, err error) {
 	log.Println("implement me Watch")
 	return
 }
