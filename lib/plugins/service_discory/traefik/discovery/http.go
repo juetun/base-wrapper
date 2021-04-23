@@ -3,7 +3,11 @@
 // @Date ${DATE}
 package discovery
 
-import "time"
+import (
+	"encoding/json"
+	"strconv"
+	"time"
+)
 
 type HttpTraefik struct {
 	Routers           map[string]HttpTraefikRouters           `json:"routers" yaml:"routers,omitempty" key_value:"routers,omitempty"`
@@ -88,12 +92,13 @@ func (r *HttpTraefik) mergeRouter(src, new HttpTraefikRouters) (res HttpTraefikR
 		Rule:     new.Rule,
 		Priority: new.Priority,
 	}
+	res.mergeTls(src.Tls, new.Tls)
+	res.mergeEntryPoints(src.EntryPoints, new.EntryPoints)
+	res.mergeMiddlewares(src.Middlewares, new.Middlewares)
 
 	//EntryPoints []string `json:"entry_points" yaml:"entryPoints,omitempty" key_value:"entryPoints,omitempty"`
 	//Middlewares []string `json:"middlewares" yaml:"middlewares,omitempty" key_value:"middlewares,omitempty"`
-	//Service     string   `json:"service" yaml:"service,omitempty" key_value:"service,omitempty"`
-	//Rule        string   `json:"rule" yaml:"rule,omitempty" key_value:"rule,omitempty"`
-	//Priority    int      `json:"priority" yaml:"priority,omitempty" key_value:"priority,omitempty"`
+
 	//Tls         *HttpTls `json:"tls" yaml:"tls,omitempty" key_value:"tls,omitempty"`
 	return
 }
@@ -128,13 +133,69 @@ type HttpTraefikServersTransportsCertificates struct {
 type HttpTraefikMiddleware interface{} //`json:"plugin" yaml:"plugin,omitempty" key_value:"plugin,omitempty"`
 
 type HttpTraefikRouters struct {
-	Service     string   `json:"service" yaml:"service,omitempty" key_value:"service,omitempty"`
-	Rule        string   `json:"rule" yaml:"rule,omitempty" key_value:"rule,omitempty"`
-	Priority    int      `json:"priority" yaml:"priority,omitempty" key_value:"priority,omitempty"`
-	Tls         *HttpTls `json:"tls" yaml:"tls,omitempty" key_value:"tls,omitempty"`
-	EntryPoints []string `json:"entryPoints" yaml:"entryPoints,omitempty" key_value:"entryPoints,omitempty"`
-	Middlewares []string `json:"middlewares" yaml:"middlewares,omitempty" key_value:"middlewares,omitempty"`
+	Service     string            `json:"service" yaml:"service,omitempty" key_value:"service,omitempty"`
+	Rule        string            `json:"rule" yaml:"rule,omitempty" key_value:"rule,omitempty"`
+	Priority    int               `json:"priority" yaml:"priority,omitempty" key_value:"priority,omitempty"`
+	Tls         *HttpTls          `json:"tls" yaml:"tls,omitempty" key_value:"tls,omitempty"`
+	EntryPoints map[string]string `json:"entryPoints" yaml:"entryPoints,omitempty" key_value:"entryPoints,omitempty"`
+	Middlewares map[string]string `json:"middlewares" yaml:"middlewares,omitempty" key_value:"middlewares,omitempty"`
 }
+
+func (r *HttpTraefikRouters) mergeTls(src, new *HttpTls) {
+	if new == nil {
+		return
+	}
+	if r.Tls == nil {
+		r.Tls = &HttpTls{}
+	}
+	r.Tls.Options = new.Options
+	r.Tls.CertResolver = new.CertResolver
+	r.Tls.mergeDomains(src.Domains, new.Domains)
+	return
+}
+func (r *HttpTraefikRouters) mergeMiddlewares(src, new map[string]string) {
+	if len(new) == 0 {
+		return
+	}
+	ls := len(src)
+	var l = ls + len(new)
+	if len(r.Middlewares) == 0 {
+		r.Middlewares = make(map[string]string, l)
+	}
+	var m = make(map[string]string, ls)
+	for _, i2 := range src {
+		m[i2] = i2
+	}
+	var ind int
+	for _, s := range new {
+		if _, ok := m[s]; !ok {
+			r.Middlewares[strconv.Itoa(ls+ind)] = s
+			ind++
+		}
+	}
+}
+func (r *HttpTraefikRouters) mergeEntryPoints(src, new map[string]string) {
+	if len(new) == 0 {
+		return
+	}
+	ls := len(src)
+	var l = ls + len(new)
+	if len(r.EntryPoints) == 0 {
+		r.EntryPoints = make(map[string]string, l)
+	}
+	var m = make(map[string]string, ls)
+	for _, i2 := range src {
+		m[i2] = i2
+	}
+	var ind int
+	for _, s := range new {
+		if _, ok := m[s]; !ok {
+			r.EntryPoints[strconv.Itoa(ls+ind)] = s
+			ind++
+		}
+	}
+}
+
 type HttpTraefikServiceConfig struct {
 	LoadBalancer *HttpLoadBalancer `json:"loadBalancer" yaml:"loadBalancer,omitempty" key_value:"loadBalancer,omitempty"`
 	Mirroring    *HttpMirroring    `json:"mirroring" yaml:"mirroring,omitempty" key_value:"mirroring,omitempty"`
@@ -161,12 +222,12 @@ type HttpWeightedService struct {
 }
 
 type HttpLoadBalancer struct {
-	Sticky             *HttpSticky              `json:"sticky" yaml:"sticky,omitempty" key_value:"sticky,omitempty"`
-	Servers            []HttpLoadBalancerServer `json:"servers" yaml:"servers,omitempty" key_value:"servers,omitempty"`
-	HealthCheck        *HttpHealthCheck         `json:"healthCheck" yaml:"healthCheck,omitempty" key_value:"healthCheck,omitempty"`
-	PassHostHeader     bool                     `json:"passHostHeader" yaml:"passHostHeader,omitempty" key_value:"passHostHeader,omitempty"`
-	ResponseForwarding HttpResponseForwarding   `json:"responseForwarding" yaml:"responseForwarding,omitempty" key_value:"responseForwarding,omitempty"`
-	ServersTransport   string                   `json:"serversTransport" yaml:"serversTransport,omitempty" key_value:"serversTransport,omitempty"`
+	Sticky             *HttpSticky                    `json:"sticky" yaml:"sticky,omitempty" key_value:"sticky,omitempty"`
+	Servers            map[int]HttpLoadBalancerServer `json:"servers" yaml:"servers,omitempty" key_value:"servers,omitempty"`
+	HealthCheck        *HttpHealthCheck               `json:"healthCheck" yaml:"healthCheck,omitempty" key_value:"healthCheck,omitempty"`
+	PassHostHeader     bool                           `json:"passHostHeader" yaml:"passHostHeader,omitempty" key_value:"passHostHeader,omitempty"`
+	ResponseForwarding HttpResponseForwarding         `json:"responseForwarding" yaml:"responseForwarding,omitempty" key_value:"responseForwarding,omitempty"`
+	ServersTransport   string                         `json:"serversTransport" yaml:"serversTransport,omitempty" key_value:"serversTransport,omitempty"`
 }
 
 type HttpResponseForwarding struct {
@@ -198,13 +259,39 @@ type HttpLoadBalancerServer struct {
 
 type HttpTls struct {
 	//Value        bool                `json:"value" yaml:"-" key_value:"value,omitempty"`
-	Options      string              `json:"options" yaml:"options,omitempty" key_value:"options,omitempty"`
-	CertResolver string              `json:"certResolver" yaml:"certResolver,omitempty" key_value:"certResolver,omitempty"`
-	Domains      []HttpDomainTlsItem `json:"domains" yaml:"domains,omitempty" key_value:"domains,omitempty"`
+	Options      string                    `json:"options" yaml:"options,omitempty" key_value:"options,omitempty"`
+	CertResolver string                    `json:"certResolver" yaml:"certResolver,omitempty" key_value:"certResolver,omitempty"`
+	Domains      map[string]HttpDomainTlsItem `json:"domains" yaml:"domains,omitempty" key_value:"domains,omitempty"`
+}
+
+func (r *HttpTls) mergeDomains(src, new map[string]HttpDomainTlsItem) {
+	if len(new) == 0 {
+		return
+	}
+	lr := len(src)
+	l := lr + len(new)
+	r.Domains = make(map[string]HttpDomainTlsItem, l)
+	var m = make(map[string]HttpDomainTlsItem, l)
+	for _, item := range src {
+		m[item.ToString()] = item
+	}
+	var ind int
+	for _, item := range new {
+		if _, ok := m[item.ToString()]; !ok {
+			r.Domains[strconv.Itoa(lr+ind)] = item
+			ind++
+		}
+	}
 }
 
 type HttpDomainTlsItem struct {
 	Main        string   `json:"main" yaml:"main,omitempty" key_value:"main,omitempty"`
 	Sans        []string `json:"sans" yaml:"sans,omitempty" key_value:"sans,omitempty"`
 	DomainValue string   `json:"value" yaml:"value,omitempty" key_value:"value,omitempty"`
+}
+
+func (r *HttpDomainTlsItem) ToString() (res string) {
+	bt, _ := json.Marshal(r)
+	res = string(bt)
+	return
 }

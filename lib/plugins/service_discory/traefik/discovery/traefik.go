@@ -43,22 +43,22 @@ func NewTraefikConfigTest() (res *TraefikConfig) {
 				Routers: map[string]HttpTraefikRouters{
 					"Router0": {
 						Rule: "foobar",
-						EntryPoints: []string{
-							"foobar",
-							"foobar",
+						EntryPoints: map[string]string{
+							"0": "foobar",
+							"1": "foobar",
 						},
 						Service:     "foobar",
-						Middlewares: []string{"foobar", "foobar"},
+						Middlewares: map[string]string{"0": "foobar", "1": "foobar"},
 						Priority:    42,
 						Tls: &HttpTls{
 							Options:      "foobar",
 							CertResolver: "foobar",
-							Domains: []HttpDomainTlsItem{
-								{
+							Domains: map[string]HttpDomainTlsItem{
+								"0": {
 									Main: "foobar",
 									Sans: []string{"foobar", "foobar"},
 								},
-								{
+								"1": {
 									Main: "foobar",
 									Sans: []string{"foobar", "foobar"},
 								},
@@ -67,22 +67,22 @@ func NewTraefikConfigTest() (res *TraefikConfig) {
 					},
 					"Router1": {
 						Rule: "foobar",
-						EntryPoints: []string{
-							"foobar",
-							"foobar",
+						EntryPoints: map[string]string{
+							"0": "foobar",
+							"1": "foobar",
 						},
 						Service:     "foobar",
-						Middlewares: []string{"foobar", "foobar"},
+						Middlewares: map[string]string{"0": "foobar", "1": "foobar"},
 						Priority:    42,
 						Tls: &HttpTls{
 							Options:      "foobar",
 							CertResolver: "foobar",
-							Domains: []HttpDomainTlsItem{
-								{
+							Domains: map[string]HttpDomainTlsItem{
+								"0": {
 									Main: "foobar",
 									Sans: []string{"foobar", "foobar"},
 								},
-								{
+								"1": {
 									Main: "foobar",
 									Sans: []string{"foobar", "foobar"},
 								},
@@ -101,11 +101,11 @@ func NewTraefikConfigTest() (res *TraefikConfig) {
 									HttpOnly: true,
 								},
 							},
-							Servers: []HttpLoadBalancerServer{
-								{
+							Servers: map[int]HttpLoadBalancerServer{
+								0: {
 									Url: "foobar",
 								},
-								{
+								1: {
 									Url: "foobar",
 								},
 							},
@@ -675,11 +675,14 @@ func (r *TraefikConfig) ergodic(data interface{}, prefixName string, res map[str
 	var fieldStruct reflect.StructField
 	var valueStruct reflect.Value
 	fieldNum := types.NumField()
+
+
 	for i := 0; i < fieldNum; i++ {
 
 		fieldStruct = types.Field(i)
 		tag := fieldStruct.Tag.Get(tagValue)
 		name, newPrefixName, omitempty, ignore := r.reflectName(tag, prefixName, &fieldStruct)
+
 		if ignore {
 			continue
 		}
@@ -697,7 +700,15 @@ func (r *TraefikConfig) ergodic(data interface{}, prefixName string, res map[str
 		case reflect.Map:
 			for _, key := range valueStruct.MapKeys() {
 				iValue = valueStruct.MapIndex(key)
-				keyName := r.getPrefixName(newPrefixName, key.String())
+
+				var kStr string
+				switch key.Kind(){
+				case reflect.Int64,reflect.Int:
+					kStr=fmt.Sprintf("%d",key.Int())
+				default:
+					kStr= key.String()
+				}
+				keyName := r.getPrefixName(newPrefixName, kStr)
 				if r.generalType(iValue) {
 					res[keyName] = iValue.String()
 					continue
@@ -714,7 +725,9 @@ func (r *TraefikConfig) ergodic(data interface{}, prefixName string, res map[str
 				}
 				r.ergodic(iValue.Interface(), keyName, res)
 			}
-
+		//case reflect.Int, reflect.Int64:
+		//	res[newPrefixName] = fmt.Sprintf("%d", valueStruct.Int())
+		//
 		case reflect.Bool:
 			if name == "value" {
 				//如果是空,则跳过了
@@ -729,6 +742,7 @@ func (r *TraefikConfig) ergodic(data interface{}, prefixName string, res map[str
 			//fmt.Println(name,valueStruct.Interface().(type))
 			r.ergodic(valueStruct.Interface(), newPrefixName, res)
 		default:
+
 			if name == "value" {
 				//如果是空,则跳过了
 				res[prefixName] = r.formatValueToString(name, valueStruct, fieldStruct)

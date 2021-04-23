@@ -14,6 +14,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/plugins/service_discory"
 	"github.com/juetun/base-wrapper/lib/plugins/service_discory/traefik/discovery"
 	"github.com/juetun/base-wrapper/lib/utils"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -36,20 +37,18 @@ type TraefikEtcd struct {
 
 func NewTraefikEtcd(serverRegistry *service_discory.ServerRegistry, syslog *base.SystemOut) (res *TraefikEtcd) {
 	res = &TraefikEtcd{}
+	var endpoints = make([]string, 0, len(serverRegistry.EtcdEndPoints))
+	for _, endpoint := range serverRegistry.Endpoints {
+		endpoints = append(endpoints, endpoint)
+	}
 	res.Client, res.Err = clientv3.New(clientv3.Config{
-		Endpoints:   serverRegistry.Endpoints,
+		Endpoints:   endpoints,
 		DialTimeout: 2 * time.Second,
 	})
 	res.ctx = context.Background()
 	res.Lease = clientv3.NewLease(res.Client)
 	res.Dir = serverRegistry.Dir
 	res.syslog = syslog
-	return
-}
-
-func (r *TraefikEtcd) getEtcdValueMapObject(etcdMapValue map[string]string) (res *discovery.TraefikConfig, err error) {
-	res = &discovery.TraefikConfig{}
-	res.Http, err = r.parseMapToJsonByte(discovery.HttpPrefix, etcdMapValue)
 	return
 }
 
@@ -82,21 +81,21 @@ func (r *TraefikEtcd) getChildString(slice []KeyStruct) (res string) {
 
 	}
 	sSlice := make([]string, 0, len(slice))
-	var isDigit bool
+	//var isDigit bool
 	for k, it := range dt {
 		if utils.IsDigit(k) {
-			isDigit = true
-			sSlice = append(sSlice, fmt.Sprintf(`%s`, r.getChildString(it)))
+			//isDigit = true
+			sSlice = append(sSlice, fmt.Sprintf(`%s:%s`, k, r.getChildString(it)))
 		} else {
 			sSlice = append(sSlice, fmt.Sprintf(`"%s":%s`, k, r.getChildString(it)))
 		}
 
 	}
-	if isDigit {
-		res = fmt.Sprintf(`[%s]`, strings.Join(sSlice, ","))
-	} else {
-		res = fmt.Sprintf(`{%s}`, strings.Join(sSlice, ","))
-	}
+	//if isDigit {
+	//	res = fmt.Sprintf(`[%s]`, strings.Join(sSlice, ","))
+	//} else {
+	res = fmt.Sprintf(`{%s}`, strings.Join(sSlice, ","))
+	//}
 
 	return
 }
@@ -121,23 +120,37 @@ func (r *TraefikEtcd) parseMapToJsonByte(prefix string, mapv map[string]string) 
 	return
 }
 
+type MicroServerSingleton struct {
+	CurrentServer *discovery.HttpTraefik `json:"current_server"`
+	ServiceName   string                 `json:"service_name"`
+	KeyPrefixs    []string               `json:"key_prefixs"`
+}
+
+var serverConfig *MicroServerSingleton
+
 func (r *TraefikEtcd) Action() (err error) {
-	currentServer, serviceName, keyPrefixs := r.readyServerData()
+
+	if serverConfig == nil { //只执行一次动作
+		serverConfig = &MicroServerSingleton{}
+		serverConfig.CurrentServer, serverConfig.ServiceName, serverConfig.KeyPrefixs = r.readyServerData()
+	}
 
 	//实现悲观锁锁定数据
-	lid := r.lockService(serviceName)
-	defer r.unLockService(serviceName, lid)
+	lid := r.lockService(serverConfig.ServiceName)
+	defer r.unLockService(serverConfig.ServiceName, lid)
 
 	var etcdMapValue map[string]string
 	var etcdObject *discovery.TraefikConfig
 
-	if etcdMapValue, err = r.getAllKey(keyPrefixs); err != nil {
+	if etcdMapValue, err = r.getAllKey(serverConfig.KeyPrefixs); err != nil {
 		return
 	}
-	if etcdObject, err = r.getEtcdValueMapObject(etcdMapValue); err != nil {
+	etcdObject = &discovery.TraefikConfig{}
+	etcdObject.Http, err = r.parseMapToJsonByte(discovery.HttpPrefix, etcdMapValue)
+	if err != nil {
 		return
 	}
-	mapValue := r.getTraefikConfigToKeyValue(etcdObject, currentServer)
+	mapValue := r.getTraefikConfigToKeyValue(etcdObject, serverConfig.CurrentServer)
 	err = r.PutByTxt(mapValue)
 	return
 }
@@ -174,16 +187,21 @@ func (r *TraefikEtcd) getAllKey(prefixs []string) (res map[string]string, err er
 	}
 	return
 }
+func (r *TraefikEtcd) sliceToMap(data []string) (res map[string]string) {
+	res = make(map[string]string, len(data))
+	for i, name := range data {
+		res[strconv.Itoa(i)] = name
+	}
+	return
+}
 func (r *TraefikEtcd) getRouter(serviceName string, middlewaresNames ...string) (res map[string]discovery.HttpTraefikRouters, routerName string) {
 	routerName = fmt.Sprintf("go-%s", serviceName)
-
 	router := discovery.HttpTraefikRouters{
-		EntryPoints: micro_service.ServiceConfig.EtcdEndPoints,
+		EntryPoints: r.sliceToMap(micro_service.ServiceConfig.EtcdEndPoints),
 		Rule:        fmt.Sprintf("Host(`%s`) && PathPrefix(`/%s`)", micro_service.ServiceConfig.Host, app_obj.App.AppName),
 		Service:     serviceName,
-		Middlewares: middlewaresNames,
+		Middlewares: r.sliceToMap(middlewaresNames),
 	}
-
 	res = map[string]discovery.HttpTraefikRouters{
 		routerName: router,
 	}
@@ -195,8 +213,8 @@ func (r *TraefikEtcd) getServices() (res map[string]discovery.HttpTraefikService
 	ip, _ := utils.GetLocalIP()
 	service := discovery.HttpTraefikServiceConfig{
 		LoadBalancer: &discovery.HttpLoadBalancer{
-			Servers: []discovery.HttpLoadBalancerServer{
-				{
+			Servers: map[int]discovery.HttpLoadBalancerServer{
+				0: {
 					Url: fmt.Sprintf("http://%s:%d", ip, app_obj.App.AppPort),
 				},
 			},

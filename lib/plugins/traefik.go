@@ -30,10 +30,12 @@ func loadRegistryConfig() (err error) {
 	var yamlFile []byte
 	if yamlFile, err = ioutil.ReadFile(common.GetConfigFilePath("registry.yaml")); err != nil {
 		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   #%v \n", err)
+		return
 	}
 
 	if err = yaml.Unmarshal(yamlFile, &micro_service.ServiceConfig); err != nil {
 		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Load micro server registry err(%#v) \n", err)
+		return
 	}
 
 	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("registry server (%#v) \n", micro_service.ServiceConfig)
