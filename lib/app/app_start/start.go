@@ -50,7 +50,7 @@ func (r *PluginsOperate) LoadPlugins() (res *PluginsOperate) {
 	}
 	var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
 	stytemLog.Printf("")
-	stytemLog.Printf("----开始加载插 ----")
+	stytemLog.Printf("----开始加载插件 ----")
 	stytemLog.Printf("")
 	var err error
 	for _, handle := range *PluginsHandleStruct {

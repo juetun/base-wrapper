@@ -44,7 +44,6 @@ func NewTraefikEtcd(serverRegistry *service_discory.ServerRegistry, syslog *base
 	res.Lease = clientv3.NewLease(res.Client)
 	res.Dir = serverRegistry.Dir
 	res.syslog = syslog
-	res.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("etcd dir is:'%s'\n", res.Dir)
 	return
 }
 
@@ -114,7 +113,8 @@ func (r *TraefikEtcd) parseMapToJsonByte(prefix string, mapv map[string]string) 
 		})
 	}
 	stringJson := r.getChildString(slice)
-	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("etcd data parse to json is : ", stringJson)
+
+	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("从etcd中获取json为: %s", stringJson)
 	if err = json.Unmarshal([]byte(stringJson), &res); err != nil {
 		return
 	}
@@ -133,10 +133,10 @@ func (r *TraefikEtcd) Action() (err error) {
 
 	if etcdMapValue, err = r.getAllKey(keyPrefixs); err != nil {
 		return
-	} else if etcdObject, err = r.getEtcdValueMapObject(etcdMapValue); err != nil {
+	}
+	if etcdObject, err = r.getEtcdValueMapObject(etcdMapValue); err != nil {
 		return
 	}
-
 	mapValue := r.getTraefikConfigToKeyValue(etcdObject, currentServer)
 	err = r.PutByTxt(mapValue)
 	return
@@ -166,14 +166,17 @@ func (r *TraefikEtcd) getAllKey(prefixs []string) (res map[string]string, err er
 			return
 		}
 		for _, it := range dt.Kvs {
-			r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("etcd value:`%s = %v` \n", it.Key, it.Value)
-			res[string(it.Key)] = string(it.Value)
+			k := string(it.Key)
+			v := string(it.Value)
+			r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("etcd value:`%s = %v` [prefix:%s]\n", prefix, k, v)
+			res[k] = v
 		}
 	}
 	return
 }
 func (r *TraefikEtcd) getRouter(serviceName string, middlewaresNames ...string) (res map[string]discovery.HttpTraefikRouters, routerName string) {
 	routerName = fmt.Sprintf("go-%s", serviceName)
+
 	router := discovery.HttpTraefikRouters{
 		EntryPoints: micro_service.ServiceConfig.EtcdEndPoints,
 		Rule:        fmt.Sprintf("Host(`%s`) && PathPrefix(`/%s`)", micro_service.ServiceConfig.Host, app_obj.App.AppName),
@@ -252,12 +255,15 @@ func (r *TraefikEtcd) getPrefixKeys(serviceName, routerName string, middlewaresN
 
 //将数据通过事务的方式提交到ETCD
 func (r *TraefikEtcd) PutByTxt(mapValue map[string]string) (err error) {
-	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("registry server message to etcd")
+	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("开始将参数注册到ETCD【START】")
+	defer func() {
+		r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("将参数注册到ETCD【OVER】")
+	}()
 	var (
 		leaseGrantResp *clientv3.LeaseGrantResponse
 	)
 	// 申请一个5秒的租约
-	if leaseGrantResp, err = r.Lease.Grant(context.TODO(), 30); err != nil {
+	if leaseGrantResp, err = r.Lease.Grant(context.TODO(), 60); err != nil {
 		r.syslog.SetInfoType(base.LogLevelError).SystemOutPrintf(err.Error())
 		return
 	}

@@ -44,8 +44,10 @@ func NewWebApplication(privateMiddleWares ...gin.HandlerFunc) *WebApplication {
 		gin.SetMode(gin.ReleaseMode)
 	case "test":
 		gin.SetMode(gin.TestMode)
-	default:
+	case "dev":
 		gin.SetMode(gin.DebugMode)
+	default:
+		gin.SetMode(gin.ReleaseMode)
 	}
 	webApp := &WebApplication{
 		GinEngine: gin.New(),

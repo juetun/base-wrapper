@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	HttpPrefix = "traefik.http"
+	HttpPrefix = "traefik/http/"
 )
 
 type TraefikDynamic struct {
