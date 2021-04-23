@@ -35,14 +35,16 @@ var (
 func (r *WebApplication) RunAsMicro(gin *gin.Engine) {
 	var err error
 	address := r.GetListenPortString()
+
 	srv := httpServer.NewServer(
 		server.Name(common.GetAppConfig().AppName),
 		server.Address(address),
 		server.RegisterTTL(time.Second*10),
 		server.RegisterInterval(time.Second*5),
 	)
+
 	r.syslog.SetInfoType(base.LogLevelInfo).
-		SystemOutPrintf("Server address:%s", address)
+		SystemOutPrintf("Server address `%s`", address)
 
 	if err = srv.Handle(srv.NewHandler(gin)); err != nil {
 		r.syslog.SetInfoType(base.LogLevelFatal).
@@ -50,8 +52,7 @@ func (r *WebApplication) RunAsMicro(gin *gin.Engine) {
 		return
 	}
 
-	service := micro.NewService(
-		micro.Server(srv),
+	service := micro.NewService(micro.Server(srv),
 		micro.Registry(
 			newEtcdRegistry(
 				r.syslog,
@@ -59,16 +60,10 @@ func (r *WebApplication) RunAsMicro(gin *gin.Engine) {
 				registry.Timeout(20*time.Second),
 				registry.Secure(true),
 			),
-		),
-	)
-	//if err = etcd.NewTraefikEtcd(&micro_service.ServiceConfig).Action(); err != nil {
-	//	r.syslog.SetInfoType(base.LogLevelFatal).SystemOutFatalf("registry server err(%#v) \n", err)
-	//}
+		))
 	service.Init()
 	r.syslog.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintf("Server init finished")
-	fmt.Println("")
-	fmt.Println("")
 	service.Run()
 
 }

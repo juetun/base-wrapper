@@ -16,6 +16,10 @@ import (
 	"time"
 )
 
+const (
+	HttpPrefix = "traefik.http"
+)
+
 type TraefikDynamic struct {
 	Http HttpTraefik `yaml:"http,omitempty" key_value:"http,omitempty"`
 	Tcp  TcpTraefik  `yaml:"tcp,omitempty" key_value:"tcp,omitempty"`

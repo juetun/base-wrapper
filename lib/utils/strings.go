@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
+	"unicode"
 )
 
 //生成32位MD5摘要
@@ -34,6 +35,40 @@ func round(a int, b int) int {
 	} else {
 		return dis
 	}
+}
+
+//判断一个字符串是否为数字
+// +0.00001是数字
+// -0.1111是数字
+// -0.11.11不是数字
+
+func IsDigit(str string) (res bool) {
+	dotNum := 0
+	doUnicode := '.'
+	doUnicodeAdd := '+'
+	doUnicodeDesc := '-'
+	runeString := []rune(str)
+	for k, x := range runeString {
+		if k == 0 && (x == doUnicodeAdd || x == doUnicodeDesc) { //首字母为"+"或"-"
+			continue
+		}
+		if !unicode.IsDigit(x) {
+			if x == doUnicode { //如果是小数点
+				//如果小数点在第一位或者最后一位，则不是数字
+				if k == 0 || k == len(runeString)-1 {
+					return
+				}
+				dotNum++
+				continue
+			}
+			return
+		}
+	}
+	if dotNum > 1 {
+		return
+	}
+	res = true
+	return
 }
 
 type Paginate struct {

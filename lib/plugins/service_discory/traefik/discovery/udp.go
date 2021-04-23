@@ -8,7 +8,7 @@ type UdpTraefik struct {
 	Services map[string]UdpTraefikServiceConfig `yaml:"services,omitempty" key_value:"services,omitempty"`
 }
 type UdpTraefikRouters struct {
-	EntryPoints []string `json:"entry_points" yaml:"entryPoints,omitempty" key_value:"entryPoints,omitempty"`
+	EntryPoints []string `json:"entryPoints" yaml:"entryPoints,omitempty" key_value:"entryPoints,omitempty"`
 	Service     string   `json:"service" yaml:"service,omitempty" key_value:"service,omitempty"`
 }
 type UdpTraefikServiceConfig struct {
