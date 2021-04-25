@@ -5,6 +5,7 @@ package discovery
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"time"
 )
@@ -87,10 +88,6 @@ func (r *HttpTraefik) mergeRouter(src, new HttpTraefikRouters) (res HttpTraefikR
 	res.mergeEntryPoints(src.EntryPoints, new.EntryPoints)
 	res.mergeMiddlewares(src.Middlewares, new.Middlewares)
 
-	//EntryPoints []string `json:"entry_points" yaml:"entryPoints,omitempty" key_value:"entryPoints,omitempty"`
-	//Middlewares []string `json:"middlewares" yaml:"middlewares,omitempty" key_value:"middlewares,omitempty"`
-
-	//Tls         *HttpTls `json:"tls" yaml:"tls,omitempty" key_value:"tls,omitempty"`
 	return
 }
 
@@ -221,6 +218,9 @@ func (r *HttpTraefikRouters) mergeTls(src, new *HttpTls) {
 	}
 	r.Tls.Options = new.Options
 	r.Tls.CertResolver = new.CertResolver
+	if src == nil {
+		src = &HttpTls{}
+	}
 	r.Tls.mergeDomains(src.Domains, new.Domains)
 	return
 }
@@ -283,6 +283,9 @@ func (r *HttpTraefikServiceConfig) mergeLoadBalancer(src, new *HttpLoadBalancer)
 	if new == nil {
 		return
 	}
+	if src == nil {
+		src = &HttpLoadBalancer{}
+	}
 	r.LoadBalancer = &HttpLoadBalancer{
 		PassHostHeader:   new.PassHostHeader,
 		ServersTransport: new.ServersTransport,
@@ -294,7 +297,15 @@ func (r *HttpTraefikServiceConfig) mergeLoadBalancer(src, new *HttpLoadBalancer)
 
 }
 func (r *HttpLoadBalancer) mergeResponseForwarding(src, new *HttpResponseForwarding) {
-
+	if new == nil {
+		return
+	}
+	if src == nil {
+		src = &HttpResponseForwarding{}
+	}
+	r.ResponseForwarding = &HttpResponseForwarding{
+		FlushInterval: new.FlushInterval,
+	}
 }
 func (r *HttpTraefikServiceConfig) mergeMirroring(src, new *HttpMirroring) {
 	if new == nil {
@@ -304,12 +315,18 @@ func (r *HttpTraefikServiceConfig) mergeMirroring(src, new *HttpMirroring) {
 		Service:     new.Service,
 		MaxBodySize: new.MaxBodySize,
 	}
+	if src == nil {
+		src = &HttpMirroring{}
+	}
 	r.Mirroring.mergeMirrors(src.Mirrors, new.Mirrors)
 
 }
 func (r *HttpTraefikServiceConfig) mergeHttpWeighted(src, new *HttpWeighted) {
 	if new == nil {
 		return
+	}
+	if src == nil {
+		src = &HttpWeighted{}
 	}
 	r.Weighted = &HttpWeighted{}
 	r.Weighted.mergeServices(src.Services, new.Services)
@@ -366,6 +383,9 @@ func (r *HttpWeighted) mergeSticky(src, new *HttpSticky) {
 	if new == nil {
 		return
 	}
+	if src == nil {
+		src = &HttpSticky{}
+	}
 	r.Sticky = &HttpSticky{}
 	r.Sticky.mergeCookie(src.Cookie, new.Cookie)
 }
@@ -416,6 +436,9 @@ func (r *HttpLoadBalancer) mergeSticky(src, new *HttpSticky) {
 	if new == nil {
 		return
 	}
+	if src == nil {
+		src = &HttpSticky{}
+	}
 	r.Sticky = &HttpSticky{}
 	r.Sticky.mergeCookie(src.Cookie, new.Cookie)
 }
@@ -428,10 +451,13 @@ func (r *HttpLoadBalancer) mergeHealthCheck(src, new *HttpHealthCheck) {
 		Scheme:          new.Scheme,
 		Path:            new.Path,
 		Port:            new.Port,
-		Interval:        new.Interval,
-		Timeout:         new.Timeout,
 		Hostname:        new.Hostname,
 		FollowRedirects: new.FollowRedirects,
+		Interval: new.Interval,
+		Timeout:  new.Timeout,
+	}
+	if src == nil {
+		src = &HttpHealthCheck{}
 	}
 	r.HealthCheck.mergeHeaders(src.Headers, new.Headers)
 }
@@ -471,6 +497,9 @@ func (r *HttpSticky) mergeCookie(src, new *HttpCookie) {
 	if new == nil {
 		return
 	}
+	if src == nil {
+		src = &HttpCookie{}
+	}
 	r.Cookie = &HttpCookie{
 		Name:     new.Name,
 		Secure:   new.Secure,
@@ -485,17 +514,53 @@ type HttpCookie struct {
 	HttpOnly bool   `json:"httpOnly" yaml:"httpOnly,omitempty" key_value:"httpOnly,omitempty"`
 	SameSite string `json:"sameSite" yaml:"sameSite,omitempty" key_value:"sameSite,omitempty"`
 }
+
 type HttpHealthCheck struct {
 	Scheme          string            `json:"scheme" yaml:"scheme,omitempty" key_value:"scheme,omitempty"`
 	Path            string            `json:"path" yaml:"path,omitempty" key_value:"path,omitempty"`
-	Port            int               `json:"port" yaml:"port,omitempty" key_value:"port,omitempty"`
-	Interval        time.Duration     `json:"interval" yaml:"interval,omitempty" key_value:"interval,omitempty"`
-	Timeout         time.Duration     `json:"timeout" yaml:"timeout,omitempty" key_value:"timeout,omitempty"`
+	Port            string            `json:"port" yaml:"port,omitempty" key_value:"port,omitempty"`
 	Hostname        string            `json:"hostname" yaml:"hostname,omitempty" key_value:"hostname,omitempty"`
 	FollowRedirects bool              `json:"followRedirects" yaml:"followRedirects,omitempty" key_value:"followRedirects,omitempty"`
 	Headers         map[string]string `json:"headers" yaml:"headers,omitempty" key_value:"headers,omitempty"`
+	Interval        time.Duration     `json:"interval" yaml:"interval,omitempty" key_value:"interval,omitempty"`
+	Timeout         time.Duration     `json:"timeout" yaml:"timeout,omitempty" key_value:"timeout,omitempty"`
 }
 
+//实现 HttpHealthCheck结构体 json反序列化方法
+func (r *HttpHealthCheck) UnmarshalJSON(data []byte) (err error) {
+	type httpHealthCheck struct {
+		Scheme          string            `json:"scheme" yaml:"scheme,omitempty" key_value:"scheme,omitempty"`
+		Path            string            `json:"path" yaml:"path,omitempty" key_value:"path,omitempty"`
+		Port            string            `json:"port" yaml:"port,omitempty" key_value:"port,omitempty"`
+		Hostname        string            `json:"hostname" yaml:"hostname,omitempty" key_value:"hostname,omitempty"`
+		FollowRedirects bool              `json:"followRedirects" yaml:"followRedirects,omitempty" key_value:"followRedirects,omitempty"`
+		Headers         map[string]string `json:"headers" yaml:"headers,omitempty" key_value:"headers,omitempty"`
+
+		Interval string `json:"interval" yaml:"interval,omitempty" key_value:"interval,omitempty"`
+		Timeout  string `json:"timeout" yaml:"timeout,omitempty" key_value:"timeout,omitempty"`
+	}
+	var tmp httpHealthCheck
+ 	if err = json.Unmarshal(data, &tmp); err != nil {
+		return err
+	}
+	r.Scheme = tmp.Scheme
+	r.Path = tmp.Path
+	r.Port = tmp.Port
+	r.Hostname = tmp.Hostname
+	r.FollowRedirects = tmp.FollowRedirects
+	r.Headers = tmp.Headers
+	if r.Interval, err = time.ParseDuration(tmp.Interval); err != nil {
+		fmt.Println("*********Interval*********")
+		return
+	}
+	r.Timeout, err = time.ParseDuration(tmp.Timeout)
+	if err != nil {
+		fmt.Println("*********Interval*********")
+
+		return
+	}
+	return
+}
 func (r *HttpHealthCheck) mergeHeaders(src, new map[string]string) {
 	if len(new) == 0 {
 		return

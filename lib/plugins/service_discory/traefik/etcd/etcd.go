@@ -207,6 +207,16 @@ func (r *TraefikEtcd) getServices() (res map[string]discovery.HttpTraefikService
 				},
 			},
 			PassHostHeader: true,
+			HealthCheck: &discovery.HttpHealthCheck{
+				Scheme:          "http://",
+				Path:            "/health",
+				Port:            strconv.Itoa(app_obj.App.AppPort),
+				Hostname:        ip,
+				FollowRedirects: true,
+				Headers:         nil,
+				Interval: 3 * time.Second,
+				Timeout:  100 * time.Millisecond,
+			},
 		},
 	}
 	res = map[string]discovery.HttpTraefikServiceConfig{serviceName: service}

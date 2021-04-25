@@ -112,12 +112,12 @@ func NewTraefikConfigTest() (res *TraefikConfig) {
 							HealthCheck: &HttpHealthCheck{
 								Scheme:          "foobar",
 								Path:            "foobar",
-								Port:            42,
+								Port:            "42",
 								Headers:         map[string]string{"name0": "foobar", "name1": "foobar"},
 								Hostname:        "foobar",
+								FollowRedirects: true,
 								Interval:        10 * time.Second,
 								Timeout:         15 * time.Second,
-								FollowRedirects: true,
 							},
 							ResponseForwarding: &HttpResponseForwarding{
 								FlushInterval: 10 * time.Hour,
