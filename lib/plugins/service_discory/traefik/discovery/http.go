@@ -56,11 +56,7 @@ func (r *HttpTraefik) MergeMiddlewares(middlewareMap map[string]HttpTraefikMiddl
 		r.Middlewares = make(map[string]HttpTraefikMiddleware, 1)
 	}
 	for s, it := range middlewareMap {
-		if _, ok := r.Middlewares[s]; !ok {
-			r.Middlewares[s] = it
-			continue
-		}
-		r.Middlewares[s] = r.mergeMiddlewares(r.Middlewares[s], it)
+		r.Middlewares[s] = it
 	}
 }
 
@@ -76,13 +72,8 @@ func (r *HttpTraefik) MergeServersTransports(serversTransportsMap map[string]Htt
 			r.ServersTransports[s] = it
 			continue
 		}
-		r.ServersTransports[s] = r.mergeServersTransports(r.ServersTransports[s], it)
+		r.ServersTransports[s] = r.mergeServersTransport(r.ServersTransports[s], it)
 	}
-}
-
-//合并中间键参数s
-func (r *HttpTraefik) mergeMiddlewares(src, new HttpTraefikMiddleware) (res HttpTraefikMiddleware) {
-	return
 }
 
 //合并路由
@@ -113,17 +104,86 @@ func (r *HttpTraefik) mergeServices(src, new HttpTraefikServiceConfig) (res Http
 }
 
 //TODO 合并serverTransports
-func (r *HttpTraefik) mergeServersTransports(src, new HttpTraefikServersTransports) (res HttpTraefikServersTransports) {
+func (r *HttpTraefik) mergeServersTransport(src, new HttpTraefikServersTransports) (res HttpTraefikServersTransports) {
+	res = HttpTraefikServersTransports{
+		ServerName:          new.ServerName,
+		InsecureSkipVerify:  new.InsecureSkipVerify,
+		MaxIdleConnsPerHost: new.MaxIdleConnsPerHost,
+	}
+	res.mergeRootCAs(src.RootCAs, new.RootCAs)
+	res.mergeCertificates(src.Certificates, new.Certificates)
+	res.mergeForwardingTimeouts(src.ForwardingTimeouts, new.ForwardingTimeouts)
 	return
 }
 
+func (r *HttpTraefikServersTransports) mergeRootCAs(src, new map[string]string) {
+	if len(new) == 0 {
+		return
+	}
+	ls := len(src)
+	var l = ls + len(new)
+	if len(r.RootCAs) == 0 {
+		r.RootCAs = make(map[string]string, l)
+	}
+	var m = make(map[string]string, ls)
+	for k, i2 := range src {
+		m[i2] = k
+	}
+	var ind int
+	for _, s := range new {
+		if k, ok := m[s]; !ok {
+			r.RootCAs[strconv.Itoa(ls+ind)] = s
+			ind++
+			continue
+		} else {
+			r.RootCAs[k] = s
+		}
+	}
+}
+
+func (r *HttpTraefikServersTransports) mergeCertificates(src, new map[string]HttpTraefikServersTransportsCertificates) {
+	if len(new) == 0 {
+		return
+	}
+	ls := len(src)
+	var l = ls + len(new)
+	if len(r.Certificates) == 0 {
+		r.Certificates = make(map[string]HttpTraefikServersTransportsCertificates, l)
+	}
+	var m = make(map[string]string, ls)
+	for k, i2 := range src {
+		m[i2.ToString()] = k
+	}
+	var ind int
+	for _, s := range new {
+		if k, ok := m[s.ToString()]; !ok {
+			r.Certificates[strconv.Itoa(ls+ind)] = s
+			ind++
+			continue
+		} else {
+			r.Certificates[k] = s
+		}
+	}
+}
+
+func (r *HttpTraefikServersTransports) mergeForwardingTimeouts(src, new *HttpTraefikServersTransportsForwardingTimeouts) {
+	if new == nil {
+		return
+	}
+	r.ForwardingTimeouts = &HttpTraefikServersTransportsForwardingTimeouts{
+		DialTimeout:           new.DialTimeout,
+		ResponseHeaderTimeout: new.ResponseHeaderTimeout,
+		IdleConnTimeout:       new.IdleConnTimeout,
+	}
+}
+
 type HttpTraefikServersTransports struct {
-	ServerName          string                                         `json:"serverName" yaml:"serverName,omitempty" key_value:"serverName,omitempty"`
-	InsecureSkipVerify  bool                                           `json:"insecureSkipVerify" yaml:"insecureSkipVerify,omitempty" key_value:"insecureSkipVerify,omitempty"`
-	RootCAs             []string                                       `json:"rootCAs" yaml:"rootCAs,omitempty" key_value:"rootCAs,omitempty"`
-	Certificates        []HttpTraefikServersTransportsCertificates     `json:"certificates" yaml:"certificates,omitempty" key_value:"certificates,omitempty"`
-	MaxIdleConnsPerHost int                                            `json:"maxIdleConnsPerHost" yaml:"maxIdleConnsPerHost,omitempty" key_value:"maxIdleConnsPerHost,omitempty"`
-	ForwardingTimeouts  HttpTraefikServersTransportsForwardingTimeouts `json:"forwardingTimeouts" yaml:"forwardingTimeouts,omitempty" key_value:"forwardingTimeouts,omitempty"`
+	ServerName          string                                              `json:"serverName" yaml:"serverName,omitempty" key_value:"serverName,omitempty"`
+	InsecureSkipVerify  bool                                                `json:"insecureSkipVerify" yaml:"insecureSkipVerify,omitempty" key_value:"insecureSkipVerify,omitempty"`
+	RootCAs             map[string]string                                   `json:"rootCAs" yaml:"rootCAs,omitempty" key_value:"rootCAs,omitempty"`
+	Certificates        map[string]HttpTraefikServersTransportsCertificates `json:"certificates" yaml:"certificates,omitempty" key_value:"certificates,omitempty"`
+	MaxIdleConnsPerHost int                                                 `json:"maxIdleConnsPerHost" yaml:"maxIdleConnsPerHost,omitempty" key_value:"maxIdleConnsPerHost,omitempty"`
+	ForwardingTimeouts  *HttpTraefikServersTransportsForwardingTimeouts     `json:"forwardingTimeouts" yaml:"forwardingTimeouts,omitempty" key_value:"forwardingTimeouts,omitempty"`
 }
 type HttpTraefikServersTransportsForwardingTimeouts struct {
 	DialTimeout           time.Duration `json:"dialTimeout" yaml:"dialTimeout,omitempty" key_value:"dialTimeout,omitempty"`
@@ -134,6 +194,13 @@ type HttpTraefikServersTransportsCertificates struct {
 	CertFile string `json:"certFile" yaml:"certFile,omitempty" key_value:"certFile,omitempty"`
 	KeyFile  string `json:"keyFile" yaml:"keyFile,omitempty" key_value:"keyFile,omitempty"`
 }
+
+func (r *HttpTraefikServersTransportsCertificates) ToString() (res string) {
+	bt, _ := json.Marshal(r)
+	res = string(bt)
+	return
+}
+
 type HttpTraefikMiddleware interface{} //`json:"plugin" yaml:"plugin,omitempty" key_value:"plugin,omitempty"`
 
 type HttpTraefikRouters struct {
@@ -167,14 +234,17 @@ func (r *HttpTraefikRouters) mergeMiddlewares(src, new map[string]string) {
 		r.Middlewares = make(map[string]string, l)
 	}
 	var m = make(map[string]string, ls)
-	for _, i2 := range src {
-		m[i2] = i2
+	for k, i2 := range src {
+		m[i2] = k
 	}
 	var ind int
 	for _, s := range new {
-		if _, ok := m[s]; !ok {
+		if k, ok := m[s]; !ok {
 			r.Middlewares[strconv.Itoa(ls+ind)] = s
 			ind++
+			continue
+		} else {
+			r.Middlewares[k] = s
 		}
 	}
 }
@@ -188,14 +258,17 @@ func (r *HttpTraefikRouters) mergeEntryPoints(src, new map[string]string) {
 		r.EntryPoints = make(map[string]string, l)
 	}
 	var m = make(map[string]string, ls)
-	for _, i2 := range src {
-		m[i2] = i2
+	for k, i2 := range src {
+		m[i2] = k
 	}
 	var ind int
 	for _, s := range new {
-		if _, ok := m[s]; !ok {
+		if loc, ok := m[s]; !ok {
 			r.EntryPoints[strconv.Itoa(ls+ind)] = s
 			ind++
+			continue
+		} else {
+			r.EntryPoints[loc] = s
 		}
 	}
 }
@@ -254,18 +327,21 @@ func (r *HttpMirroring) mergeMirrors(src, new map[string]HttpMirrors) {
 	if len(new) == 0 {
 		return
 	}
-	lr := len(src)
-	l := lr + len(new)
+	ls := len(src)
+	l := ls + len(new)
 	r.Mirrors = make(map[string]HttpMirrors, l)
-	var m = make(map[string]HttpMirrors, l)
-	for _, item := range src {
-		m[item.ToString()] = item
+	var m = make(map[string]string, l)
+	for k, item := range src {
+		m[item.ToString()] = k
 	}
 	var ind int
 	for _, item := range new {
-		if _, ok := m[item.ToString()]; !ok {
-			r.Mirrors[strconv.Itoa(lr+ind)] = item
+		if loc, ok := m[item.ToString()]; !ok {
+			r.Mirrors[strconv.Itoa(ls+ind)] = item
 			ind++
+			continue
+		} else {
+			r.Mirrors[loc] = item
 		}
 	}
 }
@@ -297,18 +373,21 @@ func (r *HttpWeighted) mergeServices(src, new map[string]HttpWeightedService) {
 	if len(new) == 0 {
 		return
 	}
-	lr := len(src)
-	l := lr + len(new)
+	ls := len(src)
+	l := ls + len(new)
 	r.Services = make(map[string]HttpWeightedService, l)
-	var m = make(map[string]HttpWeightedService, l)
-	for _, item := range src {
-		m[item.ToString()] = item
+	var m = make(map[string]string, l)
+	for k, item := range src {
+		m[item.ToString()] = k
 	}
 	var ind int
 	for _, item := range new {
-		if _, ok := m[item.ToString()]; !ok {
-			r.Services[strconv.Itoa(lr+ind)] = item
+		if k, ok := m[item.ToString()]; !ok {
+			r.Services[strconv.Itoa(ls+ind)] = item
 			ind++
+			continue
+		} else {
+			r.Services[k] = item
 		}
 	}
 }
@@ -361,21 +440,23 @@ func (r *HttpLoadBalancer) mergeServer(src, new map[string]HttpLoadBalancerServe
 	if len(new) == 0 {
 		return
 	}
-	lr := len(src)
-	l := lr + len(new)
+	ls := len(src)
+	l := ls + len(new)
 	r.Servers = make(map[string]HttpLoadBalancerServer, l)
-	var m = make(map[string]HttpLoadBalancerServer, l)
-	for _, item := range src {
-		m[item.ToString()] = item
+	var m = make(map[string]string, l)
+	for k, item := range src {
+		m[item.ToString()] = k
 	}
 	var ind int
 	for _, item := range new {
-		if _, ok := m[item.ToString()]; !ok {
-			r.Servers[strconv.Itoa(lr+ind)] = item
+		if k, ok := m[item.ToString()]; !ok {
+			r.Servers[strconv.Itoa(ls+ind)] = item
 			ind++
+			continue
+		} else {
+			r.Servers[k] = item
 		}
 	}
-
 }
 
 type HttpResponseForwarding struct {
@@ -419,18 +500,21 @@ func (r *HttpHealthCheck) mergeHeaders(src, new map[string]string) {
 	if len(new) == 0 {
 		return
 	}
-	lr := len(src)
-	l := lr + len(new)
+	ls := len(src)
+	l := ls + len(new)
 	r.Headers = make(map[string]string, l)
 	var m = make(map[string]string, l)
-	for _, item := range src {
-		m[item] = item
+	for k, item := range src {
+		m[item] = k
 	}
 	var ind int
 	for _, item := range new {
-		if _, ok := m[item]; !ok {
-			r.Headers[strconv.Itoa(lr+ind)] = item
+		if k, ok := m[item]; !ok {
+			r.Headers[strconv.Itoa(ls+ind)] = item
 			ind++
+			continue
+		} else {
+			r.Headers[k] = item
 		}
 	}
 }
@@ -446,7 +530,6 @@ func (r *HttpLoadBalancerServer) ToString() (res string) {
 }
 
 type HttpTls struct {
-	//Value        bool                `json:"value" yaml:"-" key_value:"value,omitempty"`
 	Options      string                       `json:"options" yaml:"options,omitempty" key_value:"options,omitempty"`
 	CertResolver string                       `json:"certResolver" yaml:"certResolver,omitempty" key_value:"certResolver,omitempty"`
 	Domains      map[string]HttpDomainTlsItem `json:"domains" yaml:"domains,omitempty" key_value:"domains,omitempty"`
@@ -456,18 +539,21 @@ func (r *HttpTls) mergeDomains(src, new map[string]HttpDomainTlsItem) {
 	if len(new) == 0 {
 		return
 	}
-	lr := len(src)
-	l := lr + len(new)
+	ls := len(src)
+	l := ls + len(new)
 	r.Domains = make(map[string]HttpDomainTlsItem, l)
-	var m = make(map[string]HttpDomainTlsItem, l)
-	for _, item := range src {
-		m[item.ToString()] = item
+	var m = make(map[string]string, l)
+	for k, item := range src {
+		m[item.ToString()] = k
 	}
 	var ind int
 	for _, item := range new {
-		if _, ok := m[item.ToString()]; !ok {
-			r.Domains[strconv.Itoa(lr+ind)] = item
+		if k, ok := m[item.ToString()]; !ok {
+			r.Domains[strconv.Itoa(ls+ind)] = item
 			ind++
+			continue
+		} else {
+			r.Domains[k] = item
 		}
 	}
 }

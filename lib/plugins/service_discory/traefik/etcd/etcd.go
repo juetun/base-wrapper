@@ -247,7 +247,7 @@ func (r *TraefikEtcd) getTraefikConfigToKeyValue(etcdTraefikConfig *discovery.Tr
 }
 
 func (r *TraefikEtcd) getPrefixKeys(serviceName, routerName string, middlewaresName, serversTransportsName []string) (keyPrefix []string) {
-	keyPrefix = make([]string, 0, 20)
+	keyPrefix = make([]string, 0, 2+len(middlewaresName)+len(serversTransportsName))
 	keyPrefix = append(keyPrefix, fmt.Sprintf("traefik/http/services/%s", serviceName))
 	keyPrefix = append(keyPrefix, fmt.Sprintf("traefik/http/routers/%s", routerName))
 	for _, it := range middlewaresName {

@@ -398,19 +398,19 @@ func NewTraefikConfigTest() (res *TraefikConfig) {
 					"ServersTransport0": {
 						ServerName:         "foobar",
 						InsecureSkipVerify: true,
-						RootCAs:            []string{"foobar", "foobar"},
-						Certificates: []HttpTraefikServersTransportsCertificates{
-							{
+						RootCAs:            map[string]string{"0": "foobar", "1": "foobar"},
+						Certificates: map[string]HttpTraefikServersTransportsCertificates{
+							"0": {
 								CertFile: "foobar",
 								KeyFile:  "foobar",
 							},
-							{
+							"1": {
 								CertFile: "foobar",
 								KeyFile:  "foobar",
 							},
 						},
 						MaxIdleConnsPerHost: 42,
-						ForwardingTimeouts: HttpTraefikServersTransportsForwardingTimeouts{
+						ForwardingTimeouts: &HttpTraefikServersTransportsForwardingTimeouts{
 							DialTimeout:           42 * time.Second,
 							ResponseHeaderTimeout: 42 * time.Second,
 							IdleConnTimeout:       42 * time.Second,
@@ -419,19 +419,19 @@ func NewTraefikConfigTest() (res *TraefikConfig) {
 					"ServersTransport1": {
 						ServerName:         "foobar",
 						InsecureSkipVerify: true,
-						RootCAs:            []string{"foobar", "foobar"},
-						Certificates: []HttpTraefikServersTransportsCertificates{
-							{
+						RootCAs:            map[string]string{"0": "foobar", "1": "foobar"},
+						Certificates: map[string]HttpTraefikServersTransportsCertificates{
+							"0": {
 								CertFile: "foobar",
 								KeyFile:  "foobar",
 							},
-							{
+							"1": {
 								CertFile: "foobar",
 								KeyFile:  "foobar",
 							},
 						},
 						MaxIdleConnsPerHost: 42,
-						ForwardingTimeouts: HttpTraefikServersTransportsForwardingTimeouts{
+						ForwardingTimeouts: &HttpTraefikServersTransportsForwardingTimeouts{
 							DialTimeout:           42 * time.Second,
 							ResponseHeaderTimeout: 42 * time.Second,
 							IdleConnTimeout:       42 * time.Second,
