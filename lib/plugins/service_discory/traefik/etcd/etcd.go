@@ -81,22 +81,11 @@ func (r *TraefikEtcd) getChildString(slice []KeyStruct) (res string) {
 
 	}
 	sSlice := make([]string, 0, len(slice))
-	//var isDigit bool
 	for k, it := range dt {
-		if utils.IsDigit(k) {
-			//isDigit = true
-			sSlice = append(sSlice, fmt.Sprintf(`%s:%s`, k, r.getChildString(it)))
-		} else {
-			sSlice = append(sSlice, fmt.Sprintf(`"%s":%s`, k, r.getChildString(it)))
-		}
-
+		sSlice = append(sSlice, fmt.Sprintf(`"%s":%s`, k, r.getChildString(it)))
 	}
-	//if isDigit {
-	//	res = fmt.Sprintf(`[%s]`, strings.Join(sSlice, ","))
-	//} else {
-	res = fmt.Sprintf(`{%s}`, strings.Join(sSlice, ","))
-	//}
 
+	res = fmt.Sprintf(`{%s}`, strings.Join(sSlice, ","))
 	return
 }
 func (r *TraefikEtcd) parseMapToJsonByte(prefix string, mapv map[string]string) (res discovery.HttpTraefik, err error) {
@@ -112,7 +101,6 @@ func (r *TraefikEtcd) parseMapToJsonByte(prefix string, mapv map[string]string) 
 		})
 	}
 	stringJson := r.getChildString(slice)
-
 	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("从etcd中获取json为: %s", stringJson)
 	if err = json.Unmarshal([]byte(stringJson), &res); err != nil {
 		return
@@ -213,8 +201,8 @@ func (r *TraefikEtcd) getServices() (res map[string]discovery.HttpTraefikService
 	ip, _ := utils.GetLocalIP()
 	service := discovery.HttpTraefikServiceConfig{
 		LoadBalancer: &discovery.HttpLoadBalancer{
-			Servers: map[int]discovery.HttpLoadBalancerServer{
-				0: {
+			Servers: map[string]discovery.HttpLoadBalancerServer{
+				"0": {
 					Url: fmt.Sprintf("http://%s:%d", ip, app_obj.App.AppPort),
 				},
 			},

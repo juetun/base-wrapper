@@ -105,6 +105,10 @@ func (r *HttpTraefik) mergeRouter(src, new HttpTraefikRouters) (res HttpTraefikR
 
 //合并服务
 func (r *HttpTraefik) mergeServices(src, new HttpTraefikServiceConfig) (res HttpTraefikServiceConfig) {
+	res = HttpTraefikServiceConfig{}
+	res.mergeHttpWeighted(src.Weighted, new.Weighted)
+	res.mergeLoadBalancer(src.LoadBalancer, new.LoadBalancer)
+	res.mergeMirroring(src.Mirroring, new.Mirroring)
 	return
 }
 
@@ -202,18 +206,111 @@ type HttpTraefikServiceConfig struct {
 	Weighted     *HttpWeighted     `json:"weighted" yaml:"weighted,omitempty" key_value:"weighted,omitempty"`
 }
 
-type HttpMirroring struct {
-	Service     string        `json:"service" yaml:"service,omitempty" key_value:"service,omitempty"`
-	MaxBodySize int           `json:"maxBodySize" yaml:"maxBodySize,omitempty" key_value:"maxBodySize,omitempty"`
-	Mirrors     []HttpMirrors `json:"mirrors" yaml:"mirrors,omitempty" key_value:"mirrors,omitempty"`
+func (r *HttpTraefikServiceConfig) mergeLoadBalancer(src, new *HttpLoadBalancer) {
+	if new == nil {
+		return
+	}
+	r.LoadBalancer = &HttpLoadBalancer{
+		PassHostHeader:   new.PassHostHeader,
+		ServersTransport: new.ServersTransport,
+	}
+	r.LoadBalancer.mergeSticky(src.Sticky, new.Sticky)
+	r.LoadBalancer.mergeServer(src.Servers, new.Servers)
+	r.LoadBalancer.mergeHealthCheck(src.HealthCheck, new.HealthCheck)
+	r.LoadBalancer.mergeResponseForwarding(src.ResponseForwarding, new.ResponseForwarding)
+
 }
+func (r *HttpLoadBalancer) mergeResponseForwarding(src, new *HttpResponseForwarding) {
+
+}
+func (r *HttpTraefikServiceConfig) mergeMirroring(src, new *HttpMirroring) {
+	if new == nil {
+		return
+	}
+	r.Mirroring = &HttpMirroring{
+		Service:     new.Service,
+		MaxBodySize: new.MaxBodySize,
+	}
+	r.Mirroring.mergeMirrors(src.Mirrors, new.Mirrors)
+
+}
+func (r *HttpTraefikServiceConfig) mergeHttpWeighted(src, new *HttpWeighted) {
+	if new == nil {
+		return
+	}
+	r.Weighted = &HttpWeighted{}
+	r.Weighted.mergeServices(src.Services, new.Services)
+	r.Weighted.mergeSticky(src.Sticky, new.Sticky)
+
+}
+
+type HttpMirroring struct {
+	Service     string                 `json:"service" yaml:"service,omitempty" key_value:"service,omitempty"`
+	MaxBodySize int                    `json:"maxBodySize" yaml:"maxBodySize,omitempty" key_value:"maxBodySize,omitempty"`
+	Mirrors     map[string]HttpMirrors `json:"mirrors" yaml:"mirrors,omitempty" key_value:"mirrors,omitempty"`
+}
+
+func (r *HttpMirroring) mergeMirrors(src, new map[string]HttpMirrors) {
+	if len(new) == 0 {
+		return
+	}
+	lr := len(src)
+	l := lr + len(new)
+	r.Mirrors = make(map[string]HttpMirrors, l)
+	var m = make(map[string]HttpMirrors, l)
+	for _, item := range src {
+		m[item.ToString()] = item
+	}
+	var ind int
+	for _, item := range new {
+		if _, ok := m[item.ToString()]; !ok {
+			r.Mirrors[strconv.Itoa(lr+ind)] = item
+			ind++
+		}
+	}
+}
+
 type HttpMirrors struct {
 	Name    string `json:"name" yaml:"name,omitempty" key_value:"name,omitempty"`
 	Percent int    `json:"percent" yaml:"percent,omitempty" key_value:"percent,omitempty"`
 }
+
+func (r *HttpMirrors) ToString() (res string) {
+	bt, _ := json.Marshal(r)
+	res = string(bt)
+	return
+}
+
 type HttpWeighted struct {
-	Services []HttpWeightedService `json:"services" yaml:"services,omitempty" key_value:"services,omitempty"`
-	Sticky   *HttpSticky           `json:"sticky" yaml:"sticky,omitempty" key_value:"sticky,omitempty"`
+	Services map[string]HttpWeightedService `json:"services" yaml:"services,omitempty" key_value:"services,omitempty"`
+	Sticky   *HttpSticky                    `json:"sticky" yaml:"sticky,omitempty" key_value:"sticky,omitempty"`
+}
+
+func (r *HttpWeighted) mergeSticky(src, new *HttpSticky) {
+	if new == nil {
+		return
+	}
+	r.Sticky = &HttpSticky{}
+	r.Sticky.mergeCookie(src.Cookie, new.Cookie)
+}
+func (r *HttpWeighted) mergeServices(src, new map[string]HttpWeightedService) {
+	if len(new) == 0 {
+		return
+	}
+	lr := len(src)
+	l := lr + len(new)
+	r.Services = make(map[string]HttpWeightedService, l)
+	var m = make(map[string]HttpWeightedService, l)
+	for _, item := range src {
+		m[item.ToString()] = item
+	}
+	var ind int
+	for _, item := range new {
+		if _, ok := m[item.ToString()]; !ok {
+			r.Services[strconv.Itoa(lr+ind)] = item
+			ind++
+		}
+	}
 }
 
 type HttpWeightedService struct {
@@ -221,13 +318,64 @@ type HttpWeightedService struct {
 	Weight int    `json:"weight" yaml:"weight,omitempty" key_value:"weight,omitempty"`
 }
 
+func (r *HttpWeightedService) ToString() (res string) {
+	bt, _ := json.Marshal(r)
+	res = string(bt)
+	return
+}
+
 type HttpLoadBalancer struct {
-	Sticky             *HttpSticky                    `json:"sticky" yaml:"sticky,omitempty" key_value:"sticky,omitempty"`
-	Servers            map[int]HttpLoadBalancerServer `json:"servers" yaml:"servers,omitempty" key_value:"servers,omitempty"`
-	HealthCheck        *HttpHealthCheck               `json:"healthCheck" yaml:"healthCheck,omitempty" key_value:"healthCheck,omitempty"`
-	PassHostHeader     bool                           `json:"passHostHeader" yaml:"passHostHeader,omitempty" key_value:"passHostHeader,omitempty"`
-	ResponseForwarding HttpResponseForwarding         `json:"responseForwarding" yaml:"responseForwarding,omitempty" key_value:"responseForwarding,omitempty"`
-	ServersTransport   string                         `json:"serversTransport" yaml:"serversTransport,omitempty" key_value:"serversTransport,omitempty"`
+	Sticky             *HttpSticky                       `json:"sticky" yaml:"sticky,omitempty" key_value:"sticky,omitempty"`
+	Servers            map[string]HttpLoadBalancerServer `json:"servers" yaml:"servers,omitempty" key_value:"servers,omitempty"`
+	HealthCheck        *HttpHealthCheck                  `json:"healthCheck" yaml:"healthCheck,omitempty" key_value:"healthCheck,omitempty"`
+	PassHostHeader     bool                              `json:"passHostHeader" yaml:"passHostHeader,omitempty" key_value:"passHostHeader,omitempty"`
+	ResponseForwarding *HttpResponseForwarding           `json:"responseForwarding" yaml:"responseForwarding,omitempty" key_value:"responseForwarding,omitempty"`
+	ServersTransport   string                            `json:"serversTransport" yaml:"serversTransport,omitempty" key_value:"serversTransport,omitempty"`
+}
+
+func (r *HttpLoadBalancer) mergeSticky(src, new *HttpSticky) {
+	if new == nil {
+		return
+	}
+	r.Sticky = &HttpSticky{}
+	r.Sticky.mergeCookie(src.Cookie, new.Cookie)
+}
+
+func (r *HttpLoadBalancer) mergeHealthCheck(src, new *HttpHealthCheck) {
+	if new == nil {
+		return
+	}
+	r.HealthCheck = &HttpHealthCheck{
+		Scheme:          new.Scheme,
+		Path:            new.Path,
+		Port:            new.Port,
+		Interval:        new.Interval,
+		Timeout:         new.Timeout,
+		Hostname:        new.Hostname,
+		FollowRedirects: new.FollowRedirects,
+	}
+	r.HealthCheck.mergeHeaders(src.Headers, new.Headers)
+}
+
+func (r *HttpLoadBalancer) mergeServer(src, new map[string]HttpLoadBalancerServer) {
+	if len(new) == 0 {
+		return
+	}
+	lr := len(src)
+	l := lr + len(new)
+	r.Servers = make(map[string]HttpLoadBalancerServer, l)
+	var m = make(map[string]HttpLoadBalancerServer, l)
+	for _, item := range src {
+		m[item.ToString()] = item
+	}
+	var ind int
+	for _, item := range new {
+		if _, ok := m[item.ToString()]; !ok {
+			r.Servers[strconv.Itoa(lr+ind)] = item
+			ind++
+		}
+	}
+
 }
 
 type HttpResponseForwarding struct {
@@ -237,6 +385,19 @@ type HttpResponseForwarding struct {
 type HttpSticky struct {
 	Cookie *HttpCookie `json:"cookie" yaml:"cookie,omitempty" key_value:"cookie,omitempty"`
 }
+
+func (r *HttpSticky) mergeCookie(src, new *HttpCookie) {
+	if new == nil {
+		return
+	}
+	r.Cookie = &HttpCookie{
+		Name:     new.Name,
+		Secure:   new.Secure,
+		HttpOnly: new.HttpOnly,
+		SameSite: new.SameSite,
+	}
+}
+
 type HttpCookie struct {
 	Name     string `json:"name" yaml:"name,omitempty" key_value:"name,omitempty"`
 	Secure   bool   `json:"secure" yaml:"secure,omitempty" key_value:"secure,omitempty"`
@@ -253,14 +414,41 @@ type HttpHealthCheck struct {
 	FollowRedirects bool              `json:"followRedirects" yaml:"followRedirects,omitempty" key_value:"followRedirects,omitempty"`
 	Headers         map[string]string `json:"headers" yaml:"headers,omitempty" key_value:"headers,omitempty"`
 }
+
+func (r *HttpHealthCheck) mergeHeaders(src, new map[string]string) {
+	if len(new) == 0 {
+		return
+	}
+	lr := len(src)
+	l := lr + len(new)
+	r.Headers = make(map[string]string, l)
+	var m = make(map[string]string, l)
+	for _, item := range src {
+		m[item] = item
+	}
+	var ind int
+	for _, item := range new {
+		if _, ok := m[item]; !ok {
+			r.Headers[strconv.Itoa(lr+ind)] = item
+			ind++
+		}
+	}
+}
+
 type HttpLoadBalancerServer struct {
 	Url string `json:"url" yaml:"url,omitempty" key_value:"url,omitempty"`
 }
 
+func (r *HttpLoadBalancerServer) ToString() (res string) {
+	bt, _ := json.Marshal(r)
+	res = string(bt)
+	return
+}
+
 type HttpTls struct {
 	//Value        bool                `json:"value" yaml:"-" key_value:"value,omitempty"`
-	Options      string                    `json:"options" yaml:"options,omitempty" key_value:"options,omitempty"`
-	CertResolver string                    `json:"certResolver" yaml:"certResolver,omitempty" key_value:"certResolver,omitempty"`
+	Options      string                       `json:"options" yaml:"options,omitempty" key_value:"options,omitempty"`
+	CertResolver string                       `json:"certResolver" yaml:"certResolver,omitempty" key_value:"certResolver,omitempty"`
 	Domains      map[string]HttpDomainTlsItem `json:"domains" yaml:"domains,omitempty" key_value:"domains,omitempty"`
 }
 

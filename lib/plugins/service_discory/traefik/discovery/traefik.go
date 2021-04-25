@@ -101,11 +101,11 @@ func NewTraefikConfigTest() (res *TraefikConfig) {
 									HttpOnly: true,
 								},
 							},
-							Servers: map[int]HttpLoadBalancerServer{
-								0: {
+							Servers: map[string]HttpLoadBalancerServer{
+								"0": {
 									Url: "foobar",
 								},
-								1: {
+								"1": {
 									Url: "foobar",
 								},
 							},
@@ -119,7 +119,7 @@ func NewTraefikConfigTest() (res *TraefikConfig) {
 								Timeout:         15 * time.Second,
 								FollowRedirects: true,
 							},
-							ResponseForwarding: HttpResponseForwarding{
+							ResponseForwarding: &HttpResponseForwarding{
 								FlushInterval: 10 * time.Hour,
 							},
 							PassHostHeader:   true,
@@ -130,12 +130,12 @@ func NewTraefikConfigTest() (res *TraefikConfig) {
 						Mirroring: &HttpMirroring{
 							Service:     "foobar",
 							MaxBodySize: 42,
-							Mirrors: []HttpMirrors{
-								{
+							Mirrors: map[string]HttpMirrors{
+								"0": {
 									Name:    "foobar",
 									Percent: 42,
 								},
-								{
+								"1": {
 									Name:    "foobar",
 									Percent: 42,
 								},
@@ -144,12 +144,12 @@ func NewTraefikConfigTest() (res *TraefikConfig) {
 					},
 					"Service03": {
 						Weighted: &HttpWeighted{
-							Services: []HttpWeightedService{
-								{
+							Services: map[string]HttpWeightedService{
+								"0": {
 									Name:   "foobar",
 									Weight: 42,
 								},
-								{
+								"1": {
 									Name:   "foobar",
 									Weight: 42,
 								},
@@ -676,7 +676,6 @@ func (r *TraefikConfig) ergodic(data interface{}, prefixName string, res map[str
 	var valueStruct reflect.Value
 	fieldNum := types.NumField()
 
-
 	for i := 0; i < fieldNum; i++ {
 
 		fieldStruct = types.Field(i)
@@ -702,11 +701,11 @@ func (r *TraefikConfig) ergodic(data interface{}, prefixName string, res map[str
 				iValue = valueStruct.MapIndex(key)
 
 				var kStr string
-				switch key.Kind(){
-				case reflect.Int64,reflect.Int:
-					kStr=fmt.Sprintf("%d",key.Int())
+				switch key.Kind() {
+				case reflect.Int64, reflect.Int:
+					kStr = fmt.Sprintf("%d", key.Int())
 				default:
-					kStr= key.String()
+					kStr = key.String()
 				}
 				keyName := r.getPrefixName(newPrefixName, kStr)
 				if r.generalType(iValue) {
