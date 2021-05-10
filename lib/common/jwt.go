@@ -14,6 +14,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	utils2 "github.com/juetun/base-wrapper/lib/utils"
 )
@@ -91,9 +92,9 @@ func ParseToken(myToken string, c *gin.Context) (jwtUser app_obj.JwtUserMessage,
 		return
 	}
 	claims := token.Claims.(jwt.MapClaims)
-
-	sub, ok := claims["sub"].(string)
-	if !ok {
+	var sub string
+	var ok bool
+	if sub, ok = claims["sub"].(string); !ok {
 		app_obj.GetLog().Error(c, map[string]interface{}{
 			"content": "claims duan yan is error",
 			"error":   err.Error(),
@@ -110,11 +111,10 @@ func ParseToken(myToken string, c *gin.Context) (jwtUser app_obj.JwtUserMessage,
 		err = fmt.Errorf(msg1)
 		return
 	}
-	res, err := jwtParam.RedisCache.
+	var res string
+	if res, err = jwtParam.RedisCache.
 		Get(jwtParam.TokenKey + sub).
-		Result()
-
-	if err != nil {
+		Result(); err != redis.Nil && err != nil {
 		app_obj.GetLog().Error(c, map[string]interface{}{
 			"content": "get token from redis error",
 			"error":   err.Error(),
