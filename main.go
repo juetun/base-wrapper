@@ -37,6 +37,7 @@ var authorization Authorization
 func main() {
 	app_start.NewPlugins(app_start.Authorization(&authorization)).Use(
 		PluginRegistry,
+		PluginOss,
 		PluginJwt, // 加载用户验证插件,必须放在Redis插件后
 		// PluginElasticSearchV7,
 		PluginShortMessage,
