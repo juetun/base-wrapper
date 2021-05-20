@@ -99,15 +99,18 @@ type FetchData func(pagerObject *Pager) (err error)
 // 获取分页数据方法
 // @params fetchCount 获取总条数调用方法
 // @params fetchData 获取数据列表调用方法
-func (p *Pager) CallGetPagerData(fetchCount FetchCount, fetchData FetchData) {
+func (p *Pager) CallGetPagerData(fetchCount FetchCount, fetchData FetchData) (err error) {
 
 	// 获取总条数
-	fetchCount(p)
+	if err = fetchCount(p); err != nil {
+		return
+	}
 
 	// 如果总条数大于0,获取数据列表
 	if p.TotalCount > 0 {
-		fetchData(p)
+		err = fetchData(p)
 	}
+	return
 }
 
 //
