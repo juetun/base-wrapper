@@ -7,6 +7,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/etcd-io/etcd/clientv3"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/app/micro_service"
@@ -14,13 +18,10 @@ import (
 	"github.com/juetun/base-wrapper/lib/plugins/service_discory"
 	"github.com/juetun/base-wrapper/lib/plugins/service_discory/traefik/discovery"
 	"github.com/juetun/base-wrapper/lib/utils"
-	"strconv"
-	"strings"
-	"time"
 )
 
-//安装、学习文档:http://blueskykong.com/2020/06/06/etcd-3/
-//https://pkg.go.dev/go.etcd.io/etcd/clientv3#pkg-overview
+// 安装、学习文档:http://blueskykong.com/2020/06/06/etcd-3/
+// https://pkg.go.dev/go.etcd.io/etcd/clientv3#pkg-overview
 type TraefikEtcd struct {
 	Client  *clientv3.Client
 	Err     error
@@ -118,12 +119,12 @@ var serverConfig *MicroServerSingleton
 
 func (r *TraefikEtcd) Action() (err error) {
 
-	if serverConfig == nil { //只执行一次动作
+	if serverConfig == nil { // 只执行一次动作
 		serverConfig = &MicroServerSingleton{}
 		serverConfig.CurrentServer, serverConfig.ServiceName, serverConfig.KeyPrefixs = r.readyServerData()
 	}
 
-	//实现悲观锁锁定数据
+	// 实现悲观锁锁定数据
 	lid := r.lockService(serverConfig.ServiceName)
 	defer r.unLockService(serverConfig.ServiceName, lid)
 
@@ -143,12 +144,12 @@ func (r *TraefikEtcd) Action() (err error) {
 	return
 }
 
-//分布式锁
+// 分布式锁
 func (r *TraefikEtcd) lockService(serviceName string) (res clientv3.LeaseID) {
 	return
 }
 
-//分布式锁解锁
+// 分布式锁解锁
 func (r *TraefikEtcd) unLockService(serviceName string, leaseID clientv3.LeaseID) {
 
 	return
@@ -214,8 +215,8 @@ func (r *TraefikEtcd) getServices() (res map[string]discovery.HttpTraefikService
 				Hostname:        ip,
 				FollowRedirects: true,
 				Headers:         nil,
-				Interval: 3 * time.Second,
-				Timeout:  100 * time.Millisecond,
+				Interval:        3 * time.Second,
+				Timeout:         100 * time.Millisecond,
 			},
 		},
 	}
@@ -241,12 +242,12 @@ func (r *TraefikEtcd) readyServerData() (res *discovery.HttpTraefik, serviceName
 	res.Routers, routerName = r.getRouter(serviceName, middlewaresName...)
 	res.ServersTransports, serversTransportsName = r.getServersTransports()
 
-	//获取要更新的Key前缀
+	// 获取要更新的Key前缀
 	keyPrefix = r.getPrefixKeys(serviceName, routerName, middlewaresName, serversTransportsName)
 	return
 }
 
-//获取需要设置的参数
+// 获取需要设置的参数
 func (r *TraefikEtcd) getTraefikConfigToKeyValue(etcdTraefikConfig *discovery.TraefikConfig, currentServer *discovery.HttpTraefik) (res map[string]string) {
 	etcdTraefikConfig.Http.MergeRouters(currentServer.Routers)
 	etcdTraefikConfig.Http.MergeServices(currentServer.Services)
@@ -269,7 +270,7 @@ func (r *TraefikEtcd) getPrefixKeys(serviceName, routerName string, middlewaresN
 	return
 }
 
-//将数据通过事务的方式提交到ETCD
+// 将数据通过事务的方式提交到ETCD
 func (r *TraefikEtcd) PutByTxt(mapValue map[string]string) (err error) {
 	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("开始将参数注册到ETCD【START】")
 	defer func() {
@@ -297,7 +298,7 @@ func (r *TraefikEtcd) PutByTxt(mapValue map[string]string) (err error) {
 	}
 
 	_, err = txn.
-		//If(cmpOptions...).
+		// If(cmpOptions...).
 		Then(listOptions...).
 		Else(elseOptions...). // 否则抢锁失败
 		Commit()
@@ -313,9 +314,9 @@ func (r *TraefikEtcd) Put(Key, val string) (res bool, err error) {
 	r.cancel()
 
 	_ = resp
-	//if resp.OpResponse().Get().Count > 0 {
+	// if resp.OpResponse().Get().Count > 0 {
 	//	res = true
-	//}
+	// }
 	return
 }
 
