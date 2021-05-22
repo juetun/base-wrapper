@@ -43,8 +43,7 @@ func (r *BaseQuery) DefaultPage() {
 type Pager struct {
 	List       interface{} `json:"list"`
 	TotalCount int         `json:"total_count"`
-	PageNo     int         `json:"page_no"`
-	PageSize   int         `json:"page_size"`
+	BaseQuery
 }
 type PageHandler func(*Pager)
 type PageOption PageHandler
@@ -52,6 +51,11 @@ type PageOption PageHandler
 func PagerList(list interface{}) PageOption {
 	return func(pager *Pager) {
 		pager.List = list
+	}
+}
+func PagerBaseQuery(baseQuery BaseQuery) PageOption {
+	return func(pager *Pager) {
+		pager.BaseQuery = baseQuery
 	}
 }
 func PagerTotalCount(totalCount int) PageOption {
@@ -74,9 +78,11 @@ func PagerPageSize(pageSize int) PageOption {
 func NewPager(option ...PageOption) *Pager {
 	r := &Pager{
 		TotalCount: 0,
-		PageSize:   DefaultPageSize,
-		PageNo:     1,
-		List:       []interface{}{},
+		BaseQuery: BaseQuery{
+			PageNo:   1,
+			PageSize: DefaultPageSize,
+		},
+		List: []interface{}{},
 	}
 	for _, item := range option {
 		item(r)
