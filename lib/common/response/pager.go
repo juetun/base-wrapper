@@ -11,7 +11,10 @@ import (
 	"strconv"
 )
 
-const DefaultPageSize = 15
+const (
+	DefaultPageSize = 15
+	DefaultPageNo   = 1
+)
 
 type BaseQuery struct {
 	PageNo   int    `form:"page_no" json:"page_no"`
@@ -21,6 +24,13 @@ type BaseQuery struct {
 	IsDel    int    `form:"is_del" json:"is_del"`
 }
 
+func (r *BaseQuery) GetOffset() (offset int) {
+	if r.PageNo < 1 {
+		r.PageNo = DefaultPageNo
+	}
+	offset = (r.PageNo - 1) * r.PageSize
+	return
+}
 func (r *BaseQuery) DefaultPage() {
 	if r.PageNo < 1 {
 		r.PageNo = 1
@@ -36,15 +46,42 @@ type Pager struct {
 	PageNo     int         `json:"page_no"`
 	PageSize   int         `json:"page_size"`
 }
+type PageHandler func(*Pager)
+type PageOption PageHandler
+
+func PagerList(list interface{}) PageOption {
+	return func(pager *Pager) {
+		pager.List = list
+	}
+}
+func PagerTotalCount(totalCount int) PageOption {
+	return func(pager *Pager) {
+		pager.TotalCount = totalCount
+	}
+}
+func PagerPageNo(pageNo int) PageOption {
+	return func(pager *Pager) {
+		pager.PageNo = pageNo
+	}
+}
+func PagerPageSize(pageSize int) PageOption {
+	return func(pager *Pager) {
+		pager.PageSize = pageSize
+	}
+}
 
 // NewPager
-func NewPager() *Pager {
-	return &Pager{
+func NewPager(option ...PageOption) *Pager {
+	r := &Pager{
 		TotalCount: 0,
 		PageSize:   DefaultPageSize,
 		PageNo:     1,
 		List:       []interface{}{},
 	}
+	for _, item := range option {
+		item(r)
+	}
+	return r
 }
 func NewPagerAndDefault(arg *BaseQuery) (pager *Pager) {
 	pager = NewPager()
@@ -52,7 +89,7 @@ func NewPagerAndDefault(arg *BaseQuery) (pager *Pager) {
 	return
 }
 
-func (p *Pager) InitPager(arg *BaseQuery) {
+func (p *Pager) InitPager(arg *BaseQuery) *Pager {
 	if arg.PageNo == 0 {
 		arg.PageNo = 1
 	}
@@ -61,6 +98,7 @@ func (p *Pager) InitPager(arg *BaseQuery) {
 		arg.PageSize = DefaultPageSize
 	}
 	p.PageSize = arg.PageSize
+	return p
 }
 
 // InitPageNoAndPageSize 初始化PageNo 和PageSize
