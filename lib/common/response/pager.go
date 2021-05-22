@@ -17,11 +17,11 @@ const (
 )
 
 type BaseQuery struct {
-	PageNo   int    `form:"page_no" json:"page_no"`
-	PageSize int    `form:"page_size" json:"page_size"`
-	Order    string `form:"order" json:"order"`
-	Select   string `form:"select" json:"select"`
-	IsDel    int    `form:"is_del" json:"is_del"`
+	PageNo   int    `form:"page_no" json:"page_no,omitempty"`
+	PageSize int    `form:"page_size" json:"page_size,omitempty"`
+	Order    string `form:"order" json:"order,omitempty"`
+	Select   string `form:"select" json:"select,omitempty"`
+	IsDel    int    `form:"is_del" json:"is_del,omitempty"`
 }
 
 func (r *BaseQuery) GetOffset() (offset int) {
