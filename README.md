@@ -2,7 +2,7 @@
 
 ### 关于GO MOD使用
 go mod 执行步骤
-####第一步修改环境变量
+#### 第一步修改环境变量
 
 //查看环境变量
 ```cassandraql
@@ -43,7 +43,7 @@ CGO_LDFLAGS="-g -O2"
 PKG_CONFIG="pkg-config"
 GOGCCFLAGS="-fPIC -m64 -pthread -fno-caret-diagnostics -Qunused-arguments -fmessage-length=0 -fdebug-prefix-map=/var/folders/jq/_r0ghj8d099dyshx7v8284p80000gn/T/go-build133838908=/tmp/go-build -gno-record-gcc-switches -fno-common"
 ```
-####配置代理
+#### 配置代理
 GO111MODULE  GOPROXY
 
 | 命令 | 描述 | 功能 |
@@ -58,24 +58,24 @@ GO111MODULE  GOPROXY
 | why |  explain why packages or modules are needed | 解释为什么需要依赖 |
 
 
-####1、配置 GOPRIVATE 
+#### 1、配置 GOPRIVATE 
 ```cassandraql
 // go env 查看GOPRIVATE 的值
 export GOPRIVATE="gitlab.xxx.com/md-go/library"
 ```
 
-####2、拉取私有依赖包（二方包  insecure参数是切换 http包）
+#### 2、拉取私有依赖包（二方包  insecure参数是切换 http包）
 
 ```cassandraql
 go get --insecure gitlab.xxx.com/md-go/library
 ```
 
-####3、拉取三方包
+#### 3、拉取三方包
 ```cassandraql
 go get ./...
 ```
 
-####备注：
+#### 备注：
 拉取指定版本命令
 ```cassandraql
 //d3f30cfc81f9109850fa9043a19783cbbde68a5 git提交的SHA-1 散列值
@@ -83,9 +83,9 @@ go get github.com/gin-gonic/gin@5d3f30cfc81f9109850fa9043a19783cbbde68a5
 ```
 
 
-###swagger:使用
+### swagger:使用
 
-#####刷新swagger配置的接口信息
+##### 刷新swagger配置的接口信息
 ```cassandraql
 swag init
 
