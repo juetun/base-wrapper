@@ -11,16 +11,26 @@ import (
 	"strconv"
 )
 
-const DefaultPageSize = 15
+const (
+	DefaultPageSize = 15
+	DefaultPageNo   = 1
+)
 
 type BaseQuery struct {
-	PageNo   int    `form:"page_no" json:"page_no"`
-	PageSize int    `form:"page_size" json:"page_size"`
-	Order    string `form:"order" json:"order"`
-	Select   string `form:"select" json:"select"`
-	IsDel    int    `form:"is_del" json:"is_del"`
+	PageNo   int    `form:"page_no" json:"page_no,omitempty"`
+	PageSize int    `form:"page_size" json:"page_size,omitempty"`
+	Order    string `form:"order" json:"order,omitempty"`
+	Select   string `form:"select" json:"select,omitempty"`
+	IsDel    int    `form:"is_del" json:"is_del,omitempty"`
 }
 
+func (r *BaseQuery) GetOffset() (offset int) {
+	if r.PageNo < 1 {
+		r.PageNo = DefaultPageNo
+	}
+	offset = (r.PageNo - 1) * r.PageSize
+	return
+}
 func (r *BaseQuery) DefaultPage() {
 	if r.PageNo < 1 {
 		r.PageNo = 1
@@ -33,18 +43,51 @@ func (r *BaseQuery) DefaultPage() {
 type Pager struct {
 	List       interface{} `json:"list"`
 	TotalCount int         `json:"total_count"`
-	PageNo     int         `json:"page_no"`
-	PageSize   int         `json:"page_size"`
+	BaseQuery
+}
+type PageHandler func(*Pager)
+type PageOption PageHandler
+
+func PagerList(list interface{}) PageOption {
+	return func(pager *Pager) {
+		pager.List = list
+	}
+}
+func PagerBaseQuery(baseQuery BaseQuery) PageOption {
+	return func(pager *Pager) {
+		pager.BaseQuery = baseQuery
+	}
+}
+func PagerTotalCount(totalCount int) PageOption {
+	return func(pager *Pager) {
+		pager.TotalCount = totalCount
+	}
+}
+func PagerPageNo(pageNo int) PageOption {
+	return func(pager *Pager) {
+		pager.PageNo = pageNo
+	}
+}
+func PagerPageSize(pageSize int) PageOption {
+	return func(pager *Pager) {
+		pager.PageSize = pageSize
+	}
 }
 
 // NewPager
-func NewPager() *Pager {
-	return &Pager{
+func NewPager(option ...PageOption) *Pager {
+	r := &Pager{
 		TotalCount: 0,
-		PageSize:   DefaultPageSize,
-		PageNo:     1,
-		List:       []interface{}{},
+		BaseQuery: BaseQuery{
+			PageNo:   1,
+			PageSize: DefaultPageSize,
+		},
+		List: []interface{}{},
 	}
+	for _, item := range option {
+		item(r)
+	}
+	return r
 }
 func NewPagerAndDefault(arg *BaseQuery) (pager *Pager) {
 	pager = NewPager()
@@ -52,7 +95,7 @@ func NewPagerAndDefault(arg *BaseQuery) (pager *Pager) {
 	return
 }
 
-func (p *Pager) InitPager(arg *BaseQuery) {
+func (p *Pager) InitPager(arg *BaseQuery) *Pager {
 	if arg.PageNo == 0 {
 		arg.PageNo = 1
 	}
@@ -61,6 +104,7 @@ func (p *Pager) InitPager(arg *BaseQuery) {
 		arg.PageSize = DefaultPageSize
 	}
 	p.PageSize = arg.PageSize
+	return p
 }
 
 // InitPageNoAndPageSize 初始化PageNo 和PageSize
@@ -99,15 +143,18 @@ type FetchData func(pagerObject *Pager) (err error)
 // 获取分页数据方法
 // @params fetchCount 获取总条数调用方法
 // @params fetchData 获取数据列表调用方法
-func (p *Pager) CallGetPagerData(fetchCount FetchCount, fetchData FetchData) {
+func (p *Pager) CallGetPagerData(fetchCount FetchCount, fetchData FetchData) (err error) {
 
 	// 获取总条数
-	fetchCount(p)
+	if err = fetchCount(p); err != nil {
+		return
+	}
 
 	// 如果总条数大于0,获取数据列表
 	if p.TotalCount > 0 {
-		fetchData(p)
+		err = fetchData(p)
 	}
+	return
 }
 
 //
