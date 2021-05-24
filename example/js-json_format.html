@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+
+<body>
+<textarea  id="textar" style="width:100%" rows="15">
+</textarea>
+<input type="button" onclick="parse()" value="转换"/>
+<div id="content"></div>
+<script type="text/javascript">
+function parse(){
+    var content=document.getElementById("textar").value
+     var data=eval('('+content+')') ;
+    console.log(data)
+    var obj=JSON.stringify(data);
+    document.getElementById("content").innerHTML=obj
+}
+ 
+ </script>
+</body>

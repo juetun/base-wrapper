@@ -208,14 +208,14 @@ func (r *TraefikEtcd) getServices() (res map[string]discovery.HttpTraefikService
 			},
 			PassHostHeader: true,
 			HealthCheck: &discovery.HttpHealthCheck{
-				Scheme:          "http://",
+				Scheme:          "http",
 				Path:            "/health",
 				Port:            strconv.Itoa(app_obj.App.AppPort),
 				Hostname:        ip,
 				FollowRedirects: true,
 				Headers:         nil,
-				Interval: 3 * time.Second,
-				Timeout:  100 * time.Millisecond,
+				Interval: 5 * time.Second,
+				Timeout:  50 * time.Millisecond,
 			},
 		},
 	}
@@ -227,7 +227,11 @@ func (r *TraefikEtcd) getServersTransports() (res map[string]discovery.HttpTraef
 	return
 }
 func (r *TraefikEtcd) getMiddlewares() (res map[string]discovery.HttpTraefikMiddleware, middlewaresName []string) {
-	res = map[string]discovery.HttpTraefikMiddleware{}
+
+	middlewaresName= make([]string,len(res))
+	res = map[string]discovery.HttpTraefikMiddleware{
+
+	}
 	return
 }
 
