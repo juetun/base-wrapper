@@ -22,6 +22,7 @@ require (
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-errors/errors v1.1.1
 	github.com/go-redis/redis v6.14.2+incompatible
+	github.com/go-redis/redis/v8 v8.8.3 // indirect
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/google/go-cmp v0.5.5 // indirect
