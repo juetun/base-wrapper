@@ -18,10 +18,12 @@ import (
 // 接口签名验证
 func SignHttp() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if res, _, err := signencrypt.NewSign().
+		var res bool
+		var err error
+		if res, _, err = signencrypt.NewSign().
 			SignGinRequest(c, func(appName string) (secret string, err error) {
 				secret = "signxxx"
-				// TODO通过appName获取签名值
+				// TODO 通过appName获取签名值
 				return
 			}); err != nil {
 			c.AbortWithStatusJSON(http.StatusOK, base.Result{
@@ -29,7 +31,8 @@ func SignHttp() gin.HandlerFunc {
 				Msg:  "sign err",
 			})
 			return
-		} else if !res {
+		}
+		if !res {
 			c.AbortWithStatusJSON(http.StatusOK, base.Result{
 				Code: http.StatusUnauthorized,
 				Msg:  "sign validate failure",

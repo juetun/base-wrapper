@@ -9,25 +9,26 @@ import (
 	"crypto/sha1"
 	"encoding/base64"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/juetun/base-wrapper/lib/app/app_obj"
-	"github.com/juetun/base-wrapper/lib/common"
 	"io/ioutil"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
+	"github.com/juetun/base-wrapper/lib/common"
 )
 
-//签名的字符编码类型
+// 签名的字符编码类型
 type GolangCharset string
 
-//字符编码类型常量
+// 字符编码类型常量
 
-//当前类的指针
+// 当前类的指针
 var sign *SignUtils
 
-//签名类
+// 签名类
 type SignUtils struct {
 	mapExtend *MapExtend
 }
@@ -43,7 +44,7 @@ func (r *MapExtend) GetKeys(data map[string]string) (res []string, err error) {
 	return
 }
 
-//实例化签名
+// 实例化签名
 func NewSign() *SignUtils {
 	sign = &SignUtils{
 		mapExtend: &MapExtend{},
@@ -66,7 +67,7 @@ func (s *SignUtils) SignTopRequest(parameters map[string]string, secret string) 
 	  4、第四步：把二进制转化为大写的十六进制
 	*/
 
-	//第一步：把字典按Key的字母顺序排序
+	// 第一步：把字典按Key的字母顺序排序
 	var keys []string
 	if keys, err = s.mapExtend.GetKeys(parameters); err != nil {
 		return
@@ -74,7 +75,7 @@ func (s *SignUtils) SignTopRequest(parameters map[string]string, secret string) 
 		sort.Strings(keys)
 	}
 
-	//第二步：把所有参数名和参数值串在一起
+	// 第二步：把所有参数名和参数值串在一起
 
 	bb.WriteString(secret)
 
@@ -89,9 +90,9 @@ func (s *SignUtils) SignTopRequest(parameters map[string]string, secret string) 
 
 type ListenHandler func(s string)
 type ListenHandlerStruct struct {
-	MD5HMAC       ListenHandler //转换成 MD5后执行
-	ByteTo16After ListenHandler //把二进制转化为大写的十六进制
-	FinishHandler ListenHandler //返回签名完成的字符串
+	MD5HMAC       ListenHandler // 转换成 MD5后执行
+	ByteTo16After ListenHandler // 把二进制转化为大写的十六进制
+	FinishHandler ListenHandler // 返回签名完成的字符串
 }
 
 func (s *SignUtils) Encrypt(argJoin string, secret string, listenHandlerStruct ListenHandlerStruct) (res string) {
@@ -99,7 +100,7 @@ func (s *SignUtils) Encrypt(argJoin string, secret string, listenHandlerStruct L
 	var bb bytes.Buffer
 	bb.WriteString(argJoin)
 
-	//第三步：使用MD5/HMAC加密
+	// 第三步：使用MD5/HMAC加密
 	b := make([]byte, 0)
 
 	h := hmac.New(sha1.New, []byte(secret))
@@ -107,12 +108,12 @@ func (s *SignUtils) Encrypt(argJoin string, secret string, listenHandlerStruct L
 	b = h.Sum(nil)
 	b = []byte(base64.StdEncoding.EncodeToString(b))
 
-	//返回签名完成的字符串
+	// 返回签名完成的字符串
 	res = strings.ToLower(string(b))
 	if listenHandlerStruct.MD5HMAC != nil {
 		listenHandlerStruct.MD5HMAC(string(b))
 	}
-	//第四步：把二进制转化为大写的十六进制
+	// 第四步：把二进制转化为大写的十六进制
 	if listenHandlerStruct.ByteTo16After != nil {
 		listenHandlerStruct.ByteTo16After(res)
 	}
@@ -126,7 +127,7 @@ func (s *SignUtils) Encrypt(argJoin string, secret string, listenHandlerStruct L
 type GetSecretHandler func(appName string) (secret string, err error)
 
 // http请求加密算法
-//c *gin.Context,
+// c *gin.Context,
 func (s *SignUtils) SignGinRequest(c *gin.Context, getSecret GetSecretHandler) (validateResult bool, signResult string, err error) {
 	var appName, secret string
 	if appName, err = s.getHeaderAppName(c); err != nil {
@@ -162,6 +163,8 @@ func (s *SignUtils) SignGinRequest(c *gin.Context, getSecret GetSecretHandler) (
 		if body, err = ioutil.ReadAll(c.Request.Body); err != nil {
 			return
 		}
+		// 读完body参数一定要回写，不然后边取不到参数
+		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 	} else { // 如果是非JSON 传参
 		// 如果不是JSON 则直接过去FORM表单参数
 		if encryptionCode, err = s.sortParamsAndJoinData(s.getRequestParams(c), secret); err != nil {
@@ -172,7 +175,7 @@ func (s *SignUtils) SignGinRequest(c *gin.Context, getSecret GetSecretHandler) (
 	bt.Write(body)
 	encryptionString := strings.ToLower(bt.String())
 	base64Code := base64.StdEncoding.EncodeToString([]byte(encryptionString))
-	
+
 	// 配置回调输出
 	listenHandlerStruct := ListenHandlerStruct{}
 
@@ -213,7 +216,7 @@ func (s *SignUtils) getRequestParams(c *gin.Context) (valueMap map[string]string
 }
 
 func (s *SignUtils) getHeaderAppName(c *gin.Context) (appName string, err error) {
-	URI := c.Request.URL.Path
+	URI := strings.TrimPrefix(c.Request.URL.Path, "/")
 	if URI == "" {
 		err = fmt.Errorf("get app name failure")
 		return
@@ -223,8 +226,8 @@ func (s *SignUtils) getHeaderAppName(c *gin.Context) (appName string, err error)
 	return
 }
 
-//默认utf8字符串
-//func (s *SignUtils) GetUtf8Bytes(str string) []byte {
+// 默认utf8字符串
+// func (s *SignUtils) GetUtf8Bytes(str string) []byte {
 //	b := []byte(str)
 //	return b
-//}
+// }
