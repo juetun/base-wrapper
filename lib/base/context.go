@@ -12,7 +12,7 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"github.com/jinzhu/gorm"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 )

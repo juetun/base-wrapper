@@ -1,20 +1,21 @@
 package plugins
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/juetun/base-wrapper/lib/app/app_start"
 	"io/ioutil"
 	"sync"
 
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
 	"gopkg.in/yaml.v2"
 )
 
-func PluginRedis(arg  *app_start.PluginsOperate) (err error) {
+func PluginRedis(arg *app_start.PluginsOperate) (err error) {
 	var syncLock sync.Mutex
 	syncLock.Lock()
 	defer syncLock.Unlock()
@@ -57,7 +58,7 @@ func initRedis(nameSpace string, configs *Redis) {
 	// 初始化Redis连接信息
 	app_obj.DbRedis[nameSpace] = redis.NewClient(&conf)
 
-	_, err = app_obj.DbRedis[nameSpace].Ping().Result()
+	_, err = app_obj.DbRedis[nameSpace].Ping(context.Background()).Result()
 
 	if err != nil {
 		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("Load  redis config is error \n"))

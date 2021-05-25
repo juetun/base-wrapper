@@ -10,7 +10,7 @@ package app_obj
 import (
 	"fmt"
 
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 )
 
 var DbRedis = make(map[string]*redis.Client)

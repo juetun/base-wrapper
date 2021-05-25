@@ -10,7 +10,7 @@ package app_obj
 import (
 	"time"
 
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 )
 
 // 当前请求上下文存储使用的KEY

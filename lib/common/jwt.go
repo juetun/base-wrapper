@@ -7,6 +7,7 @@
 package common
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,7 +15,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	utils2 "github.com/juetun/base-wrapper/lib/utils"
 )
@@ -56,7 +57,7 @@ func CreateToken(user app_obj.JwtUserMessage, c *gin.Context) (tokenString strin
 		return
 	}
 	err = jwtParam.RedisCache.
-		Set(jwtParam.TokenKey+userIdString, tokenString, jwtParam.TokenLife).
+		Set(context.Background(), jwtParam.TokenKey+userIdString, tokenString, jwtParam.TokenLife).
 		Err()
 	if err != nil {
 		app_obj.GetLog().Error(c, map[string]interface{}{
@@ -113,7 +114,7 @@ func ParseToken(myToken string, c *gin.Context) (jwtUser app_obj.JwtUserMessage,
 	}
 	var res string
 	if res, err = jwtParam.RedisCache.
-		Get(jwtParam.TokenKey + sub).
+		Get(context.Background(), jwtParam.TokenKey+sub).
 		Result(); err != redis.Nil && err != nil {
 		app_obj.GetLog().Error(c, map[string]interface{}{
 			"content": "get token from redis error",
@@ -134,7 +135,7 @@ func ParseToken(myToken string, c *gin.Context) (jwtUser app_obj.JwtUserMessage,
 	}
 
 	// refresh the token life time
-	err = jwtParam.RedisCache.Set(jwtParam.TokenKey+sub, myToken, jwtParam.TokenLife).Err()
+	err = jwtParam.RedisCache.Set(context.Background(), jwtParam.TokenKey+sub, myToken, jwtParam.TokenLife).Err()
 	if err != nil {
 		app_obj.GetLog().Error(c, map[string]interface{}{
 			"content": "token create error",
@@ -176,7 +177,7 @@ func UnsetToken(myToken string, c *gin.Context) (bool, error) {
 		})
 		return false, errors.New("claims duan yan is error")
 	}
-	err = jwtParam.RedisCache.Del(jwtParam.TokenKey + sub).Err()
+	err = jwtParam.RedisCache.Del(context.Background(), jwtParam.TokenKey+sub).Err()
 	if err != nil {
 		app_obj.GetLog().Error(c, map[string]interface{}{
 			"content": "unset token has error",

@@ -5,10 +5,11 @@
 package block_cache_impl
 
 import (
+	"context"
 	"fmt"
 	"time"
 
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base/page_block/inte"
 )
@@ -46,14 +47,14 @@ func (b *blockCacheRedisImpl) DefaultValue() {
 
 //写入缓存数据
 func (b *blockCacheRedisImpl) Set(name string, val string, cacheTime time.Duration) (err error) {
-	fmt.Println("缓存的KEY是:",name)
-	err = b.CacheClient.Set(name, val, cacheTime).Err()
+
+	err = b.CacheClient.Set(context.Background(), name, val, cacheTime).Err()
 	return
 }
 
 //读取缓存数据
 func (b *blockCacheRedisImpl) Get(name string) (res string, err error) {
-	resData := b.CacheClient.Get(name)
+	resData := b.CacheClient.Get(context.Background(), name)
 	if err = resData.Err(); err != nil {
 		return
 	}
