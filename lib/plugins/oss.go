@@ -21,7 +21,8 @@ import (
 
 type Oss struct {
 	NameSpace       string `json:"namespace" yaml:"-"`
-	Endpoint        string `json:"endpoint" yaml:"endpoint"`
+	Endpoint        string `json:"endpoint" yaml:"endpoint"`          //Cdn地址
+	EndSrcPoint     string `json:"endsrcpoint"  yaml:"endsrcpoint"` //源站地址
 	AccessKeyId     string `json:"accesskeyid" yaml:"accesskeyid"`
 	AccessKeySecret string `json:"accesskeysecret" yaml:"accesskeysecret"`
 	BucketName      string `json:"bucketname" yaml:"bucketname"`

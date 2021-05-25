@@ -8,6 +8,7 @@
 package identifying_code_pkg
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -17,13 +18,12 @@ import (
 // customizeRdsStore An object implementing Store interface
 type CustomizeRdsStore struct {
 	//RedisClient *redis.Client
-	Context     *base.Context
+	Context *base.Context
 }
-
 
 // customizeRdsStore implementing Set method of  Store interface
 func (r *CustomizeRdsStore) Set(id string, value string) {
-	err := r.Context.CacheClient.Set(id, value, time.Minute*10).Err()
+	err := r.Context.CacheClient.Set(context.Background(), id, value, time.Minute*10).Err()
 	if err != nil {
 		r.Context.Error(map[string]interface{}{
 			"message": "auth.AuthLogin",
@@ -34,7 +34,8 @@ func (r *CustomizeRdsStore) Set(id string, value string) {
 
 // customizeRdsStore implementing Get method of  Store interface
 func (r *CustomizeRdsStore) Get(id string, clear bool) (value string) {
-	val, err := r.Context.CacheClient.Get(id).Result()
+	ctx := context.Background()
+	val, err := r.Context.CacheClient.Get(ctx, id).Result()
 	if err != nil {
 		r.Context.Error(map[string]interface{}{
 			"message": "auth.AuthLogin",
@@ -45,7 +46,7 @@ func (r *CustomizeRdsStore) Get(id string, clear bool) (value string) {
 	if !clear {
 		return val
 	}
-	err = r.Context.CacheClient.Del(id).Err()
+	err = r.Context.CacheClient.Del(ctx, id).Err()
 	if err != nil {
 		r.Context.Error(map[string]interface{}{
 			"message": "auth.AuthLogin",
