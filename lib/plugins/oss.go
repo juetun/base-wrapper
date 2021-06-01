@@ -20,19 +20,20 @@ import (
 )
 
 type Oss struct {
-	NameSpace           string `json:"namespace" yaml:"-"`
-	Endpoint            string `json:"endpoint" yaml:"endpoint"`        //Cdn地址
-	EndSrcPoint         string `json:"endsrcpoint"  yaml:"endsrcpoint"` //源站地址
-	AccessKeyId         string `json:"accesskeyid" yaml:"accesskeyid"`
-	AccessKeySecret     string `json:"accesskeysecret" yaml:"accesskeysecret"`
-	BucketName          string `json:"bucketname" yaml:"bucketname"`
-	RoleArn             string `json:"rolearn" yaml:"rolearn"`
-	SessionName         string `json:"sessionname" yaml:"sessionname"`
-	BucketUrl           string `json:"bucketurl" yaml:"bucketurl"`
-	DirName             string `json:"dirname" yaml:"dirname"`
-	ExpiredTime         uint   `json:"expiredtime" yaml:"expiredtime"`
-	PipelineIdVideo     string `json:"pipelineidvideo" yaml:"pipelineidvideo"` //70b91995b94846b7a2f8c4f7df362d04
-	VideoBucketLocation string `json:"videobucketlocation" yaml:"videobucketlocation"` //例:oss-cn-beijing
+	NameSpace           string            `json:"namespace" yaml:"-"`
+	Endpoint            string            `json:"endpoint" yaml:"endpoint"`        //Cdn地址
+	EndSrcPoint         string            `json:"endsrcpoint"  yaml:"endsrcpoint"` //源站地址
+	AccessKeyId         string            `json:"accesskeyid" yaml:"accesskeyid"`
+	AccessKeySecret     string            `json:"accesskeysecret" yaml:"accesskeysecret"`
+	BucketName          string            `json:"bucketname" yaml:"bucketname"`
+	RoleArn             string            `json:"rolearn" yaml:"rolearn"`
+	SessionName         string            `json:"sessionname" yaml:"sessionname"`
+	BucketUrl           string            `json:"bucketurl" yaml:"bucketurl"`
+	DirName             string            `json:"dirname" yaml:"dirname"`
+	ExpiredTime         uint              `json:"expiredtime" yaml:"expiredtime"`
+	PipelineIdVideo     string            `json:"pipelineidvideo" yaml:"pipelineidvideo"`         //70b91995b94846b7a2f8c4f7df362d04
+	VideoBucketLocation string            `json:"videobucketlocation" yaml:"videobucketlocation"` //例:oss-cn-beijing
+	ParseCodeTemp       map[string]string `json:"parsecodetemp" yaml:"parsecodetemp"`
 }
 
 var oss = make(map[string]Oss)
