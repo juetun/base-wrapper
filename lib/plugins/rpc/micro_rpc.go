@@ -151,11 +151,12 @@ func (r *httpRpc) initClient() (res *httpRpc) {
 }
 
 func (r *httpRpc) DefaultBaseUrl() {
-	if _, ok := app_obj.AppMap[r.Request.AppName]; !ok {
-		r.Error = fmt.Errorf("base url config is not exists(%s)", r.Request.AppName)
-		return
-	}
+
 	if !r.Request.NotMicro { // 如果不是微服务应用
+		if _, ok := app_obj.AppMap[r.Request.AppName]; !ok {
+			r.Error = fmt.Errorf("base url config is not exists(%s)", r.Request.AppName)
+			return
+		}
 		r.BaseUrl = fmt.Sprintf("%s/%s/%s", app_obj.AppMap[r.Request.AppName], r.Request.AppName, r.Request.PathVersion)
 	}
 }
