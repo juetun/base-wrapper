@@ -55,7 +55,7 @@ func PluginOss(arg *app_start.PluginsOperate) (err error) {
 	var yamlFile []byte
 	var v map[string]Oss
 	if yamlFile, err = ioutil.ReadFile(common.GetConfigFilePath("oss.yaml")); err != nil {
-		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   #%v \n", err)
+		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   %#v \n", err)
 	}
 	if err = yaml.Unmarshal(yamlFile, &v); err != nil {
 		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Load oss config config err(%#v) \n", err)
@@ -65,7 +65,7 @@ func PluginOss(arg *app_start.PluginsOperate) (err error) {
 			continue
 		}
 		d.NameSpace = k
-		systemLog.Printf("【INFO】oss config:%v", d)
+		systemLog.Printf("【INFO】oss config:%+v", d)
 		oss[d.NameSpace] = d
 	}
 	return

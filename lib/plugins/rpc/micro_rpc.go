@@ -94,7 +94,8 @@ func (r *RequestOptions) initDefault() {
 
 // 校验参数
 func (r *RequestOptions) validateParams() (err error) {
-	if r.AppName == "" {
+
+	if !r.NotMicro && r.AppName == "" {
 		err = fmt.Errorf("您没有选择的应用名(%s)", r.AppName)
 		return
 	}
