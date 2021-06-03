@@ -1,3 +1,4 @@
+// Package rpc
 /**
 * @Author:changjiang
 * @Description:
@@ -52,11 +53,10 @@ type httpRpc struct {
 	client  *http.Client
 }
 
-// 请求入口
+// NewHttpRpc 请求入口
 func NewHttpRpc(params *RequestOptions) (r *httpRpc) {
 	r = &httpRpc{}
-	r.Error = params.validateParams()
-	if r.Error != nil {
+	if r.Error = params.validateParams(); r.Error != nil {
 		return
 	}
 	params.initDefault()
@@ -70,7 +70,7 @@ func (r *RequestOptions) initDefault() {
 		r.Method = "GET"
 	}
 	if r.ConnectTimeOut == 0 {
-		r.ConnectTimeOut = 300 * time.Millisecond
+		r.ConnectTimeOut = 1 * time.Second
 	}
 	if r.RequestTimeOut == 0 {
 		r.RequestTimeOut = 5 * time.Second
@@ -141,11 +141,24 @@ func (r *httpRpc) initClient() (res *httpRpc) {
 		Transport: &http.Transport{
 			DialContext: func(ctx context.Context, network, addr string) (conn net.Conn, err error) {
 				deadline := time.Now().Add(r.Request.RequestTimeOut)
-				conn, err = net.DialTimeout(network, addr, r.Request.ConnectTimeOut)
-				if err != nil {
+				if conn, err = net.DialTimeout(network, addr, r.Request.ConnectTimeOut); err != nil {
+					r.Request.Context.Error(map[string]interface{}{
+						"err":      err.Error(),
+						"network":  network,
+						"addr":     addr,
+						"deadline": deadline.Format("2006-01-02 15:04:05"),
+					}, "rpcHttpRpcInitClient")
 					return
 				}
-				conn.SetDeadline(deadline)
+				if err = conn.SetDeadline(deadline); err != nil {
+					r.Request.Context.Error(map[string]interface{}{
+						"err":      err.Error(),
+						"network":  network,
+						"addr":     addr,
+						"deadline": deadline.Format("2006-01-02 15:04:05"),
+					}, "rpcHttpRpcInitClient")
+					return
+				}
 				return
 			},
 		},

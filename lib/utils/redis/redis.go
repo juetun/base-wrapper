@@ -1,11 +1,13 @@
+// Package redis
 // @Copyright (c) 2021.
 // @Author ${USER}
 // @Date ${DATE}
 package redis
 
 import (
+	"context"
 	"fmt"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"time"
 )
@@ -36,13 +38,13 @@ func NewUtilsRedis(redisNameSpace ...string) (res *utilsRedis) {
 	return
 }
 
-//data 必须为一个指针
+// Get data 必须为一个指针
 func (r *utilsRedis) Get(data interface{}) (err error) {
 	if r.err != nil {
 		err = r.err
 		return
 	}
-	if err = r.redis.GetSet(r.Key, data).Err(); err != nil {
+	if err = r.redis.GetSet(context.Background(), r.Key, data).Err(); err != nil {
 		return
 	}
 	//如果缓存中没有数据
@@ -56,13 +58,13 @@ func (r *utilsRedis) Get(data interface{}) (err error) {
 	return
 }
 
-//data 必须为一个指针
+// Set data 必须为一个指针
 func (r *utilsRedis) Set(data interface{}) (err error) {
 	if r.err != nil {
 		err = r.err
 		return
 	}
-	if err = r.redis.Set(r.Key, data, r.Expiration).Err(); err != nil {
+	if err = r.redis.Set(context.Background(), r.Key, data, r.Expiration).Err(); err != nil {
 		return
 	}
 	return
