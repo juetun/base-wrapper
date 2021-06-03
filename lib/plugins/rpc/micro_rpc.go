@@ -75,6 +75,9 @@ func (r *RequestOptions) initDefault() {
 	if r.RequestTimeOut == 0 {
 		r.RequestTimeOut = 5 * time.Second
 	}
+	if r.NotMicro {
+		return
+	}
 	traceId := ""
 	if nil != r.Context {
 		r.Context.GinContext.GetHeader(app_obj.HTTP_TRACE_ID)
