@@ -1,3 +1,4 @@
+// Package plugins
 /**
 * @Author:changjiang 当前用户所在城市
 * @Description:
@@ -18,11 +19,10 @@ import (
 const CityCookieName = "city"
 const MiddleCityCode = "city"
 
-func PluginLocation(arg  *app_start.PluginsOperate) (err error) {
+func PluginLocation(arg *app_start.PluginsOperate) (err error) {
 	var syncLock sync.Mutex
 	syncLock.Lock()
 	defer syncLock.Unlock()
-
 
 	middlewares.MiddleWareComponent = append(middlewares.MiddleWareComponent, func(context *gin.Context) {
 

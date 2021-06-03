@@ -33,7 +33,9 @@ type Oss struct {
 	ExpiredTime         uint              `json:"expiredtime" yaml:"expiredtime"`
 	PipelineIdVideo     string            `json:"pipelineidvideo" yaml:"pipelineidvideo"`         //70b91995b94846b7a2f8c4f7df362d04
 	VideoBucketLocation string            `json:"videobucketlocation" yaml:"videobucketlocation"` //例:oss-cn-beijing
-	ParseCodeTemp       map[string]string `json:"parsecodetemp" yaml:"parsecodetemp"`
+	ParseCodeTemp       map[string]string `json:"parsecodetemp" yaml:"parsecodetemp"`             //转码模板配置
+	CDNExpiredTime      int64             `json:"cdn_expired_time" yaml:"cdnexpiredtime"`
+	CDNAuthKey          string            `json:"cdn_auth_key" yaml:"cdnauthkey"`
 }
 
 var oss = make(map[string]Oss)
