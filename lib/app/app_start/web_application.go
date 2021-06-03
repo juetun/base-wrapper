@@ -1,3 +1,4 @@
+// Package app_start
 // @Copyright (c) 2021.
 // @Author ${USER}
 // @Date ${DATE}
@@ -23,7 +24,7 @@ import (
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 )
 
-// 路由注册函数
+// HandleRouter 路由注册函数
 type HandleRouter func(c *gin.Engine, urlPrefix string)
 
 var HandleFunc = make([]HandleRouter, 0)         // 路由函数切片
@@ -37,7 +38,7 @@ type WebApplication struct {
 	FlagMicro bool //如果是支持微服务
 }
 
-// privateMiddleWares 项目自定义的GIN中间件
+// NewWebApplication privateMiddleWares 项目自定义的GIN中间件
 func NewWebApplication(privateMiddleWares ...gin.HandlerFunc) *WebApplication {
 	switch strings.ToLower(common.GetAppConfig().AppEnv) {
 	case "release":
@@ -82,7 +83,7 @@ func (r *WebApplication) SetFlagMicro(flagMicro bool) (res *WebApplication) {
 	return
 }
 
-// 加载API路由
+// LoadRouter 加载API路由
 func (r *WebApplication) LoadRouter(routerHandler ...RouterHandler) (res *WebApplication) {
 	res = r
 	var err error
@@ -126,7 +127,7 @@ func (r *WebApplication) LoadRouter(routerHandler ...RouterHandler) (res *WebApp
 		r.syslog.SetInfoType(base.LogLevelInfo).
 			SystemOutPrintln("注册内网访问接口路由....")
 		for _, router := range HandleFuncIntranet {
-			router(r.GinEngine, fmt.Sprintf("%s/%s", UrlPrefix, "in"))
+			router(r.GinEngine, fmt.Sprintf("%s/%s", UrlPrefix, app_obj.App.AppRouterPrefix.Intranet))
 		}
 	}
 	if len(HandleFuncOuterNet) > 0 {
@@ -134,21 +135,25 @@ func (r *WebApplication) LoadRouter(routerHandler ...RouterHandler) (res *WebApp
 		r.syslog.SetInfoType(base.LogLevelInfo).
 			SystemOutPrintln("注册外网访问接口路由....")
 		for _, router := range HandleFuncOuterNet {
-			router(r.GinEngine, fmt.Sprintf("%s/%s", UrlPrefix, "out"))
+			router(r.GinEngine, fmt.Sprintf("%s/%s", UrlPrefix, app_obj.App.AppRouterPrefix.Outranet))
 		}
 	}
 	if len(HandleFuncPage) > 0 {
 		fmt.Printf("\n")
 		r.syslog.SetInfoType(base.LogLevelInfo).
 			SystemOutPrintf("注册网页界面访问路由(%s).... \n", UrlPrefix)
+		pr := app_obj.App.AppRouterPrefix.Page
+		if pr != "" {
+			pr = "/" + pr
+		}
 		for _, router := range HandleFuncPage {
-			router(r.GinEngine, UrlPrefix)
+			router(r.GinEngine, fmt.Sprintf("%s%s", UrlPrefix, pr))
 		}
 	}
 	return
 }
 
-// 开始加载Gin 服务
+// Run 开始加载Gin 服务
 func (r *WebApplication) Run() (err error) {
 
 	appConfig := common.GetAppConfig()
@@ -162,7 +167,7 @@ func (r *WebApplication) Run() (err error) {
 		SystemOutPrintln("General start ")
 
 	if !r.microRun(r.GinEngine) {
-		r.GinEngine.Run(r.GetListenPortString()) // listen and serve on 0.0.0.0:8080
+		err = r.GinEngine.Run(r.GetListenPortString()) // listen and serve on 0.0.0.0:8080
 	}
 	return
 }
