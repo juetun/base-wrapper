@@ -1,3 +1,4 @@
+// Package middlewares
 /**
  * Created by GoLand.
  * User: xzghua@gmail.com
@@ -29,6 +30,7 @@ func CrossOriginResourceSharing() gin.HandlerFunc {
 			c.Next()
 			return
 		}
+
 		c.Next()
 	}
 }

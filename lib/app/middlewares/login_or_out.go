@@ -8,11 +8,11 @@ import (
 	"github.com/juetun/base-wrapper/lib/common"
 )
 
-// 用户身份验证成功
+// AuthenticationCallBack 用户身份验证成功
 // err的提示内容会在响应中输出
 type AuthenticationCallBack func(user *app_obj.JwtUserMessage, c *gin.Context) (err error)
 
-// 不用严格判断登录，如果前端传递了令牌那么解析令牌,否则直接跳过
+// AuthParse 不用严格判断登录，如果前端传递了令牌那么解析令牌,否则直接跳过
 // notStrictValue=true
 // token=""
 func AuthParse(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
@@ -40,7 +40,7 @@ func AuthParse(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 	}
 }
 
-// 判断用户是否登录如果未登录则退出
+//Authentication 判断用户是否登录如果未登录则退出
 func Authentication(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var jwtUser app_obj.JwtUserMessage

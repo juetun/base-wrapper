@@ -1,3 +1,4 @@
+// Package middlewares
 package middlewares
 
 import (
@@ -8,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// 设置跨域让访问的逻辑
+// MyCors 设置跨域让访问的逻辑
 func MyCors(c *gin.Context) {
 
 	method := c.Request.Method

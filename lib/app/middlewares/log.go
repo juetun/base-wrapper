@@ -1,3 +1,4 @@
+// Package middlewares
 /**
 * @Author:changjiang
 * @Description:
@@ -19,7 +20,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// gin框架日志收集
+// GinLogCollect gin框架日志收集
 func GinLogCollect(logger *app_obj.AppLog) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
@@ -32,7 +33,7 @@ func GinLogCollect(logger *app_obj.AppLog) gin.HandlerFunc {
 func getUseHeader(header *http.Header) (res http.Header) {
 	res = http.Header{}
 	for s, _ := range *header {
-		if s=="Accept"||s=="Accept-Encoding"||s=="Connection"{
+		if s == "Accept" || s == "Accept-Encoding" || s == "Connection" {
 			continue
 		}
 		res.Set(s, header.Get(s))
