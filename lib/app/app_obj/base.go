@@ -13,16 +13,16 @@ import (
 )
 
 const (
-	TRACE_ID                = "trace_id"      // 请求上下文传递时 的唯一ID （日志链路追踪使用）
-	APP_LOG_KEY             = "app"           // 当前操作所属的代码库微服务应用名（日志链路追踪使用）
-	APP_FIELD_KEY           = "type"          // 日志类型字段KEY的值
-	APP_LOG_LOC             = "src"           // 代码所在位置
-	HTTP_TRACE_ID           = "X-Trace-Id"    // 页面请求时的 传参或者nginx生成的trace_id的key
-	HTTP_USER_TOKEN         = "X-Auth-Token"  // 页面请求时用户token
-	HTTP_HEADER_APP         = "X-App"         // 接口请求头信息
-	HTTP_HEADER_VERSION     = "X-App-version" // 接口请求版本信息
-	HTTP_HEADER_TERMINAL    = "X-Terminal"    // 终端类型 android ,ios ,web weixin
-	HTTP_HEADER_ADMIN_TOKEN = "X-Console"     // 客服后台接口多的key值
+	TraceId              = "trace_id"      // 请求上下文传递时 的唯一ID （日志链路追踪使用）
+	AppLogKey            = "app"           // 当前操作所属的代码库微服务应用名（日志链路追踪使用）
+	AppFieldKey          = "type"          // 日志类型字段KEY的值
+	AppLogLoc            = "src"           // 代码所在位置
+	HttpTraceId          = "X-Trace-Id"    // 页面请求时的 传参或者nginx生成的trace_id的key
+	HttpUserToken        = "X-Auth-Token"  // 页面请求时用户token
+	HttpHeaderApp        = "X-App"         // 接口请求头信息
+	HttpHeaderVersion    = "X-App-version" // 接口请求版本信息
+	HttpHeaderTerminal   = "X-Terminal"    // 终端类型 android ,ios ,web weixin
+	HttpHeaderAdminToken = "X-Console"     // 客服后台接口多的key值
 )
 
 // BaseDirect 当前配置文件所在目录
@@ -43,15 +43,15 @@ type Application struct {
 	AppGraceReload       int             `json:"grace_reload" yaml:"grace_reload"`                 // 应用是否支持优雅重启
 	AppNeedPProf         bool            `json:"app_need_p_prof" yaml:"app_need_p_prof"`           // 是否需要内存分析
 	AppTemplateDirectory string          `json:"app_template_directory" yaml:"template_directory"` // temp模板默认目录
-	AppRouterPrefix      AppRouterPrefix `json:"app_router_prefix" yaml:"app_router_prefix"`       //路由前缀
-	AppAdminToken        string          `json:"app_admin_token" yaml:"app_admin_token"`           //客服后台接口多的token值
+	AppRouterPrefix      AppRouterPrefix `json:"app_router_prefix" yaml:"app_router_prefix"`       // 路由前缀
+	AppAdminToken        string          `json:"app_admin_token" yaml:"app_admin_token"`           // 客服后台接口多的token值
 }
 
 type AppRouterPrefix struct {
-	Intranet string `json:"intranet"` //内网地址
-	Outranet string `json:"outernet"` //外网地址
-	AdminNet string `json:"adminnet"` //运营后台地址
-	Page     string `json:"page"`     //网页地址
+	Intranet string `json:"intranet"` // 内网地址
+	Outranet string `json:"outernet"` // 外网地址
+	AdminNet string `json:"adminnet"` // 运营后台地址
+	Page     string `json:"page"`     // 网页地址
 }
 
 func (r *Application) ToString() string {
@@ -77,6 +77,6 @@ func (r *Application) Default() {
 		r.AppRouterPrefix.Outranet = "out"
 	}
 	if r.AppRouterPrefix.AdminNet == "" {
-		r.AppRouterPrefix.Outranet = "admin"
+		r.AppRouterPrefix.AdminNet = "admin"
 	}
 }

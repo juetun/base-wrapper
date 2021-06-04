@@ -1,3 +1,4 @@
+// Package app_obj
 /**
 * @Author:changjiang
 * @Description:
@@ -23,7 +24,7 @@ var logConfig *OptionLog
 
 type OptionLog struct {
 	Outputs []string `json:"outputs" yml:"outputs"` // []string{"stdout","file"}
-	//LogFileConfig                                                                 // 配置文件信息. 当Outputs值中有输入出到文件标记"file"时有效.
+	// LogFileConfig                                                                 // 配置文件信息. 当Outputs值中有输入出到文件标记"file"时有效.
 
 	LogFilePath     string `json:"log_file_path" yml:"logfilepath"`         // 日志文件输出路径，空 不输出
 	LogFileName     string `json:"log_file_name" yml:"logfilename"`         // 日志文件名(或文件名前缀)，空 不输出
@@ -124,25 +125,25 @@ func (r *OptionLog) PathExists(path string) (bool, error) {
 }
 func (r *OptionLog) existsOrCreateDir() (err error) {
 	var ok bool
-	//判断目录是否存在
+	// 判断目录是否存在
 	if ok, err = r.PathExists(r.LogFilePath); err != nil {
 		return
 	} else if ok {
 		return
 	}
-	//如果目录不存在，则尝试创建目录
+	// 如果目录不存在，则尝试创建目录
 	if err = os.MkdirAll(r.LogFilePath, 0766); err != nil {
 		return
 	}
 	return
 }
 
-//获取日志接收文件Writer
+// 获取日志接收文件Writer
 func (r *OptionLog) GetFileWriter() (file io.Writer, err error) {
 
 	var logFile string
 
-	//判断日志文件目录存在不，如果不存在，则尝试创建目录
+	// 判断日志文件目录存在不，如果不存在，则尝试创建目录
 	if err = r.existsOrCreateDir(); err != nil {
 		return
 	}

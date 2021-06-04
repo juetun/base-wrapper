@@ -36,7 +36,7 @@ var HandleFuncPage = make([]HandleRouter, 0)     // 外网路由函数切片
 type WebApplication struct {
 	GinEngine *gin.Engine
 	syslog    *base.SystemOut
-	FlagMicro bool //如果是支持微服务
+	FlagMicro bool // 如果是支持微服务
 }
 
 // NewWebApplication privateMiddleWares 项目自定义的GIN中间件
@@ -59,8 +59,7 @@ func NewWebApplication(privateMiddleWares ...gin.HandlerFunc) *WebApplication {
 	// 日志对象获取,最先执行的中间件
 	var preMiddleWare = []gin.HandlerFunc{
 		func(c *gin.Context) { // 链路追踪埋点
-			traceId := c.GetHeader(app_obj.HTTP_TRACE_ID)
-			c.Set(app_obj.TRACE_ID, traceId)
+			c.Set(app_obj.TraceId, c.GetHeader(app_obj.HttpTraceId))
 			c.Next()
 		},
 		middlewares.GinLogCollect(app_obj.GetLog()),
@@ -144,7 +143,7 @@ func (r *WebApplication) LoadRouter(routerHandler ...RouterHandler) (res *WebApp
 		r.syslog.SetInfoType(base.LogLevelInfo).
 			SystemOutPrintln("注册外网访问接口路由....")
 		for _, router := range HandleFuncAdminNet {
-			ginEngine:=r.GinEngine
+			ginEngine := r.GinEngine
 			ginEngine.Use(middlewares.AdminMiddlewares())
 			router(ginEngine, fmt.Sprintf("%s/%s", UrlPrefix, app_obj.App.AppRouterPrefix.AdminNet))
 		}
@@ -184,7 +183,7 @@ func (r *WebApplication) Run() (err error) {
 }
 
 func (r *WebApplication) microRun(engine *gin.Engine) (res bool) {
-	if r.FlagMicro { //如果支持微服务
+	if r.FlagMicro { // 如果支持微服务
 		r.syslog.SetInfoType(base.LogLevelInfo).
 			SystemOutPrintln("Run as micro!")
 		r.RunAsMicro(engine)

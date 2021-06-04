@@ -28,11 +28,11 @@ type GetDbClientData struct {
 func (r *GetDbClientData) DefaultGetDbClientDataCallBack(db *gorm.DB) (err error) {
 	var s string
 	if nil != r.Context.GinContext {
-		if tp, ok := r.Context.GinContext.Get(app_obj.TRACE_ID); ok {
+		if tp, ok := r.Context.GinContext.Get(app_obj.TraceId); ok {
 			s = fmt.Sprintf("%v", tp)
 		}
 	}
-	db.InstantSet(app_obj.TRACE_ID, s)
+	db.InstantSet(app_obj.TraceId, s)
 	return
 
 }

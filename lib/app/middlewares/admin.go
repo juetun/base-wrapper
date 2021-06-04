@@ -14,7 +14,7 @@ import (
 //AdminMiddlewares 客服后台接口中间件
 func AdminMiddlewares() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if c.Request.Header.Get(app_obj.HTTP_HEADER_ADMIN_TOKEN) != app_obj.App.AppAdminToken {
+		if c.Request.Header.Get(app_obj.HttpHeaderAdminToken) != app_obj.App.AppAdminToken {
 			msg := "HTTP_HEADER_ADMIN_TOKEN value is null"
 			c.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusUnauthorized).SetMessage(msg))
 			c.Abort()

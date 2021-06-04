@@ -85,8 +85,8 @@ func Authentication(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 func tokenValidate(c *gin.Context, notStrictValue bool) (jwtUser app_obj.JwtUserMessage, exit bool) {
 	jwtUser = app_obj.JwtUserMessage{}
 	var token string
-	c.Set(app_obj.TRACE_ID, c.GetHeader(app_obj.HTTP_TRACE_ID))
-	if token = c.Request.Header.Get(app_obj.HTTP_USER_TOKEN); token == "" { // 如果token为空
+	c.Set(app_obj.TraceId, c.GetHeader(app_obj.HttpTraceId))
+	if token = c.Request.Header.Get(app_obj.HttpUserToken); token == "" { // 如果token为空
 
 		// 如果token为空且设置了空跳过，则直接退出
 		if notStrictValue == true {

@@ -1,3 +1,4 @@
+// Package init
 package init
 
 import (

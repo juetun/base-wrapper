@@ -26,7 +26,7 @@ func GetRUri(c *gin.Context) string {
 // 用户登录逻辑处理
 func Auth(c *gin.Context) (exit bool) {
 
-	token := c.Request.Header.Get(app_obj.HTTP_USER_TOKEN)
+	token := c.Request.Header.Get(app_obj.HttpUserToken)
 
 
 	if token == "" {

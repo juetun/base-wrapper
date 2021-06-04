@@ -68,7 +68,7 @@ func (r *Context) InitContext() (c *Context) {
 	}
 	s := ""
 	if nil != r.GinContext {
-		if tp, ok := r.GinContext.Get(app_obj.TRACE_ID); ok {
+		if tp, ok := r.GinContext.Get(app_obj.TraceId); ok {
 			s = fmt.Sprintf("%v", tp)
 		}
 	}
@@ -76,7 +76,7 @@ func (r *Context) InitContext() (c *Context) {
 		r.Db = GetDbClient(&GetDbClientData{
 			Context: r,
 			CallBack: func(db *gorm.DB) (err error) {
-				db.InstantSet(app_obj.TRACE_ID, s)
+				db.InstantSet(app_obj.TraceId, s)
 				return
 			},
 		})

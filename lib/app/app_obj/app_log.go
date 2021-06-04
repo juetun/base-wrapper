@@ -1,3 +1,4 @@
+// Package app_obj
 // @Copyright (c) 2020.
 // @Author ${USER}
 // @Date ${DATE}
@@ -44,15 +45,15 @@ func (r *AppLog) getFields(data map[string]interface{}) (res logrus.Fields) {
 	if _, codePath, codeLine, ok := runtime.Caller(4); ok {
 		file = fmt.Sprintf("%s(l:%d)", codePath, codeLine, ) // runtime.FuncForPC(pc).Name(),
 	}
-	res = logrus.Fields{APP_LOG_KEY: App.AppName,}
-	if _, ok := data[APP_LOG_LOC]; ok { //如果已经设置了src的值，则不用重复设置了
+	res = logrus.Fields{AppLogKey: App.AppName,}
+	if _, ok := data[AppLogLoc]; ok { // 如果已经设置了src的值，则不用重复设置了
 		return
 	}
 	if r.GoPath != "" {
-		res[APP_LOG_LOC] = "$GOPATH" + strings.TrimPrefix(file, r.GoPath)
+		res[AppLogLoc] = "$GOPATH" + strings.TrimPrefix(file, r.GoPath)
 		return
 	}
-	res[APP_LOG_LOC] = file
+	res[AppLogLoc] = file
 	return
 }
 
@@ -66,7 +67,7 @@ func (r *AppLog) Info(context *gin.Context, data map[string]interface{}, message
 func (r *AppLog) orgFields(context *gin.Context, data map[string]interface{}) (fields logrus.Fields) {
 	fields = r.getFields(data)
 	if context != nil {
-		fields[TRACE_ID] = context.GetHeader(HTTP_TRACE_ID)
+		fields[TraceId] = context.GetHeader(HttpTraceId)
 	}
 	if len(data) > 0 {
 		for key, value := range data {

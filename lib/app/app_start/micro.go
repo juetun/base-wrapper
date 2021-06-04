@@ -1,3 +1,4 @@
+// Package app_start
 // @Copyright (c) 2021.
 // @Author ${USER}
 // @Date ${DATE}
@@ -7,6 +8,13 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"log"
+	"net/http"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+
 	httpServer "github.com/asim/go-micro/plugins/server/http/v3"
 	"github.com/asim/go-micro/v3"
 	"github.com/asim/go-micro/v3/util/addr"
@@ -15,12 +23,6 @@ import (
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/juetun/base-wrapper/lib/plugins/service_discory/traefik/etcd"
-	"log"
-	"net/http"
-	"strconv"
-	"strings"
-	"sync"
-	"time"
 
 	"github.com/asim/go-micro/v3/registry"
 	"github.com/asim/go-micro/v3/server"
@@ -31,7 +33,7 @@ var (
 	DefaultId = uuid.New().String()
 )
 
-//使用go-micro实现服务注册与发现
+// 使用go-micro实现服务注册与发现
 func (r *WebApplication) RunAsMicro(gin *gin.Engine) {
 	var err error
 	address := r.GetListenPortString()
@@ -179,7 +181,7 @@ func (r EtcdRegistry) Register(service *registry.Service, option ...registry.Reg
 	if r.etcdTraefik == nil {
 		r.etcdTraefik = etcd.NewTraefikEtcd(&micro_service.ServiceConfig, r.syslog)
 	}
-	//if err = etcd.NewTraefikEtcd(&micro_service.ServiceConfig).Action(); err != nil {
+	// if err = etcd.NewTraefikEtcd(&micro_service.ServiceConfig).Action(); err != nil {
 	if err = r.etcdTraefik.Action(); err != nil {
 		r.syslog.SetInfoType(base.LogLevelFatal).SystemOutFatalf("registry server err(%#v) \n", err)
 	}

@@ -80,14 +80,14 @@ func (r *RequestOptions) initDefault() {
 	}
 	traceId := ""
 	if nil != r.Context {
-		r.Context.GinContext.GetHeader(app_obj.HTTP_TRACE_ID)
+		r.Context.GinContext.GetHeader(app_obj.HttpTraceId)
 	}
 	if r.Header == nil {
 		r.Header = http.Header{
-			app_obj.HTTP_TRACE_ID: []string{traceId},
+			app_obj.HttpTraceId: []string{traceId},
 		}
 	} else {
-		r.Header.Add(app_obj.HTTP_TRACE_ID, traceId)
+		r.Header.Add(app_obj.HttpTraceId, traceId)
 	}
 	if !r.NotMicro && r.PathVersion == "" {
 		r.PathVersion = "v1"

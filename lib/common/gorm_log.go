@@ -36,16 +36,16 @@ func NewGOrmLog(db *gorm.DB) (res *GOrmLog) {
 func (r GOrmLog) Print(v ...interface{}) () {
 
 	traceId := ""
-	if a, ok := r.Db.Get(app_obj.TRACE_ID); ok {
+	if a, ok := r.Db.Get(app_obj.TraceId); ok {
 		traceId = fmt.Sprintf("%v", a)
 	}
 	fields := logrus.Fields{
-		app_obj.TRACE_ID:      traceId,
-		app_obj.APP_FIELD_KEY: "GORMSQL",
-		app_obj.APP_LOG_LOC:   v[1].(string),
+		app_obj.TraceId:     traceId,
+		app_obj.AppFieldKey: "GORMSQL",
+		app_obj.AppLogLoc:   v[1].(string),
 	}
 	if r.GoPath != "" {
-		fields[app_obj.APP_LOG_LOC] = "$GOPATH" + strings.TrimPrefix(v[1].(string), r.GoPath)
+		fields[app_obj.AppLogLoc] = "$GOPATH" + strings.TrimPrefix(v[1].(string), r.GoPath)
 	}
 
 	switch v[0] {
