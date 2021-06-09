@@ -1,7 +1,7 @@
 package common
 
 import (
-	"github.com/speps/go-hashids"
+	hashids "github.com/speps/go-hashids/v2"
 )
 
 var (

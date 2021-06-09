@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/speps/go-hashids"
+	hashids "github.com/speps/go-hashids/v2"
 )
 
 var hashidEncodeEmptyErr = errors.New("id must gt 0")
