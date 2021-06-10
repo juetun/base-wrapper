@@ -33,7 +33,7 @@ type Oss struct {
 	ExpiredTime         uint                             `json:"expiredtime" yaml:"expiredtime"`
 	PipelineIdVideo     string                           `json:"pipelineidvideo" yaml:"pipelineidvideo"`         //70b91995b94846b7a2f8c4f7df362d04
 	VideoBucketLocation string                           `json:"videobucketlocation" yaml:"videobucketlocation"` //例:oss-cn-beijing
-	ParseCodeTemp       map[string]ParseCodeTemplateItem `json:"parsecodetemp" yaml:"parsecodetemp"`             //转码模板配置
+	ParseCodeTemp       []ParseCodeTemplateItem `json:"parsecodetemp" yaml:"parsecodetemp"`             //转码模板配置
 	CDNExpiredTime      int64                            `json:"cdn_expired_time" yaml:"cdnexpiredtime"`
 	CDNAuthKey          string                           `json:"cdn_auth_key" yaml:"cdnauthkey"`
 }
@@ -41,6 +41,7 @@ type ParseCodeTemplateItem struct {
 	TemplateId string `json:"templateid"  yaml:"templateid"`
 	ExtName    string `json:"extname" yaml:"extname"`
 	Label      string `json:"label" yaml:"label"`
+	Key        string `json:"key" yaml:"key"`
 }
 
 var oss = make(map[string]Oss)
