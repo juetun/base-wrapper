@@ -40,6 +40,7 @@ type Oss struct {
 type ParseCodeTemplateItem struct {
 	TemplateId string `json:"templateid"  yaml:"templateid"`
 	ExtName    string `json:"extname" yaml:"extname"`
+	Label      string `json:"label" yaml:"label"`
 }
 
 var oss = make(map[string]Oss)
