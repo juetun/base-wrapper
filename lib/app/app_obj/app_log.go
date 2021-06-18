@@ -43,9 +43,9 @@ func (r *AppLog) getFields(data map[string]interface{}) (res logrus.Fields) {
 	var file = "-" // 获取当前日志写入时的代码位置 （文件名称，函数名称）
 	// 获取上层调用者PC，文件名，所在行	// 拼接文件名与所在行
 	if _, codePath, codeLine, ok := runtime.Caller(4); ok {
-		file = fmt.Sprintf("%s(l:%d)", codePath, codeLine, ) // runtime.FuncForPC(pc).Name(),
+		file = fmt.Sprintf("%s(l:%d)", codePath, codeLine) // runtime.FuncForPC(pc).Name(),
 	}
-	res = logrus.Fields{AppLogKey: App.AppName,}
+	res = logrus.Fields{AppLogKey: App.AppName}
 	if _, ok := data[AppLogLoc]; ok { // 如果已经设置了src的值，则不用重复设置了
 		return
 	}
@@ -66,8 +66,10 @@ func (r *AppLog) Info(context *gin.Context, data map[string]interface{}, message
 }
 func (r *AppLog) orgFields(context *gin.Context, data map[string]interface{}) (fields logrus.Fields) {
 	fields = r.getFields(data)
-	if context != nil {
-		fields[TraceId] = context.GetHeader(HttpTraceId)
+	if _, ok := fields[TraceId]; !ok {
+		if context != nil {
+			fields[TraceId] = context.GetHeader(HttpTraceId)
+		}
 	}
 	if len(data) > 0 {
 		for key, value := range data {
