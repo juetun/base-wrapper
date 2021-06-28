@@ -43,8 +43,13 @@ func (r *ServiceDao) SetContext(context ...*Context) (s *ServiceDao) {
 	return r
 }
 
-func (r *ServiceDao) AddOneData(db *gorm.DB, data ModelBase) (err error) {
-
+func (r *ServiceDao) AddOneData(db *gorm.DB, data ModelBase, tableName ...string) (err error) {
+	tbName := ""
+	if len(tableName) > 0 {
+		tbName = tableName[0]
+	} else {
+		tbName = data.TableName()
+	}
 	values := reflect.ValueOf(data)
 	tagValue := "gorm"
 	types := reflect.TypeOf(data)
@@ -86,7 +91,7 @@ func (r *ServiceDao) AddOneData(db *gorm.DB, data ModelBase) (err error) {
 		vv = append(vv, "?")
 	}
 	sql := fmt.Sprintf("INSERT INTO `%s`(`"+strings.Join(keys, "`,`")+"`) VALUES ("+strings.Join(vv, ",")+
-		") ON DUPLICATE KEY UPDATE "+strings.Join(columns, ","), data.TableName())
+		") ON DUPLICATE KEY UPDATE "+strings.Join(columns, ","), tbName)
 
 	if err = db.Exec(sql, val...).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
