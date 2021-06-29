@@ -9,6 +9,7 @@
 package base
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
@@ -76,9 +77,8 @@ func (r *Context) InitContext() (c *Context) {
 	if r.Db == nil {
 		r.Db = GetDbClient(&GetDbClientData{
 			Context: r,
-			CallBack: func(db *gorm.DB) (err error) {
-				db.InstanceSet(app_obj.TraceId, s)
-				// db.InstantSet(app_obj.TraceId, s)
+			CallBack: func(db *gorm.DB) (dba *gorm.DB, err error) {
+				dba = db.WithContext(context.WithValue(r.GinContext.Request.Context(), app_obj.TraceId, s))
 				return
 			},
 		})

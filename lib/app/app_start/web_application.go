@@ -59,6 +59,7 @@ func NewWebApplication(privateMiddleWares ...gin.HandlerFunc) *WebApplication {
 	// 日志对象获取,最先执行的中间件
 	var preMiddleWare = []gin.HandlerFunc{
 		func(c *gin.Context) { // 链路追踪埋点
+
 			c.Set(app_obj.TraceId, c.GetHeader(app_obj.HttpTraceId))
 			c.Next()
 		},

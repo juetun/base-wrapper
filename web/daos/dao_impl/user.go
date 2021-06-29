@@ -29,8 +29,7 @@ func NewDaoUserImpl(context ...*base.Context) (res daos.DaoUser) {
 }
 
 func (r *DaoUserImpl) GetUser(arg *wrapper.ArgumentDefault) (res []models.User, err error) {
-	
-	err = r.Context.Db.
+ 	err = r.Context.Db.
 		Where("id=?", 1).
 		Find(&res).
 		Error

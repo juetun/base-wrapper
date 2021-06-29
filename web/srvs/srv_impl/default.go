@@ -15,11 +15,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/juetun/base-wrapper/lib/utils/identifying_code_pkg"
 	"log"
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/juetun/base-wrapper/lib/utils/identifying_code_pkg"
 
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"

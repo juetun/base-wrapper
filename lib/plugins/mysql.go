@@ -3,8 +3,6 @@ package plugins
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
-	"os"
 	"sync"
 	"time"
 
@@ -14,7 +12,6 @@ import (
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
 	"gopkg.in/yaml.v2"
-	"gorm.io/gorm/logger"
 	// _ "github.com/go-sql-driver/mysql"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -70,6 +67,7 @@ func initMysql(nameSpace string, config *Mysql) {
 	if err != nil {
 		panic(err)
 	}
+
 	// 开启 Logger, 以展示详细的日志
 	// db.LogMode(true)
 	//
@@ -82,19 +80,18 @@ func initMysql(nameSpace string, config *Mysql) {
 	sqlDB.SetMaxOpenConns(config.MaxOpenConns)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 }
-func getLogger() logger.Interface {
-	// common.NewGOrmLog()
 
-	return logger.New(
-		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
-		logger.Config{
-			SlowThreshold:             time.Second,   // Slow SQL threshold
-			LogLevel:                  logger.Silent, // Log level
-			IgnoreRecordNotFoundError: true,          // Ignore ErrRecordNotFound error for logger
-			Colorful:                  false,         // Disable color
-		},
-	)
-}
+// func getLogger() logger.Interface {
+//   	return logger.New(
+// 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+// 		logger.Config{
+// 			SlowThreshold:             time.Second,   // Slow SQL threshold
+// 			LogLevel:                  logger.Silent, // Log level
+// 			IgnoreRecordNotFoundError: true,          // Ignore ErrRecordNotFound error for logger
+// 			Colorful:                  true,         // Disable color
+// 		},
+// 	)
+// }
 func getMysql(nameSpace string, addr *Mysql) *gorm.DB {
 	io.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintf("init mysql :%#v", addr)
@@ -109,7 +106,7 @@ func getMysql(nameSpace string, addr *Mysql) *gorm.DB {
 		DontSupportRenameColumn:   true,      // `change` when rename column, rename column not supported before MySQL 8, MariaDB
 		SkipInitializeWithVersion: false,     // auto configure based on currently MySQL version
 	}), &gorm.Config{
-		Logger: getLogger(), // common.NewGOrmLog(),
+		Logger: common.NewWithLogger(app_obj.GetLog().Logger), // common.NewGOrmLog(),
 	}); err != nil {
 		io.SetInfoType(base.LogLevelFatal).SystemOutPrintf(fmt.Sprintf("Fatal error database file: %v \n", err))
 		panic(err)

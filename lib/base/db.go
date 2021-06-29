@@ -8,13 +8,14 @@
 package base
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"gorm.io/gorm"
 )
 
-type GetDbClientDataCallBack func(db *gorm.DB) (err error)
+type GetDbClientDataCallBack func(db *gorm.DB) (dba *gorm.DB, err error)
 
 const defaultNameSpace = "default"
 
@@ -25,15 +26,16 @@ type GetDbClientData struct {
 	CallBack    GetDbClientDataCallBack // 获取数据库回调信息
 }
 
-func (r *GetDbClientData) DefaultGetDbClientDataCallBack(db *gorm.DB) (err error) {
+func (r *GetDbClientData) DefaultGetDbClientDataCallBack(db *gorm.DB) (dba *gorm.DB, err error) {
 	var s string
 	if nil != r.Context.GinContext {
 		if tp, ok := r.Context.GinContext.Get(app_obj.TraceId); ok {
 			s = fmt.Sprintf("%v", tp)
 		}
 	}
-	db.InstanceSet(app_obj.TraceId, s)
-	// db.InstantSet(app_obj.TraceId, s)
+	dba = db.WithContext(context.WithValue(r.Context.GinContext.Request.Context(), app_obj.TraceId, s))
+
+	// db.InstanceSet(app_obj.TraceId, s)
 	return
 
 }
@@ -57,9 +59,9 @@ func GetDbClient(params ...*GetDbClientData) (db *gorm.DB) {
 	var ok bool
 	if db, ok = app_obj.DbMysql[arg.DbNameSpace]; ok {
 		if arg.CallBack == nil {
-			arg.DefaultGetDbClientDataCallBack(db)
+			db, _ = arg.DefaultGetDbClientDataCallBack(db)
 		} else {
-			arg.CallBack(db)
+			db, _ = arg.CallBack(db)
 		}
 		return
 	}

@@ -36,7 +36,7 @@ var authorization Authorization
 // https://github.com/izghua/go-blog
 func main() {
 	app_start.NewPlugins(app_start.Authorization(&authorization)).Use(
-		PluginRegistry,
+		// PluginRegistry,
 		PluginOss,
 		PluginJwt, // 加载用户验证插件,必须放在Redis插件后
 		// PluginElasticSearchV7,
@@ -57,7 +57,7 @@ func main() {
 
 	// 启动GIN服务
 	_ = app_start.NewWebApplication().
-		SetFlagMicro(true).
+		// SetFlagMicro(true).
 		LoadRouter(loadRouter). // 记载gin 路由配置
 		Run()
 
