@@ -33,9 +33,16 @@ func (r *GetDbClientData) DefaultGetDbClientDataCallBack(db *gorm.DB) (dba *gorm
 			s = fmt.Sprintf("%v", tp)
 		}
 	}
-	dba = db.WithContext(context.WithValue(r.Context.GinContext.Request.Context(), app_obj.TraceId, s))
 
-	// db.InstanceSet(app_obj.TraceId, s)
+	var ctx context.Context
+	if r.Context.GinContext != nil {
+		ctx = r.Context.GinContext.Request.Context()
+	} else {
+		ctx = context.TODO()
+	}
+
+	dba = db.WithContext(context.WithValue(ctx, app_obj.TraceId, s))
+
 	return
 
 }

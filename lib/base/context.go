@@ -69,16 +69,20 @@ func (r *Context) InitContext() (c *Context) {
 		r.log = app_obj.GetLog()
 	}
 	s := ""
+	var ctx context.Context
 	if nil != r.GinContext {
 		if tp, ok := r.GinContext.Get(app_obj.TraceId); ok {
 			s = fmt.Sprintf("%v", tp)
 		}
+		ctx = r.GinContext.Request.Context()
+	} else {
+		ctx = context.TODO()
 	}
 	if r.Db == nil {
 		r.Db = GetDbClient(&GetDbClientData{
 			Context: r,
 			CallBack: func(db *gorm.DB) (dba *gorm.DB, err error) {
-				dba = db.WithContext(context.WithValue(r.GinContext.Request.Context(), app_obj.TraceId, s))
+				dba = db.WithContext(context.WithValue(ctx, app_obj.TraceId, s))
 				return
 			},
 		})

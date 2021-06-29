@@ -16,11 +16,11 @@ import (
 
 var DbRedis = make(map[string]*redis.Client)
 
-// 获取Redis操作实例
+// GetRedisClient 获取Redis操作实例
 func GetRedisClient(nameSpace ...string) *redis.Client {
 
 	var s string
-	switch len := len(nameSpace); len {
+	switch l := len(nameSpace); l {
 	case 0:
 		s = "default"
 	case 1:
