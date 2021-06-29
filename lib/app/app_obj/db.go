@@ -9,7 +9,7 @@
 package app_obj
 
 import (
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 var DbMysql = make(map[string]*gorm.DB, 2)

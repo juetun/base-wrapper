@@ -1,3 +1,4 @@
+// Package base
 /**
 * @Author:changjiang
 * @Description:
@@ -13,8 +14,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
-	"github.com/jinzhu/gorm"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
+	"gorm.io/gorm"
 )
 
 func CreateContext(controller *ControllerBase, c *gin.Context) (res *Context) {
@@ -76,7 +77,8 @@ func (r *Context) InitContext() (c *Context) {
 		r.Db = GetDbClient(&GetDbClientData{
 			Context: r,
 			CallBack: func(db *gorm.DB) (err error) {
-				db.InstantSet(app_obj.TraceId, s)
+				db.InstanceSet(app_obj.TraceId, s)
+				// db.InstantSet(app_obj.TraceId, s)
 				return
 			},
 		})

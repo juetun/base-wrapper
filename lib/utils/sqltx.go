@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"github.com/juetun/base-wrapper/lib/utils/hashid"
 )
 

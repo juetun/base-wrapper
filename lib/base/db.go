@@ -10,8 +10,8 @@ package base
 import (
 	"fmt"
 
-	"github.com/jinzhu/gorm"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
+	"gorm.io/gorm"
 )
 
 type GetDbClientDataCallBack func(db *gorm.DB) (err error)
@@ -32,7 +32,8 @@ func (r *GetDbClientData) DefaultGetDbClientDataCallBack(db *gorm.DB) (err error
 			s = fmt.Sprintf("%v", tp)
 		}
 	}
-	db.InstantSet(app_obj.TraceId, s)
+	db.InstanceSet(app_obj.TraceId, s)
+	// db.InstantSet(app_obj.TraceId, s)
 	return
 
 }

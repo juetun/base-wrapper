@@ -32,7 +32,7 @@ func newAppLog() (res *AppLog) {
 	return logApp
 }
 
-// 获取日志操作对象
+// GetLog 获取日志操作对象
 func GetLog() *AppLog {
 	if logApp == nil {
 		systemLog.Printf("【%s】Log object is nil", "ERROR")
@@ -90,7 +90,7 @@ func (r *AppLog) Warn(context *gin.Context, data map[string]interface{}, message
 	r.Logger.WithFields(r.orgFields(context, data)).Warn(message)
 }
 
-// 初始化日志操作对象
+// InitAppLog 初始化日志操作对象
 func InitAppLog() {
 	systemLog.Printf("【INFO】初始化日志操作对象")
 	defer systemLog.Printf("【INFO】初始化日志操作对象操作完成 对象内容为:%#v \n", logApp)

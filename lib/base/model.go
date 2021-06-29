@@ -1,3 +1,4 @@
+// Package base
 /**
 * @Author:changjiang
 * @Description:
@@ -12,16 +13,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 type Model struct {
-	Id        int       `gorm:"primary_key" json:"id"`
+	Id        int         `gorm:"primary_key" json:"id"`
 	CreatedAt TimeNormal  `json:"created_at"`
 	UpdatedAt TimeNormal  `json:"updated_at"`
 	DeletedAt *TimeNormal `sql:"index" json:"-"`
 }
-
 
 type TimeNormal struct {
 	time.Time
@@ -49,13 +49,14 @@ func (t *TimeNormal) Scan(v interface{}) error {
 	return fmt.Errorf("can not convert %v to timestamp", v)
 }
 
-func (t *TimeNormal) BeforeCreate(scope *gorm.Scope) error {
-	scope.SetColumn("create_time", time.Now())
-	scope.SetColumn("update_time", time.Now())
+func (t *TimeNormal) BeforeCreate(scope *gorm.DB) error {
+	timeNow := time.Now()
+	scope.Set("create_time", timeNow)
+	scope.Set("update_time", timeNow)
 	return nil
 }
 
-func (t *TimeNormal) BeforeUpdate(scope *gorm.Scope) error {
-	scope.SetColumn("update_time", time.Now())
+func (t *TimeNormal) BeforeUpdate(scope *gorm.DB) error {
+	scope.Set("update_time", time.Now())
 	return nil
 }
