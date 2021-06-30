@@ -1,6 +1,6 @@
 // Package base
 /**
-* @Author:changjiang
+* @Author:ChangJiang
 * @Description:
 * @File:dao
 * @Version: 1.0.0
@@ -11,7 +11,6 @@ package base
 import (
 	"fmt"
 	"reflect"
-	"strconv"
 	"strings"
 	"time"
 
@@ -42,7 +41,43 @@ func (r *ServiceDao) SetContext(context ...*Context) (s *ServiceDao) {
 
 	return r
 }
+func (r *ServiceDao) formatValue(db *gorm.DB, valueStruct reflect.Value) (res interface{}) {
 
+	switch valueStruct.Kind() {
+
+	case reflect.Interface:
+		res = valueStruct.Interface()
+	case reflect.Ptr:
+		if valueStruct.IsNil() {
+			res = nil
+			return
+		}
+		return r.formatValue(db, valueStruct.Elem())
+	case reflect.Bool:
+		res = valueStruct.Bool()
+	case reflect.String:
+		res = valueStruct.String()
+	case reflect.Int, reflect.Int32, reflect.Int64:
+		res = valueStruct.Int()
+	case reflect.Float32, reflect.Float64:
+		res = valueStruct.Float()
+	default:
+		switch valueStruct.Type().String() {
+		case "base.TimeNormal":
+			dt := valueStruct.Interface().(TimeNormal)
+			res = dt.Format("2006-01-02 15:04:05")
+		case "time.Time":
+			res = valueStruct.Interface().(time.Time).Format("2006-01-02 15:04:05")
+		case "time.Duration":
+			res = valueStruct.Interface().(time.Duration).String()
+		case "int":
+			res = valueStruct.Int()
+		default:
+			res = valueStruct.String()
+		}
+	}
+	return
+}
 func (r *ServiceDao) AddOneData(db *gorm.DB, data ModelBase, tableName ...string) (err error) {
 	tbName := ""
 	if len(tableName) > 0 {
@@ -53,40 +88,23 @@ func (r *ServiceDao) AddOneData(db *gorm.DB, data ModelBase, tableName ...string
 	values := reflect.ValueOf(data)
 	tagValue := "gorm"
 	types := reflect.TypeOf(data)
+	var fieldNum int
+	fieldNum = types.Elem().NumField()
 	var valueStruct reflect.Value
-	fieldNum := types.NumField()
+
 	keys := make([]string, 0, fieldNum)
 	columns := make([]string, 0, fieldNum)
 	val := make([]interface{}, 0, fieldNum)
 	vv := make([]string, 0, fieldNum)
+	var tag string
 	for i := 0; i < fieldNum; i++ {
-		tag := r.GetColumnName(types.Field(i).Tag.Get(tagValue))
-		if tag == "id" {
+		tag = r.GetColumnName(types.Elem().Field(i).Tag.Get(tagValue))
+		if tag == "id" || tag == "created_at" {
 			continue
 		}
 		keys = append(keys, tag)
-		valueStruct = values.Field(i)
-		switch valueStruct.Kind() {
-		case reflect.Interface:
-			val = append(val, valueStruct.Interface())
-		case reflect.Ptr:
-			val = append(val, valueStruct.Elem().Interface())
-		case reflect.Bool:
-			val = append(val, strconv.FormatBool(valueStruct.Bool()))
-		case reflect.String:
-			val = append(val, valueStruct.String())
-		default:
-			switch valueStruct.Type().String() {
-			case "time.Time":
-				val = append(val, valueStruct.Interface().(time.Time).Format("2006-01-02 15:04:05"))
-			case "time.Duration":
-				val = append(val, valueStruct.Interface().(time.Duration).String())
-			case "int":
-				val = append(val, fmt.Sprintf("%v", valueStruct.Int()))
-			default:
-				val = append(val, valueStruct.String())
-			}
-		}
+		valueStruct = values.Elem().Field(i)
+		val = append(val, r.formatValue(db, valueStruct))
 		columns = append(columns, fmt.Sprintf("`%s`=VALUES(`%s`)", tag, tag))
 		vv = append(vv, "?")
 	}
@@ -104,6 +122,7 @@ func (r *ServiceDao) AddOneData(db *gorm.DB, data ModelBase, tableName ...string
 	}
 	return
 }
+
 func (r *ServiceDao) GetColumnName(s string) (res string) {
 	li := strings.Split(s, ";")
 	res = s
