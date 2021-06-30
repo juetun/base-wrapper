@@ -17,19 +17,19 @@ import (
 var DbRedis = make(map[string]*redis.Client)
 
 // GetRedisClient 获取Redis操作实例
-func GetRedisClient(nameSpace ...string) *redis.Client {
+func GetRedisClient(nameSpace ...string) (client *redis.Client, nameKey string) {
 
-	var s string
 	switch l := len(nameSpace); l {
 	case 0:
-		s = "default"
+		nameKey = "default"
 	case 1:
-		s = nameSpace[0]
+		nameKey = nameSpace[0]
 	default:
 		panic("nameSpace receive at most one parameter")
 	}
-	if _, ok := DbRedis[s]; ok {
-		return DbRedis[s]
+	if _, ok := DbRedis[nameKey]; ok {
+		client = DbRedis[nameKey]
+		return
 	}
-	panic(fmt.Sprintf("the Redis connect(%s) is not exist", s))
+	panic(fmt.Sprintf("the Redis connect(%s) is not exist", nameKey))
 }

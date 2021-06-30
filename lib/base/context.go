@@ -36,7 +36,9 @@ func NewContext(contextOption ...ContextOption) *Context {
 type Context struct {
 	log         *app_obj.AppLog `json:"log"`
 	Db          *gorm.DB        `json:"db"`
+	DbName      string          `json:"db_name"` // 数据库的链接配置KEY
 	CacheClient *redis.Client   `json:"cache_client"`
+	CacheName   string          `json:"cache_name"` // 缓存的链接配置KEY
 	GinContext  *gin.Context
 	syncLog     sync.Mutex
 }
@@ -69,33 +71,34 @@ func (r *Context) InitContext() (c *Context) {
 		r.log = app_obj.GetLog()
 	}
 	s := ""
-	var ctx context.Context
+	var ctx = context.TODO()
 	if nil != r.GinContext {
 		if tp, ok := r.GinContext.Get(app_obj.TraceId); ok {
 			s = fmt.Sprintf("%v", tp)
 		}
 		ctx = r.GinContext.Request.Context()
-	} else {
-		ctx = context.TODO()
 	}
 	if r.Db == nil {
-		r.Db = GetDbClient(&GetDbClientData{
-			Context: r,
-			CallBack: func(db *gorm.DB, dbName string) (dba *gorm.DB, err error) {
-				dba = db.WithContext(context.WithValue(ctx, app_obj.DbContextValueKey, DbContextValue{
-					TraceId: s,
-					DbName:  dbName,
-				}))
-				return
-			},
-		})
+		r.initDb(s, ctx)
 	}
 	if r.CacheClient == nil {
-		r.CacheClient = app_obj.GetRedisClient()
+		r.CacheClient, r.CacheName = app_obj.GetRedisClient()
 	}
 	return r
 }
 
+func (r *Context) initDb(s string, ctx context.Context) {
+	r.Db, r.DbName = GetDbClient(&GetDbClientData{
+		Context: r,
+		CallBack: func(db *gorm.DB, dbName string) (dba *gorm.DB, err error) {
+			dba = db.WithContext(context.WithValue(ctx, app_obj.DbContextValueKey, DbContextValue{
+				TraceId: s,
+				DbName:  dbName,
+			}))
+			return
+		},
+	})
+}
 func (r *Context) Error(data map[string]interface{}, message ...interface{}) {
 	r.log.Error(r.GinContext, data, message)
 }

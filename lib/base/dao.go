@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"gorm.io/gorm"
 )
 
@@ -28,6 +29,7 @@ func (r *ServiceDao) SetContext(context ...*Context) (s *ServiceDao) {
 	switch len(context) {
 	case 0:
 		r.Context = NewContext()
+
 		break
 	case 1:
 		r.Context = context[0]
@@ -80,19 +82,25 @@ type ModelBase interface {
 	TableName() string
 }
 type AddOneDataParameter struct {
-	Model     ModelBase `json:"model"`
-	TableName string    `json:"table_name"`
+	DbName        string    `json:"db_name"`
+	Db            *gorm.DB  `json:"-"`
+	Model         ModelBase `json:"model"`      // 添加的数据
+	TableName     string    `json:"table_name"` // 添加数据对应的表名
+	RuleOutColumn []string  `json:"rule_out_column"`
 }
 
-func (r *ServiceDao) AddOneData(db *gorm.DB, data AddOneDataParameter) (err error) {
-	if data.TableName == "" {
-		data.TableName = data.Model.TableName()
+func (r *ServiceDao) AddOneData(parameter *AddOneDataParameter) (err error) {
+	if parameter.TableName == "" {
+		parameter.TableName = parameter.Model.TableName()
 	}
-	values := reflect.ValueOf(data)
+	if parameter.Db == nil {
+		parameter.Db = r.Context.Db
+		parameter.DbName = r.Context.DbName
+	}
+	values := reflect.ValueOf(parameter.Model)
 	tagValue := "gorm"
-	types := reflect.TypeOf(data)
-	var fieldNum int
-	fieldNum = types.Elem().NumField()
+	types := reflect.TypeOf(parameter.Model)
+	fieldNum := types.Elem().NumField()
 	var valueStruct reflect.Value
 
 	keys := make([]string, 0, fieldNum)
@@ -107,20 +115,24 @@ func (r *ServiceDao) AddOneData(db *gorm.DB, data AddOneDataParameter) (err erro
 		}
 		keys = append(keys, tag)
 		valueStruct = values.Elem().Field(i)
-		val = append(val, r.formatValue(db, valueStruct))
+		val = append(val, r.formatValue(parameter.Db, valueStruct))
 		columns = append(columns, fmt.Sprintf("`%s`=VALUES(`%s`)", tag, tag))
 		vv = append(vv, "?")
 	}
 	sql := fmt.Sprintf("INSERT INTO `%s`(`"+strings.Join(keys, "`,`")+"`) VALUES ("+strings.Join(vv, ",")+
-		") ON DUPLICATE KEY UPDATE "+strings.Join(columns, ","), data.TableName)
+		") ON DUPLICATE KEY UPDATE "+strings.Join(columns, ","), parameter.TableName)
 
-	if err = db.Exec(sql, val...).Error; err != nil {
-		r.Context.Error(map[string]interface{}{
+	if err = parameter.Db.Exec(sql, val...).Error; err != nil {
+		logContent := map[string]interface{}{
 			"sql":  sql,
-			"data": data,
+			"data": parameter,
 			"val":  val,
 			"err":  err,
-		}, "DaoUserEmailImplAdd")
+		}
+		if parameter.DbName != "" {
+			logContent[app_obj.DbNameKey] = parameter.DbName
+		}
+		r.Context.Error(logContent, "DaoUserEmailImplAdd")
 		return
 	}
 	return

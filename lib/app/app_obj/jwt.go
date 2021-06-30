@@ -103,6 +103,7 @@ func (jp *JwtParam) SetRedisCache(rc *redis.Client) func(jp *JwtParam) interface
 }
 
 func (jp *JwtParam) JwtInit(options ...func(jp *JwtParam) interface{}) error {
+	cacheClient, _ := GetRedisClient()
 	q := &JwtParam{
 		DefaultJti:      "juetun",
 		DefaultAudience: "zgh",
@@ -110,7 +111,7 @@ func (jp *JwtParam) JwtInit(options ...func(jp *JwtParam) interface{}) error {
 		SecretKey:       "juetun",
 		TokenLife:       time.Hour * time.Duration(72),
 		TokenKey:        "login:token:",
-		RedisCache:      GetRedisClient(),
+		RedisCache:      cacheClient,
 	}
 	for _, option := range options {
 		option(q)

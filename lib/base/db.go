@@ -55,8 +55,8 @@ func (r *GetDbClientData) DefaultGetDbClientDataCallBack(db *gorm.DB) (dba *gorm
 
 }
 
-// 获取Redis操作实例
-func GetDbClient(params ...*GetDbClientData) (db *gorm.DB) {
+// GetDbClient 获取Redis操作实例
+func GetDbClient(params ...*GetDbClientData) (db *gorm.DB, dbName string) {
 	l := len(params)
 
 	var arg *GetDbClientData
@@ -73,6 +73,7 @@ func GetDbClient(params ...*GetDbClientData) (db *gorm.DB) {
 	}
 	var ok bool
 	if db, ok = app_obj.DbMysql[arg.DbNameSpace]; ok {
+		dbName = arg.DbNameSpace
 		if arg.CallBack == nil {
 			db, _ = arg.DefaultGetDbClientDataCallBack(db)
 		} else {
