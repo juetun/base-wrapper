@@ -106,7 +106,7 @@ func getMysql(nameSpace string, addr *Mysql) *gorm.DB {
 		DontSupportRenameColumn:   true,      // `change` when rename column, rename column not supported before MySQL 8, MariaDB
 		SkipInitializeWithVersion: false,     // auto configure based on currently MySQL version
 	}), &gorm.Config{
-		Logger: common.NewWithLogger(app_obj.GetLog().Logger), // common.NewGOrmLog(),
+		Logger: common.NewWithLogger(app_obj.GetLog()), // common.NewGOrmLog(),
 	}); err != nil {
 		io.SetInfoType(base.LogLevelFatal).SystemOutPrintf(fmt.Sprintf("Fatal error database file: %v \n", err))
 		panic(err)

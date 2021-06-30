@@ -23,6 +23,9 @@ const (
 	HttpHeaderVersion    = "X-App-version" // 接口请求版本信息
 	HttpHeaderTerminal   = "X-Terminal"    // 终端类型 android ,ios ,web weixin
 	HttpHeaderAdminToken = "X-Console"     // 客服后台接口多的key值
+
+	DbNameKey         = "dbName"
+	DbContextValueKey = "DbContextValue" // 数据库操作上下文传参保存的KEY
 )
 
 // BaseDirect 当前配置文件所在目录

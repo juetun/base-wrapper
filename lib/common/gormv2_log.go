@@ -9,15 +9,16 @@ import (
 	"time"
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
+	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm/logger"
 )
 
 type GormLogger struct {
-	Logger *logrus.Logger
+	Logger *app_obj.AppLog
 }
 
-func NewWithLogger(logger *logrus.Logger) logger.Interface {
+func NewWithLogger(logger *app_obj.AppLog) logger.Interface {
 	return &GormLogger{
 		Logger: logger,
 	}
@@ -38,43 +39,75 @@ func convertLevel(level logger.LogLevel) logrus.Level {
 }
 
 // LogMode log mode
-func (l *GormLogger) LogMode(level logger.LogLevel) logger.Interface {
-	l.Logger.SetLevel(convertLevel(level))
-	return l
+func (r *GormLogger) LogMode(level logger.LogLevel) logger.Interface {
+	r.Logger.Logger.SetLevel(convertLevel(level))
+	return r
 }
 
 // Info print info
-func (l *GormLogger) Info(ctx context.Context, msg string, data ...interface{}) {
-	l.Logger.WithField("data", data).WithField(app_obj.TraceId, ctx.Value(app_obj.TraceId)).Info(msg)
+func (r *GormLogger) Info(ctx context.Context, msg string, data ...interface{}) {
+	dta := map[string]interface{}{"data": data}
+	if dt, ok := r.GetContextParameter(ctx); ok {
+		dta[app_obj.TraceId] = dt.TraceId
+		dta[app_obj.DbNameKey] = dt.DbName
+		r.Logger.Logger.WithFields(r.Logger.GetFields(dta)).Info(msg)
+	} else {
+		r.Logger.Logger.WithFields(r.Logger.GetFields(dta)).Info(msg)
+	}
 }
 
 // Warn print warn messages
-func (l *GormLogger) Warn(ctx context.Context, msg string, data ...interface{}) {
-	l.Logger.WithField("data", data).WithField(app_obj.TraceId, ctx.Value(app_obj.TraceId)).Warn(msg)
+func (r *GormLogger) Warn(ctx context.Context, msg string, data ...interface{}) {
+
+	dta := map[string]interface{}{"data": data}
+	if dt, ok := r.GetContextParameter(ctx); ok {
+		dta[app_obj.TraceId] = dt.TraceId
+		dta[app_obj.DbNameKey] = dt.DbName
+		r.Logger.Logger.WithFields(r.Logger.GetFields(dta)).Warn(msg)
+	} else {
+		r.Logger.Logger.WithFields(r.Logger.GetFields(dta)).Warn(msg)
+	}
+
+}
+
+func (r *GormLogger) GetContextParameter(ctx context.Context) (res base.DbContextValue, ok bool) {
+	dt := ctx.Value(app_obj.DbContextValueKey)
+	res, ok = dt.(base.DbContextValue)
+	return
 }
 
 // Error print error messages
-func (l *GormLogger) Error(ctx context.Context, msg string, data ...interface{}) {
-	l.Logger.WithField("data", data).WithField(app_obj.TraceId, ctx.Value(app_obj.TraceId)).Error(msg)
+func (r *GormLogger) Error(ctx context.Context, msg string, data ...interface{}) {
+	dta := map[string]interface{}{"data": data}
+	if dt, ok := r.GetContextParameter(ctx); ok {
+		dta[app_obj.TraceId] = dt.TraceId
+		dta[app_obj.DbNameKey] = dt.DbName
+		r.Logger.Logger.WithFields(r.Logger.GetFields(dta)).Error(msg)
+	} else {
+		r.Logger.Logger.WithFields(r.Logger.GetFields(dta)).Error(msg)
+	}
 }
 
 // Trace print sql message
-func (l *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (string, int64), err error) {
+func (r *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (string, int64), err error) {
 	sql, rows := fc()
 	elapsed := time.Since(begin)
-	f := logrus.Fields{
-		"sql":     sql,
-		"rows":    rows,
-		"elapsed": elapsed,
+
+	dta := map[string]interface{}{
+		"sql":      sql,
+		"rows":     rows,
+		"elapsed":  elapsed,
+		"duration": float64((time.Now().UnixNano() - begin.UnixNano()) / 1e6), // 时长单位微秒
 	}
-	if tId := ctx.Value(app_obj.TraceId); tId != nil {
-		f[app_obj.TraceId] = tId
+	if dt, ok := r.GetContextParameter(ctx); ok {
+		dta[app_obj.TraceId] = dt.TraceId
+		dta[app_obj.DbNameKey] = dt.DbName
 	}
-	
+
 	if err != nil {
-		f["err"] = err.Error()
-		l.Logger.WithFields(f).Error("GormLogger")
+		dta["err"] = err.Error()
+		r.Logger.Logger.WithFields(r.Logger.GetFields(dta)).Error("GormLogger")
 	} else {
-		l.Logger.WithFields(f).Info("GormLogger")
+		r.Logger.Logger.WithFields(r.Logger.GetFields(dta)).Info("GormLogger")
 	}
 }

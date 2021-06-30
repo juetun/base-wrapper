@@ -81,8 +81,11 @@ func (r *Context) InitContext() (c *Context) {
 	if r.Db == nil {
 		r.Db = GetDbClient(&GetDbClientData{
 			Context: r,
-			CallBack: func(db *gorm.DB) (dba *gorm.DB, err error) {
-				dba = db.WithContext(context.WithValue(ctx, app_obj.TraceId, s))
+			CallBack: func(db *gorm.DB, dbName string) (dba *gorm.DB, err error) {
+				dba = db.WithContext(context.WithValue(ctx, app_obj.DbContextValueKey, DbContextValue{
+					TraceId: s,
+					DbName:  dbName,
+				}))
 				return
 			},
 		})

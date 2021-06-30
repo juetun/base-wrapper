@@ -1,5 +1,6 @@
+// Package base
 /**
-* @Author:changjiang
+* @Author:ChangJiang
 * @Description:
 * @File:db
 * @Version: 1.0.0
@@ -15,15 +16,19 @@ import (
 	"gorm.io/gorm"
 )
 
-type GetDbClientDataCallBack func(db *gorm.DB) (dba *gorm.DB, err error)
+type GetDbClientDataCallBack func(db *gorm.DB, dbName string) (dba *gorm.DB, err error)
 
 const defaultNameSpace = "default"
 
-// 获取数据库连接 参数结构体
+// GetDbClientData 获取数据库连接 参数结构体
 type GetDbClientData struct {
 	Context     *Context
 	DbNameSpace string                  `json:"db_name_space"`
 	CallBack    GetDbClientDataCallBack // 获取数据库回调信息
+}
+type DbContextValue struct {
+	DbName  string `json:"db_name"`
+	TraceId string `json:"trace_id"`
 }
 
 func (r *GetDbClientData) DefaultGetDbClientDataCallBack(db *gorm.DB) (dba *gorm.DB, err error) {
@@ -41,7 +46,10 @@ func (r *GetDbClientData) DefaultGetDbClientDataCallBack(db *gorm.DB) (dba *gorm
 		ctx = context.TODO()
 	}
 
-	dba = db.WithContext(context.WithValue(ctx, app_obj.TraceId, s))
+	dba = db.WithContext(context.WithValue(ctx, app_obj.DbContextValueKey, DbContextValue{
+		TraceId: s,
+		DbName:  r.DbNameSpace,
+	}))
 
 	return
 
@@ -68,7 +76,7 @@ func GetDbClient(params ...*GetDbClientData) (db *gorm.DB) {
 		if arg.CallBack == nil {
 			db, _ = arg.DefaultGetDbClientDataCallBack(db)
 		} else {
-			db, _ = arg.CallBack(db)
+			db, _ = arg.CallBack(db, arg.DbNameSpace)
 		}
 		return
 	}
