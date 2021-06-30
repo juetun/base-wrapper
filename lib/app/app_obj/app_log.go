@@ -39,13 +39,21 @@ func GetLog() *AppLog {
 	}
 	return logApp
 }
-func (r *AppLog) GetFields(data map[string]interface{}) (res logrus.Fields) {
+func (r *AppLog) GetFields(data map[string]interface{}, defaultLoc ...int) (res logrus.Fields) {
 	var file = "-" // 获取当前日志写入时的代码位置 （文件名称，函数名称）
+	var loc = 4
+	if len(defaultLoc) > 0 {
+		loc = defaultLoc[0]
+	}
 	// 获取上层调用者PC，文件名，所在行	// 拼接文件名与所在行
-	if _, codePath, codeLine, ok := runtime.Caller(4); ok {
+	if _, codePath, codeLine, ok := runtime.Caller(loc); ok {
 		file = fmt.Sprintf("%s(l:%d)", codePath, codeLine) // runtime.FuncForPC(pc).Name(),
 	}
-	res = logrus.Fields{AppLogKey: App.AppName}
+	res = make(map[string]interface{}, len(data)+2)
+	for s, i := range data {
+		res[s] = i
+	}
+	res[AppLogKey] = App.AppName
 	if _, ok := data[AppLogLoc]; ok { // 如果已经设置了src的值，则不用重复设置了
 		return
 	}
