@@ -20,9 +20,6 @@ import (
 type ServiceDao struct {
 	Context *Context
 }
-type ModelBase interface {
-	TableName() string
-}
 
 func (r *ServiceDao) SetContext(context ...*Context) (s *ServiceDao) {
 	for _, cont := range context {
@@ -78,12 +75,18 @@ func (r *ServiceDao) formatValue(db *gorm.DB, valueStruct reflect.Value) (res in
 	}
 	return
 }
-func (r *ServiceDao) AddOneData(db *gorm.DB, data ModelBase, tableName ...string) (err error) {
-	tbName := ""
-	if len(tableName) > 0 {
-		tbName = tableName[0]
-	} else {
-		tbName = data.TableName()
+
+type ModelBase interface {
+	TableName() string
+}
+type AddOneDataParameter struct {
+	Model     ModelBase `json:"model"`
+	TableName string    `json:"table_name"`
+}
+
+func (r *ServiceDao) AddOneData(db *gorm.DB, data AddOneDataParameter) (err error) {
+	if data.TableName == "" {
+		data.TableName = data.Model.TableName()
 	}
 	values := reflect.ValueOf(data)
 	tagValue := "gorm"
@@ -109,7 +112,7 @@ func (r *ServiceDao) AddOneData(db *gorm.DB, data ModelBase, tableName ...string
 		vv = append(vv, "?")
 	}
 	sql := fmt.Sprintf("INSERT INTO `%s`(`"+strings.Join(keys, "`,`")+"`) VALUES ("+strings.Join(vv, ",")+
-		") ON DUPLICATE KEY UPDATE "+strings.Join(columns, ","), tbName)
+		") ON DUPLICATE KEY UPDATE "+strings.Join(columns, ","), data.TableName)
 
 	if err = db.Exec(sql, val...).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
