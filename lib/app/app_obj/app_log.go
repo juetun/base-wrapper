@@ -66,11 +66,11 @@ func (r *AppLog) GetFields(data map[string]interface{}, defaultLoc ...int) (res 
 }
 
 func (r *AppLog) Error(context *gin.Context, data map[string]interface{}, message ...interface{}) {
-	r.Logger.WithFields(r.orgFields(context, data)).Error(message)
+	r.Logger.WithFields(r.orgFields(context, data)).Error(message...)
 }
 func (r *AppLog) Info(context *gin.Context, data map[string]interface{}, message ...interface{}) {
 
-	r.Logger.WithFields(r.orgFields(context, data)).Info(message)
+	r.Logger.WithFields(r.orgFields(context, data)).Info(message...)
 }
 func (r *AppLog) orgFields(context *gin.Context, data map[string]interface{}) (fields logrus.Fields) {
 	fields = r.GetFields(data)
@@ -88,14 +88,14 @@ func (r *AppLog) orgFields(context *gin.Context, data map[string]interface{}) (f
 }
 func (r *AppLog) Debug(context *gin.Context, data map[string]interface{}, message ...interface{}) {
 
-	r.Logger.WithFields(r.orgFields(context, data)).Debug(message)
+	r.Logger.WithFields(r.orgFields(context, data)).Debug(message...)
 }
 func (r *AppLog) Fatal(context *gin.Context, data map[string]interface{}, message ...interface{}) {
 
-	r.Logger.WithFields(r.orgFields(context, data)).Fatal(message)
+	r.Logger.WithFields(r.orgFields(context, data)).Fatal(message...)
 }
 func (r *AppLog) Warn(context *gin.Context, data map[string]interface{}, message ...interface{}) {
-	r.Logger.WithFields(r.orgFields(context, data)).Warn(message)
+	r.Logger.WithFields(r.orgFields(context, data)).Warn(message...)
 }
 
 // InitAppLog 初始化日志操作对象
