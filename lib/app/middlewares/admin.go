@@ -5,13 +5,14 @@
 package middlewares
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/common"
-	"net/http"
 )
 
-//AdminMiddlewares 客服后台接口中间件
+// AdminMiddlewares 客服后台接口中间件
 func AdminMiddlewares() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if c.Request.Header.Get(app_obj.HttpHeaderAdminToken) != app_obj.App.AppAdminToken {

@@ -100,17 +100,17 @@ func (r *Context) initDb(s string, ctx context.Context) {
 	})
 }
 func (r *Context) Error(data map[string]interface{}, message ...interface{}) {
-	r.log.Error(r.GinContext, data, message)
+	r.log.Error(r.GinContext, data, message...)
 }
 func (r *Context) Info(data map[string]interface{}, message ...interface{}) {
-	r.log.Info(r.GinContext, data, message)
+	r.log.Info(r.GinContext, data, message...)
 }
 func (r *Context) Debug(data map[string]interface{}, message ...interface{}) {
-	r.log.Debug(r.GinContext, data, message)
+	r.log.Debug(r.GinContext, data, message...)
 }
 func (r *Context) Fatal(data map[string]interface{}, message ...interface{}) {
-	r.log.Fatal(r.GinContext, data, message)
+	r.log.Fatal(r.GinContext, data, message...)
 }
 func (r *Context) Warn(data map[string]interface{}, message ...interface{}) {
-	r.log.Warn(r.GinContext, data, message)
+	r.log.Warn(r.GinContext, data, message...)
 }
