@@ -81,12 +81,84 @@ func (r *ServiceDao) formatValue(db *gorm.DB, valueStruct reflect.Value) (res in
 type ModelBase interface {
 	TableName() string
 }
+type DaoBatchAdd interface {
+	BatchAdd(data []ModelBase) (err error)
+}
 type AddOneDataParameter struct {
 	DbName        string    `json:"db_name"`
 	Db            *gorm.DB  `json:"-"`
 	Model         ModelBase `json:"model"`      // 添加的数据
 	TableName     string    `json:"table_name"` // 添加数据对应的表名
 	RuleOutColumn []string  `json:"rule_out_column"`
+}
+
+type BatchAddDataParameter struct {
+	DbName        string      `json:"db_name"`
+	Db            *gorm.DB    `json:"-"`
+	TableName     string      `json:"table_name"` // 添加数据对应的表名
+	RuleOutColumn []string    `json:"rule_out_column"`
+	Data          []ModelBase `json:"data"` // 添加的数据
+}
+
+func (r *ServiceDao) BatchAdd(data *BatchAddDataParameter) (err error) {
+	if len(data.Data) == 0 {
+		return
+	}
+	var (
+		columns, replaceKeys, vv []string
+		val                      = make([]interface{}, 0, len(data.Data)*20)
+	)
+
+	for k, item := range data.Data {
+		if k == 0 {
+			if data.TableName == "" {
+				data.TableName = item.TableName()
+			}
+			columns, replaceKeys = r.getItemColumns(data.Db, item, val, vv)
+		} else {
+			r.getItemColumns(data.Db, item, val, vv)
+		}
+	}
+	sql := fmt.Sprintf("INSERT INTO `%s`(`"+strings.Join(columns, "`,`")+"`) VALUES ("+strings.Join(vv, ",")+
+		") ON DUPLICATE KEY UPDATE "+strings.Join(replaceKeys, ","), data.TableName)
+
+	if err = data.Db.Exec(sql, val...).Error; err != nil {
+		logContent := map[string]interface{}{
+			"sql":  sql,
+			"data": data,
+			"val":  val,
+			"err":  err,
+		}
+		if data.DbName != "" {
+			logContent[app_obj.DbNameKey] = data.DbName
+		}
+		r.Context.Error(logContent, "ServiceDaoBatchAdd")
+		return
+	}
+	return
+}
+
+func (r *ServiceDao) getItemColumns(db *gorm.DB, item ModelBase, val []interface{}, vv []string) (columns, replaceKeys []string) {
+	types := reflect.TypeOf(item)
+	values := reflect.ValueOf(item)
+	fieldNum := types.Elem().NumField()
+	columns = make([]string, 0, fieldNum)
+	replaceKeys = make([]string, 0, fieldNum)
+	val = make([]interface{}, 0, fieldNum)
+	var tag string
+	var tagValue = "gorm"
+	for i := 0; i < fieldNum; i++ {
+		tag = r.GetColumnName(types.Elem().Field(i).Tag.Get(tagValue))
+		columns = append(columns, tag)
+		if tag == "id" || tag == "created_at" {
+			continue
+		}
+
+		val = append(val, r.formatValue(db, values.Elem().Field(i)))
+		replaceKeys = append(replaceKeys, fmt.Sprintf("`%s`=VALUES(`%s`)", tag, tag))
+		vv = append(vv, "?")
+	}
+	return
 }
 
 func (r *ServiceDao) AddOneData(parameter *AddOneDataParameter) (err error) {
