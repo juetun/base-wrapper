@@ -104,6 +104,7 @@ func (r *ServiceDao) BatchAdd(data *BatchAddDataParameter) (err error) {
 	if len(data.Data) == 0 {
 		return
 	}
+	r.defaultBatchAddDataParameter(data)
 	var (
 		columns, replaceKeys []string
 		l                    = len(data.Data) * 20
@@ -116,9 +117,9 @@ func (r *ServiceDao) BatchAdd(data *BatchAddDataParameter) (err error) {
 			if data.TableName == "" {
 				data.TableName = item.TableName()
 			}
-			columns, replaceKeys = r.getItemColumns(data.Db, item, &val, &vv)
+			columns, replaceKeys = r.getItemColumns(data.RuleOutColumn, data.Db, item, &val, &vv)
 		} else {
-			_, _ = r.getItemColumns(data.Db, item, &val, &vv)
+			_, _ = r.getItemColumns(data.RuleOutColumn, data.Db, item, &val, &vv)
 		}
 	}
 	sql := fmt.Sprintf("INSERT INTO `%s`(`"+strings.Join(columns, "`,`")+"`) VALUES ("+strings.Join(vv, ",")+
@@ -140,7 +141,19 @@ func (r *ServiceDao) BatchAdd(data *BatchAddDataParameter) (err error) {
 	return
 }
 
-func (r *ServiceDao) getItemColumns(db *gorm.DB, item ModelBase, val *[]interface{}, vv *[]string) (columns, replaceKeys []string) {
+func (r *ServiceDao) InStringSlice(s string, slice []string) (res bool) {
+	if s == "" {
+		return
+	}
+	for _, s2 := range slice {
+		if s2 == s {
+			res = true
+			return
+		}
+	}
+	return
+}
+func (r *ServiceDao) getItemColumns(ruleOutColumn []string, db *gorm.DB, item ModelBase, val *[]interface{}, vv *[]string) (columns, replaceKeys []string) {
 	types := reflect.TypeOf(item)
 	values := reflect.ValueOf(item)
 	fieldNum := types.Elem().NumField()
@@ -151,7 +164,7 @@ func (r *ServiceDao) getItemColumns(db *gorm.DB, item ModelBase, val *[]interfac
 	for i := 0; i < fieldNum; i++ {
 		tag = r.GetColumnName(types.Elem().Field(i).Tag.Get(tagValue))
 		columns = append(columns, tag)
-		if tag == "id" || tag == "created_at" {
+		if r.InStringSlice(tag, ruleOutColumn) {
 			continue
 		}
 
@@ -161,8 +174,24 @@ func (r *ServiceDao) getItemColumns(db *gorm.DB, item ModelBase, val *[]interfac
 	}
 	return
 }
-
-func (r *ServiceDao) AddOneData(parameter *AddOneDataParameter) (err error) {
+func (r *ServiceDao) defaultRuleOutColumn() []string {
+	return []string{"id", "created_at"}
+}
+func (r *ServiceDao) defaultBatchAddDataParameter(parameter *BatchAddDataParameter) {
+	if parameter.TableName == "" {
+		if len(parameter.Data) > 0 {
+			parameter.TableName = parameter.Data[0].TableName()
+		}
+	}
+	if parameter.Db == nil {
+		parameter.Db = r.Context.Db
+		parameter.DbName = r.Context.DbName
+	}
+	if parameter.RuleOutColumn == nil {
+		parameter.RuleOutColumn = r.defaultRuleOutColumn()
+	}
+}
+func (r *ServiceDao) defaultAddOneDataParameter(parameter *AddOneDataParameter) {
 	if parameter.TableName == "" {
 		parameter.TableName = parameter.Model.TableName()
 	}
@@ -170,6 +199,12 @@ func (r *ServiceDao) AddOneData(parameter *AddOneDataParameter) (err error) {
 		parameter.Db = r.Context.Db
 		parameter.DbName = r.Context.DbName
 	}
+	if parameter.RuleOutColumn == nil {
+		parameter.RuleOutColumn = r.defaultRuleOutColumn()
+	}
+}
+func (r *ServiceDao) AddOneData(parameter *AddOneDataParameter) (err error) {
+	r.defaultAddOneDataParameter(parameter)
 	values := reflect.ValueOf(parameter.Model)
 	tagValue := "gorm"
 	types := reflect.TypeOf(parameter.Model)
@@ -183,7 +218,7 @@ func (r *ServiceDao) AddOneData(parameter *AddOneDataParameter) (err error) {
 	var tag string
 	for i := 0; i < fieldNum; i++ {
 		tag = r.GetColumnName(types.Elem().Field(i).Tag.Get(tagValue))
-		if tag == "id" || tag == "created_at" {
+		if r.InStringSlice(tag, parameter.RuleOutColumn) {
 			continue
 		}
 		keys = append(keys, tag)
