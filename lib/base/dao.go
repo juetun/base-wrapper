@@ -82,7 +82,7 @@ type ModelBase interface {
 	TableName() string
 }
 type DaoBatchAdd interface {
-	BatchAdd(data []ModelBase) (err error)
+	BatchAdd(data *BatchAddDataParameter) (err error)
 }
 type AddOneDataParameter struct {
 	DbName        string    `json:"db_name"`
