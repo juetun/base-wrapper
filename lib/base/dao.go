@@ -105,8 +105,10 @@ func (r *ServiceDao) BatchAdd(data *BatchAddDataParameter) (err error) {
 		return
 	}
 	var (
-		columns, replaceKeys, vv []string
-		val                      = make([]interface{}, 0, len(data.Data)*20)
+		columns, replaceKeys []string
+		l                    = len(data.Data) * 20
+		vv                   = make([]string, 0, l)
+		val                  = make([]interface{}, 0, l)
 	)
 
 	for k, item := range data.Data {
@@ -114,9 +116,9 @@ func (r *ServiceDao) BatchAdd(data *BatchAddDataParameter) (err error) {
 			if data.TableName == "" {
 				data.TableName = item.TableName()
 			}
-			columns, replaceKeys = r.getItemColumns(data.Db, item, val, vv)
+			columns, replaceKeys = r.getItemColumns(data.Db, item, &val, &vv)
 		} else {
-			r.getItemColumns(data.Db, item, val, vv)
+			_, _ = r.getItemColumns(data.Db, item, &val, &vv)
 		}
 	}
 	sql := fmt.Sprintf("INSERT INTO `%s`(`"+strings.Join(columns, "`,`")+"`) VALUES ("+strings.Join(vv, ",")+
@@ -138,13 +140,12 @@ func (r *ServiceDao) BatchAdd(data *BatchAddDataParameter) (err error) {
 	return
 }
 
-func (r *ServiceDao) getItemColumns(db *gorm.DB, item ModelBase, val []interface{}, vv []string) (columns, replaceKeys []string) {
+func (r *ServiceDao) getItemColumns(db *gorm.DB, item ModelBase, val *[]interface{}, vv *[]string) (columns, replaceKeys []string) {
 	types := reflect.TypeOf(item)
 	values := reflect.ValueOf(item)
 	fieldNum := types.Elem().NumField()
 	columns = make([]string, 0, fieldNum)
 	replaceKeys = make([]string, 0, fieldNum)
-	val = make([]interface{}, 0, fieldNum)
 	var tag string
 	var tagValue = "gorm"
 	for i := 0; i < fieldNum; i++ {
@@ -154,9 +155,9 @@ func (r *ServiceDao) getItemColumns(db *gorm.DB, item ModelBase, val []interface
 			continue
 		}
 
-		val = append(val, r.formatValue(db, values.Elem().Field(i)))
+		*val = append(*val, r.formatValue(db, values.Elem().Field(i)))
 		replaceKeys = append(replaceKeys, fmt.Sprintf("`%s`=VALUES(`%s`)", tag, tag))
-		vv = append(vv, "?")
+		*vv = append(*vv, "?")
 	}
 	return
 }
