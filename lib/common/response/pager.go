@@ -17,11 +17,13 @@ const (
 )
 
 type BaseQuery struct {
-	PageNo   int    `form:"page_no" json:"page_no,omitempty"`
-	PageSize int    `form:"page_size" json:"page_size,omitempty"`
-	Order    string `form:"order" json:"order,omitempty"`
-	Select   string `form:"select" json:"select,omitempty"`
-	IsDel    int    `form:"is_del" json:"is_del,omitempty"`
+	PageNo    int    `form:"page_no" json:"page_no,omitempty"`
+	PageSize  int    `form:"page_size" json:"page_size,omitempty"`
+	Order     string `form:"order" json:"order,omitempty"`
+	Select    string `form:"select" json:"select,omitempty"`
+	IsDel     int    `form:"is_del" json:"is_del,omitempty"`
+	RequestId string `json:"request_id,omitempty"`
+	IsNext    bool   `json:"is_next,omitempty"` // [bool] 是否有下一页，true=有下一页；false=无下页，可关闭列表
 }
 
 func (r *BaseQuery) GetOffset() (offset int) {
@@ -42,7 +44,7 @@ func (r *BaseQuery) DefaultPage() {
 
 type Pager struct {
 	List       interface{} `json:"list"`
-	TotalCount int         `json:"total_count"`
+	TotalCount int         `json:"total_count,omitempty"`
 	BaseQuery
 }
 type PageHandler func(*Pager)
