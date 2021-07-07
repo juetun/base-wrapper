@@ -9,6 +9,7 @@
 package base
 
 import (
+	"bytes"
 	"database/sql/driver"
 	"fmt"
 	"time"
@@ -31,7 +32,15 @@ func (t TimeNormal) MarshalJSON() ([]byte, error) {
 	tune := t.Format(`"2006-01-02 15:04:05"`)
 	return []byte(tune), nil
 }
-
+func (t *TimeNormal) UnmarshalJSON(b []byte) (err error) {
+	b = bytes.Trim(b, "\"") // 此除需要去掉传入的数据的两端的 ""
+	v := string(b)
+	if t == nil {
+		t = &TimeNormal{}
+	}
+	t.Time, err = time.ParseInLocation("2006-01-02 15:04:05", v, time.Local)
+	return
+}
 func (t TimeNormal) Value() (driver.Value, error) {
 	var zeroTime time.Time
 	if t.Time.UnixNano() == zeroTime.UnixNano() {
