@@ -87,17 +87,19 @@ type DaoBatchAdd interface {
 type AddOneDataParameter struct {
 	DbName        string    `json:"db_name"`
 	Db            *gorm.DB  `json:"-"`
-	Model         ModelBase `json:"model"`      // 添加的数据
-	TableName     string    `json:"table_name"` // 添加数据对应的表名
-	RuleOutColumn []string  `json:"rule_out_column"`
+	Model         ModelBase `json:"model"`           // 添加的数据
+	TableName     string    `json:"table_name"`      // 添加数据对应的表名
+	IgnoreColumn  []string  `json:"ignore_column"`   // replace 忽略字段,添加到此字段中的字段不会出现在SQL执行中
+	RuleOutColumn []string  `json:"rule_out_column"` // nil时使用默认值，当数据表中存在唯一数据时，此字段的值不会被新的数据替换
 }
 
 type BatchAddDataParameter struct {
 	DbName        string      `json:"db_name"`
 	Db            *gorm.DB    `json:"-"`
-	TableName     string      `json:"table_name"` // 添加数据对应的表名
-	RuleOutColumn []string    `json:"rule_out_column"`
-	Data          []ModelBase `json:"data"` // 添加的数据
+	TableName     string      `json:"table_name"`      // 添加数据对应的表名
+	IgnoreColumn  []string    `json:"ignore_column"`   // replace 忽略字段,添加到此字段中的字段不会出现在SQL执行中
+	RuleOutColumn []string    `json:"rule_out_column"` // nil时使用默认值，当数据表中存在唯一数据时，此字段的值不会被新的数据替换
+	Data          []ModelBase `json:"data"`            // 添加的数据
 }
 
 func (r *ServiceDao) BatchAdd(data *BatchAddDataParameter) (err error) {
@@ -117,9 +119,9 @@ func (r *ServiceDao) BatchAdd(data *BatchAddDataParameter) (err error) {
 			if data.TableName == "" {
 				data.TableName = item.TableName()
 			}
-			columns, replaceKeys = r.getItemColumns(data.RuleOutColumn, data.Db, item, &val, &vv)
+			columns, replaceKeys = r.getItemColumns(data.IgnoreColumn, data.RuleOutColumn, data.Db, item, &val, &vv)
 		} else {
-			_, _ = r.getItemColumns(data.RuleOutColumn, data.Db, item, &val, &vv)
+			_, _ = r.getItemColumns(data.IgnoreColumn, data.RuleOutColumn, data.Db, item, &val, &vv)
 		}
 	}
 	sql := fmt.Sprintf("INSERT INTO `%s`(`"+strings.Join(columns, "`,`")+"`) VALUES ("+strings.Join(vv, ",")+
@@ -153,7 +155,7 @@ func (r *ServiceDao) InStringSlice(s string, slice []string) (res bool) {
 	}
 	return
 }
-func (r *ServiceDao) getItemColumns(ruleOutColumn []string, db *gorm.DB, item ModelBase, val *[]interface{}, vv *[]string) (columns, replaceKeys []string) {
+func (r *ServiceDao) getItemColumns(ignoreColumn, ruleOutColumn []string, db *gorm.DB, item ModelBase, val *[]interface{}, vv *[]string) (columns, replaceKeys []string) {
 	types := reflect.TypeOf(item)
 	values := reflect.ValueOf(item)
 	fieldNum := types.Elem().NumField()
@@ -163,19 +165,29 @@ func (r *ServiceDao) getItemColumns(ruleOutColumn []string, db *gorm.DB, item Mo
 	var tagValue = "gorm"
 	for i := 0; i < fieldNum; i++ {
 		tag = r.GetColumnName(types.Elem().Field(i).Tag.Get(tagValue))
-		if r.InStringSlice(tag, ruleOutColumn) {
+		if r.InStringSlice(tag, ignoreColumn) {
 			continue
 		}
 		columns = append(columns, tag)
 		*val = append(*val, r.formatValue(db, values.Elem().Field(i)))
-		replaceKeys = append(replaceKeys, fmt.Sprintf("`%s`=VALUES(`%s`)", tag, tag))
 		*vv = append(*vv, "?")
+		if r.InStringSlice(tag, ruleOutColumn) {
+			continue
+		}
+		replaceKeys = append(replaceKeys, fmt.Sprintf("`%s`=VALUES(`%s`)", tag, tag))
+
 	}
 	return
 }
+
 func (r *ServiceDao) defaultRuleOutColumn() []string {
-	return []string{"id", "created_at"}
+	return []string{"created_at"}
 }
+
+func (r *ServiceDao) defaultIgnoreColumn() []string {
+	return []string{"id"}
+}
+
 func (r *ServiceDao) defaultBatchAddDataParameter(parameter *BatchAddDataParameter) {
 	if parameter.TableName == "" {
 		if len(parameter.Data) > 0 {
@@ -186,10 +198,15 @@ func (r *ServiceDao) defaultBatchAddDataParameter(parameter *BatchAddDataParamet
 		parameter.Db = r.Context.Db
 		parameter.DbName = r.Context.DbName
 	}
+
 	if parameter.RuleOutColumn == nil {
 		parameter.RuleOutColumn = r.defaultRuleOutColumn()
 	}
+	if parameter.IgnoreColumn == nil {
+		parameter.IgnoreColumn = r.defaultIgnoreColumn()
+	}
 }
+
 func (r *ServiceDao) defaultAddOneDataParameter(parameter *AddOneDataParameter) {
 	if parameter.TableName == "" {
 		parameter.TableName = parameter.Model.TableName()
@@ -201,7 +218,11 @@ func (r *ServiceDao) defaultAddOneDataParameter(parameter *AddOneDataParameter) 
 	if parameter.RuleOutColumn == nil {
 		parameter.RuleOutColumn = r.defaultRuleOutColumn()
 	}
+	if parameter.IgnoreColumn == nil {
+		parameter.IgnoreColumn = r.defaultIgnoreColumn()
+	}
 }
+
 func (r *ServiceDao) AddOneData(parameter *AddOneDataParameter) (err error) {
 	r.defaultAddOneDataParameter(parameter)
 	values := reflect.ValueOf(parameter.Model)
