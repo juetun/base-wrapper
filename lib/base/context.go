@@ -11,14 +11,26 @@ package base
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"sync"
 
+	redis "github.com/go-redis/redis/v8"
+
+	"github.com/juetun/base-wrapper/lib/utils"
+
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"gorm.io/gorm"
 )
 
+func CreateCrontabContext(controllerBase ControllerBase) (context *Context) {
+	guid := utils.Guid("crontabContext")
+	ginContext := &gin.Context{Request: &http.Request{Header: map[string][]string{}}}
+	ginContext.Request.Header.Set(app_obj.HttpTraceId, guid)
+	ginContext.Set(app_obj.TraceId, guid)
+	context = CreateContext(&controllerBase, ginContext)
+	return
+}
 func CreateContext(controller *ControllerBase, c *gin.Context) (res *Context) {
 	return NewContext(Log(controller.Log), GinContext(c))
 }

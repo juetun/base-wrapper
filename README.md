@@ -80,6 +80,9 @@ go get ./...
 ```cassandraql
 //d3f30cfc81f9109850fa9043a19783cbbde68a5 git提交的SHA-1 散列值
 go get github.com/gin-gonic/gin@5d3f30cfc81f9109850fa9043a19783cbbde68a5
+go mod edit -replace github.com/coreos/bbolt@v1.3.4=go.etcd.io/bbolt@v1.3.4
+
+go mod edit -replace google.golang.org/grpc@v1.29.1=google.golang.org/grpc@v1.26.0
 ```
 
 
