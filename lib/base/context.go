@@ -23,8 +23,11 @@ import (
 	"gorm.io/gorm"
 )
 
-func CreateCrontabContext(controllerBase ControllerBase) (context *Context) {
-	guid := utils.Guid("crontabContext")
+func CreateCrontabContext(controllerBase ControllerBase, uniqueKey ...string) (context *Context, guid string) {
+	guid = utils.Guid("crontabContext")
+	if len(uniqueKey) > 0 {
+		guid = uniqueKey[0]
+	}
 	ginContext := &gin.Context{Request: &http.Request{Header: map[string][]string{}}}
 	ginContext.Request.Header.Set(app_obj.HttpTraceId, guid)
 	ginContext.Set(app_obj.TraceId, guid)
