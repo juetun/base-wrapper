@@ -163,11 +163,10 @@ func (r *ServiceDao) getItemColumns(ruleOutColumn []string, db *gorm.DB, item Mo
 	var tagValue = "gorm"
 	for i := 0; i < fieldNum; i++ {
 		tag = r.GetColumnName(types.Elem().Field(i).Tag.Get(tagValue))
-		columns = append(columns, tag)
 		if r.InStringSlice(tag, ruleOutColumn) {
 			continue
 		}
-
+		columns = append(columns, tag)
 		*val = append(*val, r.formatValue(db, values.Elem().Field(i)))
 		replaceKeys = append(replaceKeys, fmt.Sprintf("`%s`=VALUES(`%s`)", tag, tag))
 		*vv = append(*vv, "?")
