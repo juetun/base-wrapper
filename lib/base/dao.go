@@ -237,15 +237,20 @@ func (r *ServiceDao) AddOneData(parameter *AddOneDataParameter) (err error) {
 	vv := make([]string, 0, fieldNum)
 	var tag string
 	for i := 0; i < fieldNum; i++ {
+
 		tag = r.GetColumnName(types.Elem().Field(i).Tag.Get(tagValue))
-		if r.InStringSlice(tag, parameter.RuleOutColumn) {
+		if r.InStringSlice(tag, parameter.IgnoreColumn) {
 			continue
 		}
+
 		keys = append(keys, tag)
 		valueStruct = values.Elem().Field(i)
 		val = append(val, r.formatValue(parameter.Db, valueStruct))
-		columns = append(columns, fmt.Sprintf("`%s`=VALUES(`%s`)", tag, tag))
 		vv = append(vv, "?")
+		if r.InStringSlice(tag, parameter.RuleOutColumn) {
+			continue
+		}
+		columns = append(columns, fmt.Sprintf("`%s`=VALUES(`%s`)", tag, tag))
 	}
 	sql := fmt.Sprintf("INSERT INTO `%s`(`"+strings.Join(keys, "`,`")+"`) VALUES ("+strings.Join(vv, ",")+
 		") ON DUPLICATE KEY UPDATE "+strings.Join(columns, ","), parameter.TableName)
