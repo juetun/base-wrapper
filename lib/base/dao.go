@@ -11,9 +11,11 @@ package base
 import (
 	"fmt"
 	"reflect"
+	"runtime"
 	"strings"
 	"time"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"gorm.io/gorm"
 )
@@ -102,6 +104,36 @@ type BatchAddDataParameter struct {
 	Data          []ModelBase `json:"data"`            // 添加的数据
 }
 
+// CreateTableWithError 判断SQL err 如果表不存在，则创建表
+func (r *ServiceDao) CreateTableWithError(db *gorm.DB, tableName string, e, model interface{}) (err error) {
+
+	var file string
+	// 获取上层调用者PC，文件名，所在行	// 拼接文件名与所在行
+	if _, codePath, codeLine, ok := runtime.Caller(1); ok {
+		file = fmt.Sprintf("%s(l:%d)", codePath, codeLine) // runtime.FuncForPC(pc).Name(),
+	}
+	r.Context.Error(map[string]interface{}{
+		"err": e,
+		"src": file,
+	}, "DaoUserImplCreateUserTable")
+	// 延迟处理的函数
+	switch e.(type) {
+	case *mysql.MySQLError: // 运行时错误
+		me := e.(*mysql.MySQLError)
+		if me.Number == 1146 {
+			if err = db.Table(tableName).Migrator().
+				CreateTable(model); err != nil {
+				return
+			}
+			return
+		}
+		err = fmt.Errorf(me.Error())
+	default:
+		err = fmt.Errorf("数据异常,请重试(102)")
+		return
+	}
+	return
+}
 func (r *ServiceDao) BatchAdd(data *BatchAddDataParameter) (err error) {
 	if len(data.Data) == 0 {
 		return
