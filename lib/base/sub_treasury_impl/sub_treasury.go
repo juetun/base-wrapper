@@ -67,7 +67,9 @@ func (r *SubTreasuryBase) doEveryDb(handler OperateEveryDatabaseHandler, i int64
 		dbName               string
 		j                    int64
 	)
-	db, dbName, err = r.getDbByIndex(i)
+	if db, dbName, err = r.getDbByIndex(i); err != nil {
+		return
+	}
 	operateEveryDatabase = OperateEveryDatabase{
 		DbName: dbName,
 		Db:     db,
@@ -226,6 +228,11 @@ func (r *SubTreasuryBase) getDbByIndex(index int64) (db *gorm.DB, dbName string,
 	var ok bool
 	if db, ok = r.Dbs[dbName]; !ok {
 		err = fmt.Errorf("the database (%s) what you config is not exists", dbName)
+		r.Context.Error(map[string]interface{}{
+			"err":    err.Error(),
+			"index":  index,
+			"dbName": dbName,
+		}, "SubTreasuryBaseGetDbByIndex")
 		return
 	}
 	return
