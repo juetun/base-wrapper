@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"sync"
 
-	. "github.com/juetun/app-api-user/pkg/lib/base"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
+	. "github.com/juetun/base-wrapper/lib/base"
 	"gorm.io/gorm"
 )
 
