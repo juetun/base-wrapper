@@ -10,11 +10,13 @@ type DistributedOkHandler func() (err error)
 
 // RedisDistributedLock Redis 分布式锁
 type RedisDistributedLock struct {
-	LockKey   string               `json:"lock_key"`
-	UniqueKey string               `json:"unique_key"`
-	OkHandler DistributedOkHandler `json:"-"`
-	Context   *Context             `json:"-"`
-	Duration  time.Duration        `json:"duration"`
+	AttemptsTime     int                  `json:"attempts_time"`     // 尝试获取锁的次数
+	AttemptsInterval time.Duration        `json:"attempts_interval"` // 尝试获取锁时间间隔
+	LockKey          string               `json:"lock_key"`
+	UniqueKey        string               `json:"unique_key"`
+	OkHandler        DistributedOkHandler `json:"-"`
+	Context          *Context             `json:"-"`
+	Duration         time.Duration        `json:"duration"`
 }
 
 func (r *RedisDistributedLock) Lock() (ok bool, err error) {
@@ -71,20 +73,41 @@ func (r *RedisDistributedLock) UnLock() (ok bool, err error) {
 
 	return
 }
-func (r *RedisDistributedLock) Run() (err error) {
 
-	var ok bool
+// RunWithGetLock 多次尝试获取锁实现逻辑
+func (r *RedisDistributedLock) RunWithGetLock() (err error) {
+	var i = 0
+	var getLock bool
+
+	for {
+		if i >= r.AttemptsTime {
+			r.Context.Info(map[string]interface{}{
+				"msg": fmt.Errorf("%d次尝试获取锁失败", r.AttemptsTime),
+			}, "RedisDistributedLockRunWithGetLock")
+			break
+		}
+		// 如果获取到锁成功，则不管执行结果如何 直接突出当前操作
+		if getLock, err = r.Run(); getLock {
+			return
+		} else if err != nil {
+			return
+		}
+		time.Sleep(r.AttemptsInterval)
+		i++
+	}
+	return
+}
+func (r *RedisDistributedLock) Run() (getLock bool, err error) {
+
 	// 如果锁成功了，则操作，然后释放锁
-	if ok, err = r.Lock(); err != nil {
+	if getLock, err = r.Lock(); err != nil {
 		return
 	}
-	if ok {
+	if getLock {
 		// 如果是当前操作锁定的数据
 		defer r.UnLock()
 		err = r.OkHandler()
 		return
 	}
-
-	err = fmt.Errorf("没有执行的权限")
 	return
 }
