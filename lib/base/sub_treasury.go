@@ -13,7 +13,17 @@ type FetchDataParameter struct {
 	SourceDb  *gorm.DB `json:"-"`
 	DbName    string   `json:"db_name"`
 	TableName string   `json:"table_name"`
+	Id        string   `json:"id"`
 }
+type FetchDataParameterBatch struct {
+	SourceDb  *gorm.DB `json:"-"`
+	DbName    string   `json:"db_name"`
+	TableName string   `json:"table_name"`
+	Ids       []string `json:"ids"`
+}
+
+type FetchDataHandlerBatch func(fetchDataParameter *FetchDataParameterBatch) (err error)
+
 type FetchDataHandler func(fetchDataParameter *FetchDataParameter) (err error)
 
 type OperateEveryDatabase struct {
@@ -38,10 +48,10 @@ type SubTreasury interface {
 	GetHashTable(columnValue int64) (tableName string, err error)
 
 	// GetDataByIntegerIds 根据数据获取
-	GetDataByIntegerIds(ids []int64, fetchDataHandler FetchDataHandler) (err error)
+	GetDataByIntegerIds(ids []int64, fetchDataHandler FetchDataHandlerBatch, mapNumString ...map[int64]string) (err error)
 
 	// GetDataByStringIds 根据数据获取
-	GetDataByStringIds(ids []string, fetchDataHandler FetchDataHandler) (err error)
+	GetDataByStringIds(ids []string, fetchDataHandler FetchDataHandlerBatch) (err error)
 
 	GetDataByStringId(id string, fetchDataHandler FetchDataHandler) (err error)
 

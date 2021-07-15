@@ -6,6 +6,7 @@ package sub_treasury_impl
 
 import (
 	"fmt"
+	"strconv"
 	"sync"
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
@@ -49,15 +50,17 @@ type SubTreasuryBase struct {
 func (r *SubTreasuryBase) OperateEveryDatabase(handler OperateEveryDatabaseHandler) (err error) {
 
 	var i int64
-	var sync sync.WaitGroup
-	sync.Add(int(r.DbNumber))
+	var syncG sync.WaitGroup
+	syncG.Add(int(r.DbNumber))
 	for ; i < r.DbNumber; i++ {
-		go func(ind int64) { // 并行更新每个数据库，串行更新数据库的每张表
-			defer sync.Done()
+
+		// 并行更新每个数据库，串行更新数据库的每张表
+		go func(ind int64) {
+			defer syncG.Done()
 			_ = r.doEveryDb(handler, ind)
 		}(i)
 	}
-	sync.Wait()
+	syncG.Wait()
 	return
 }
 func (r *SubTreasuryBase) doEveryDb(handler OperateEveryDatabaseHandler, i int64) (err error) {
@@ -133,13 +136,6 @@ func (r *SubTreasuryBase) tableNameString(tableIndex int64) (tableName string) {
 	return
 }
 
-type ItemDb struct {
-	Db        *gorm.DB
-	Ids       []int64
-	DbName    string `json:"db_name"`
-	TableName string `json:"table_name"`
-}
-
 func (r *SubTreasuryBase) GetHashDbAndTableById(id int64) (db *gorm.DB, dbName, tableName string, err error) {
 
 	if db, dbName, err = r.GetHashIntegerDb(id); err != nil {
@@ -151,7 +147,9 @@ func (r *SubTreasuryBase) GetHashDbAndTableById(id int64) (db *gorm.DB, dbName, 
 	}
 	return
 }
-func (r *SubTreasuryBase) GetDataByIntegerIds(ids []int64, fetchDataHandler FetchDataHandler) (err error) {
+
+// GetDataByIntegerIds mapNumString 有值表示Id为字符串格式的数据调用
+func (r *SubTreasuryBase) GetDataByIntegerIds(ids []int64, fetchDataHandler FetchDataHandlerBatch, mapNumString ...map[int64]string) (err error) {
 	l := len(ids)
 	if l == 0 {
 		return
@@ -161,24 +159,35 @@ func (r *SubTreasuryBase) GetDataByIntegerIds(ids []int64, fetchDataHandler Fetc
 		db                *gorm.DB
 		dbName, tableName string
 		ok                bool
-		dta               ItemDb
-		mapDb             = make(map[string]ItemDb, l)
+		dta               FetchDataParameterBatch
+		mapDb             = make(map[string]FetchDataParameterBatch, l)
+		f                 bool
+		v                 string
 	)
 
+	if len(mapNumString) > 0 {
+		f = true
+	}
 	for _, id := range ids {
 		if db, dbName, tableName, err = r.GetHashDbAndTableById(id); err != nil {
 			return
 		}
 		uk := dbName + tableName
 		if dta, ok = mapDb[uk]; !ok {
-			dta = ItemDb{
+			dta = FetchDataParameterBatch{
 				DbName:    dbName,
 				TableName: tableName,
-				Db:        db,
-				Ids:       make([]int64, 0, l),
+				SourceDb:  db,
+				Ids:       make([]string, 0, l),
 			}
 		}
-		dta.Ids = append(dta.Ids, id)
+
+		if f {
+			v = mapNumString[0][id]
+		} else {
+			v = strconv.FormatInt(id, 64)
+		}
+		dta.Ids = append(dta.Ids, v)
 		mapDb[uk] = dta
 	}
 
@@ -186,38 +195,48 @@ func (r *SubTreasuryBase) GetDataByIntegerIds(ids []int64, fetchDataHandler Fetc
 
 	syncG.Add(len(mapDb))
 	for _, itemDb := range mapDb {
-		go func(item ItemDb) {
+		go func(item FetchDataParameterBatch) {
 			defer syncG.Done()
-			r.getById(item, fetchDataHandler)
+			r.getByIdBatch(item, fetchDataHandler)
 		}(itemDb)
 	}
 	syncG.Wait()
 
 	return
 }
-func (r *SubTreasuryBase) GetDataByStringIds(ids []string, fetchDataHandler FetchDataHandler) (err error) {
-	idInt := make([]int64, 0, len(ids))
+func (r *SubTreasuryBase) GetDataByStringIds(ids []string, fetchDataHandler FetchDataHandlerBatch) (err error) {
+	var l = len(ids)
+	idInt := make([]int64, 0, l)
+	var mapId = make(map[int64]string, l)
 	for _, id := range ids {
-		idInt = append(idInt, r.GetASCII(id))
+		idNum := r.GetASCII(id)
+		idInt = append(idInt, idNum)
+		mapId[idNum] = id
 	}
-	err = r.GetDataByIntegerIds(idInt, fetchDataHandler)
+	err = r.GetDataByIntegerIds(idInt, fetchDataHandler, mapId)
 	return
 }
 
-func (r *SubTreasuryBase) getById(it ItemDb, fetchDataHandler FetchDataHandler) {
+func (r *SubTreasuryBase) getByIdBatch(it FetchDataParameterBatch, fetchDataHandler FetchDataHandlerBatch) {
 
 	var err error
-	fetchDataParameter := FetchDataParameter{
-		SourceDb:  it.Db,
-		DbName:    it.DbName,
-		TableName: it.TableName,
-	}
-	if err = fetchDataHandler(&fetchDataParameter); err != nil {
+	if err = fetchDataHandler(&it); err != nil {
 		r.Context.Error(map[string]interface{}{
 			"err":       err.Error(),
 			"id":        it.Ids,
 			"dbName":    it.DbName,
 			"tableName": it.TableName,
+		}, "subTreasuryBaseError")
+		return
+	}
+}
+func (r *SubTreasuryBase) getById(it FetchDataParameter, fetchDataHandler FetchDataHandler) {
+
+	var err error
+	if err = fetchDataHandler(&it); err != nil {
+		r.Context.Error(map[string]interface{}{
+			"err": err.Error(),
+			"id":  it,
 		}, "subTreasuryBaseError")
 		return
 	}
