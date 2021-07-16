@@ -278,12 +278,28 @@ func (r *httpRpc) GetBodyAsString() (res string) {
 }
 
 func (r *httpRpc) GetBody() (res *httpRpc) {
+	logContent := map[string]interface{}{
+		"request": r.Request,
+	}
+	defer func() {
+		if r.Error != nil {
+			logContent["err"] = r.Error.Error()
+			r.Request.Context.Error(logContent, "httpRpcGetBody")
+		} else {
+			r.Request.Context.Info(logContent, "httpRpcGetBody")
+		}
+
+	}()
 	res = r
 	if r.Error != nil {
 		return
 	}
 	// 保证I/O正常关闭
-	defer r.resp.Body.Close()
+	defer func() {
+		if r.resp != nil && r.resp.Body != nil {
+			r.resp.Body.Close()
+		}
+	}()
 	// 判断请求状态
 	if r.resp.StatusCode != 200 {
 		r.Error = fmt.Errorf("请求失败(%d)", r.resp.StatusCode)
@@ -296,6 +312,9 @@ func (r *httpRpc) GetBody() (res *httpRpc) {
 		r.Error = fmt.Errorf("读取请求返回失败(%s)", r.Error.Error())
 		return
 	}
+
+	logContent["body"] = string(r.Body)
+
 	// 成功，返回数据及状态
 	return
 
