@@ -89,9 +89,9 @@ func (r *RequestOptions) initDefault() {
 	} else {
 		r.Header.Add(app_obj.HttpTraceId, traceId)
 	}
-	if !r.NotMicro && r.PathVersion == "" {
-		r.PathVersion = "v1"
-	}
+	// if !r.NotMicro && r.PathVersion == "" {
+	// 	r.PathVersion = "v1"
+	// }
 
 }
 
@@ -173,7 +173,7 @@ func (r *httpRpc) DefaultBaseUrl() {
 			r.Error = fmt.Errorf("base url config is not exists(%s)", r.Request.AppName)
 			return
 		}
-		r.BaseUrl = fmt.Sprintf("%s/%s/%s", app_obj.AppMap[r.Request.AppName], r.Request.AppName, r.Request.PathVersion)
+		r.BaseUrl = fmt.Sprintf("%s/%s%s", app_obj.AppMap[r.Request.AppName], r.Request.AppName, r.Request.PathVersion)
 	}
 }
 
