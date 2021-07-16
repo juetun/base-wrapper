@@ -20,7 +20,7 @@ const (
 type PagerParameter struct {
 	PageNo    int    `form:"page_no" json:"page_no,omitempty"`
 	PageSize  int    `form:"page_size" json:"page_size,omitempty"`
-	RequestId string `json:"request_id,omitempty"`
+	RequestId string `form:"request_id" json:"request_id,omitempty"`
 }
 type PageQuery struct {
 	Order  string `form:"order" json:"order,omitempty"`
