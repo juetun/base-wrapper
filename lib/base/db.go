@@ -56,7 +56,7 @@ func (r *GetDbClientData) DefaultGetDbClientDataCallBack(db *gorm.DB) (dba *gorm
 }
 
 // GetDbClient 获取Redis操作实例
-func GetDbClient(params ...*GetDbClientData) (db *gorm.DB, dbName string) {
+func GetDbClient(params ...*GetDbClientData) (db *gorm.DB, dbName string, err error) {
 	l := len(params)
 
 	var arg *GetDbClientData
@@ -81,5 +81,6 @@ func GetDbClient(params ...*GetDbClientData) (db *gorm.DB, dbName string) {
 		}
 		return
 	}
-	panic(fmt.Sprintf("the Database connect(%s) is not exist", arg.DbNameSpace))
+	err = fmt.Errorf("the Database connect(%s) is not exist", arg.DbNameSpace)
+	return
 }

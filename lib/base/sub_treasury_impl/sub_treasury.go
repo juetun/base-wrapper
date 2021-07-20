@@ -5,6 +5,7 @@
 package sub_treasury_impl
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"sync"
@@ -21,9 +22,7 @@ type SubTreasuryBaseOption func(p *SubTreasuryBase)
 
 // NewSubTreasuryBase 初始化数据模型
 func NewSubTreasuryBase(options ...SubTreasuryBaseOption) (res SubTreasury) {
-	p := &SubTreasuryBase{
-		Dbs: app_obj.DbMysql,
-	}
+	p := &SubTreasuryBase{} // Dbs: app_obj.DbMysql,
 	for _, option := range options {
 		option(p)
 	}
@@ -43,8 +42,8 @@ type SubTreasuryBase struct {
 	// 总计表数
 	TableNumber int64 `json:"table_number"`
 	// 当前配置的数据库连接
-	Dbs     map[string]*gorm.DB `json:"-"`
-	Context *base.Context       `json:"-"`
+	// Dbs     map[string]*gorm.DB `json:"-"`
+	Context *base.Context `json:"-"`
 }
 
 func (r *SubTreasuryBase) OperateEveryDatabase(handler OperateEveryDatabaseHandler) (err error) {
@@ -244,16 +243,26 @@ func (r *SubTreasuryBase) getById(it FetchDataParameter, fetchDataHandler FetchD
 
 func (r *SubTreasuryBase) getDbByIndex(index int64) (db *gorm.DB, dbName string, err error) {
 	dbName = fmt.Sprintf("%s%d", r.DbPrefix, index)
-	var ok bool
-	if db, ok = r.Dbs[dbName]; !ok {
-		err = fmt.Errorf("the database (%s) what you config is not exists", dbName)
-		r.Context.Error(map[string]interface{}{
-			"err":    err.Error(),
-			"index":  index,
-			"dbName": dbName,
-		}, "SubTreasuryBaseGetDbByIndex")
-		return
+	s := ""
+	var ctx = context.TODO()
+	if nil != r.Context.GinContext {
+		if tp, ok := r.Context.GinContext.Get(app_obj.TraceId); ok {
+			s = fmt.Sprintf("%v", tp)
+		}
+		ctx = r.Context.GinContext.Request.Context()
 	}
+	db, dbName, err = base.GetDbClient(&base.GetDbClientData{
+		Context:     r.Context,
+		DbNameSpace: dbName,
+		CallBack: func(db *gorm.DB, dbName string) (dba *gorm.DB, err error) {
+			dba = db.WithContext(context.WithValue(ctx, app_obj.DbContextValueKey, DbContextValue{
+				TraceId: s,
+				DbName:  dbName,
+			}))
+			return
+		},
+	})
+
 	return
 }
 

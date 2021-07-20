@@ -103,7 +103,8 @@ func (r *Context) InitContext() (c *Context) {
 }
 
 func (r *Context) initDb(s string, ctx context.Context) {
-	r.Db, r.DbName = GetDbClient(&GetDbClientData{
+	var err error
+	r.Db, r.DbName, err = GetDbClient(&GetDbClientData{
 		Context: r,
 		CallBack: func(db *gorm.DB, dbName string) (dba *gorm.DB, err error) {
 			dba = db.WithContext(context.WithValue(ctx, app_obj.DbContextValueKey, DbContextValue{
@@ -113,6 +114,9 @@ func (r *Context) initDb(s string, ctx context.Context) {
 			return
 		},
 	})
+	if err != nil {
+		panic(err)
+	}
 }
 func (r *Context) Error(data map[string]interface{}, message ...interface{}) {
 	r.log.Error(r.GinContext, data, message...)

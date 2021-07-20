@@ -106,8 +106,8 @@ func (r *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (stri
 
 	if err != nil {
 		dta["err"] = err.Error()
-		r.Logger.Logger.WithFields(r.Logger.GetFields(dta)).Error("GormLogger")
+		r.Logger.Logger.WithFields(r.Logger.GetFields(dta)).Error("Gorm")
 	} else {
-		r.Logger.Logger.WithFields(r.Logger.GetFields(dta)).Info("GormLogger")
+		r.Logger.Logger.WithFields(r.Logger.GetFields(dta)).Info("Gorm")
 	}
 }
