@@ -75,20 +75,19 @@ func (r *RequestOptions) initDefault() {
 	if r.RequestTimeOut == 0 {
 		r.RequestTimeOut = 5 * time.Second
 	}
+	// 不是访问内部服务
 	if r.NotMicro {
 		return
 	}
 	traceId := ""
 	if nil != r.Context {
-		r.Context.GinContext.GetHeader(app_obj.HttpTraceId)
+		traceId = r.Context.GinContext.GetHeader(app_obj.HttpTraceId)
 	}
 	if r.Header == nil {
-		r.Header = http.Header{
-			app_obj.HttpTraceId: []string{traceId},
-		}
-	} else {
-		r.Header.Add(app_obj.HttpTraceId, traceId)
+		r.Header = http.Header{}
 	}
+	r.Header.Add(app_obj.HttpTraceId, traceId)
+
 	// if !r.NotMicro && r.PathVersion == "" {
 	// 	r.PathVersion = "v1"
 	// }
