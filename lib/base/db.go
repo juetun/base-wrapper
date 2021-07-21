@@ -80,7 +80,8 @@ func GetDbClient(params ...*GetDbClientData) (db *gorm.DB, dbName string, err er
 			db, _ = arg.CallBack(db, arg.DbNameSpace)
 		}
 		return
+	} else if arg.DbNameSpace != "defaultNameSpace" { // 默认数据库连接 没有也不报错
+		err = fmt.Errorf("the Database connect(%s) is not exist", arg.DbNameSpace)
 	}
-	err = fmt.Errorf("the Database connect(%s) is not exist", arg.DbNameSpace)
 	return
 }
