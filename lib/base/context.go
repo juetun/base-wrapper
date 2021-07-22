@@ -102,8 +102,7 @@ func (r *Context) InitContext() (c *Context) {
 	return r
 }
 
-func (r *Context) initDb(s string, ctx context.Context) {
-	var err error
+func (r *Context) initDb(s string, ctx context.Context) (err error) {
 	r.Db, r.DbName, err = GetDbClient(&GetDbClientData{
 		Context: r,
 		CallBack: func(db *gorm.DB, dbName string) (dba *gorm.DB, err error) {
@@ -114,9 +113,8 @@ func (r *Context) initDb(s string, ctx context.Context) {
 			return
 		},
 	})
-	if err != nil {
-		panic(err)
-	}
+
+	return
 }
 func (r *Context) Error(data map[string]interface{}, message ...interface{}) {
 	r.log.Error(r.GinContext, data, message...)
