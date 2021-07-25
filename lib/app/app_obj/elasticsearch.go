@@ -8,18 +8,17 @@ import (
 var ElasticSearchV7Maps = make(map[string]*elasticsearch.Client)
 
 // GetElasticSearchMaps 获取ElasticSearchMaps操作实例
-func GetElasticSearchMaps(nameSpace ...string) (res *elasticsearch.Client) {
+func GetElasticSearchMaps(nameSpace ...string) (res *elasticsearch.Client, keyName string) {
 
-	var s string
 	switch l := len(nameSpace); l {
 	case 0:
-		s = "default"
+		keyName = "default"
 	case 1:
-		s = nameSpace[0]
+		keyName = nameSpace[0]
 	default:
 	}
-	if _, ok := ElasticSearchV7Maps[s]; ok {
-		res = ElasticSearchV7Maps[s]
+	if _, ok := ElasticSearchV7Maps[keyName]; ok {
+		res = ElasticSearchV7Maps[keyName]
 		return
 	}
 	return

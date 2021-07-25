@@ -42,7 +42,7 @@ func NewServiceDefaultImpl(context ...*base.Context) (res srvs.ServiceDefault) {
 	return
 }
 
-//验证码生成
+// 验证码生成
 func (r *ServiceDefaultImpl) Auth(arg *wrapper.ArgumentDefault) (result interface{}, err error) {
 	type Result struct {
 		IdKey         string `json:"id_key"`
@@ -58,7 +58,7 @@ func (r *ServiceDefaultImpl) Auth(arg *wrapper.ArgumentDefault) (result interfac
 	return
 }
 
-//验证码校验逻辑
+// 验证码校验逻辑
 func (r *ServiceDefaultImpl) AuthRes(arg *wrapper.ArgumentDefault) (result interface{}, err error) {
 	// 校验逻辑
 	result = identifying_code_pkg.NewIdentifyingCode(identifying_code_pkg.Context(&identifying_code_pkg.CustomizeRdsStore{
@@ -85,7 +85,7 @@ func (r *ServiceDefaultImpl) TestEs(arg *wrapper.ArgumentDefault) (result interf
 	//
 	// An `ELASTICSEARCH_URL` environment variable will be used when exported.
 	//
-	es := app_obj.GetElasticSearchMaps()
+	es, _ := app_obj.GetElasticSearchMaps()
 	opEs := common.NewOperateElasticSearch(es)
 	esInfo, err := opEs.GetClusterInfo()
 	log.Printf("%#v", esInfo)
