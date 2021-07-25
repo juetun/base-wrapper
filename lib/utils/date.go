@@ -21,6 +21,7 @@ const (
 	TimeWeek        = 7 * 86400 * time.Second
 )
 
+// DateTime 时间格式转换
 func DateTime(t time.Time, format ...string) (res string) {
 	var f = DateTimeGeneral
 	if len(format) > 0 {
@@ -30,7 +31,7 @@ func DateTime(t time.Time, format ...string) (res string) {
 }
 
 // DateDuration 指定时间离当前时间的差额
-func DateDuration(value string, baseTime *time.Time, format ...string) (res string, err error) {
+func DateDuration(value string, baseTime *time.Time, format ...string) (res string, difTime time.Duration, err error) {
 	var t time.Time
 	if t, err = DateParse(value, format...); err != nil {
 		return
@@ -39,6 +40,7 @@ func DateDuration(value string, baseTime *time.Time, format ...string) (res stri
 		*baseTime = time.Now()
 	}
 	dif := baseTime.Unix() - t.Unix()
+	difTime = time.Duration(baseTime.UnixNano() - t.UnixNano())
 	if dif < 60 {
 		res = fmt.Sprintf("%d秒前", int(dif))
 		return
