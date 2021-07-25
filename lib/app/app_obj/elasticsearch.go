@@ -7,11 +7,11 @@ import (
 
 var ElasticSearchV7Maps = make(map[string]*elasticsearch.Client)
 
-// 获取ElasticSearchMaps操作实例
+// GetElasticSearchMaps 获取ElasticSearchMaps操作实例
 func GetElasticSearchMaps(nameSpace ...string) (res *elasticsearch.Client) {
 
 	var s string
-	switch len := len(nameSpace); len {
+	switch l := len(nameSpace); l {
 	case 0:
 		s = "default"
 	case 1:

@@ -13,11 +13,17 @@ import (
 )
 
 const (
-	DefaultPageSize = 15
-	DefaultPageNo   = 1
+	DefaultPageTypeList = "list"
+	DefaultPageTypeNext = "next"
+	DefaultPageSize     = 15
+	DefaultPageNo       = 1
 )
 
+// PermitPageTypeList 允许分页类型 list 按页码分页; next 按是否有下一页分页
+var PermitPageTypeList = []string{DefaultPageTypeList, DefaultPageTypeNext}
+
 type PagerParameter struct {
+	PageType  string `json:"page_type" form:"page_type"`
 	PageNo    int    `form:"page_no" json:"page_no,omitempty"`
 	PageSize  int    `form:"page_size" json:"page_size,omitempty"`
 	RequestId string `form:"request_id" json:"request_id,omitempty"`
@@ -33,6 +39,7 @@ func (r *PageQuery) GetOffset() (offset int) {
 	if r.PageNo < 1 {
 		r.PageNo = DefaultPageNo
 	}
+
 	offset = (r.PageNo - 1) * r.PageSize
 	return
 }
@@ -54,14 +61,20 @@ type Pager struct {
 type PageHandler func(*Pager)
 type PageOption PageHandler
 
+// PagerList 设置分页列表
 func PagerList(list interface{}) PageOption {
 	return func(pager *Pager) {
 		pager.List = list
 	}
 }
+
+// PagerBaseQuery 初始化分页参数
 func PagerBaseQuery(baseQuery PageQuery) PageOption {
 	if baseQuery.PageSize == 0 {
 		baseQuery.PageSize = DefaultPageSize
+	}
+	if baseQuery.PageType == "" {
+		baseQuery.PageType = DefaultPageTypeList
 	}
 	return func(pager *Pager) {
 		pager.PagerParameter = baseQuery.PagerParameter
@@ -80,6 +93,14 @@ func PagerPageNo(pageNo int) PageOption {
 func PagerPageSize(pageSize int) PageOption {
 	return func(pager *Pager) {
 		pager.PageSize = pageSize
+	}
+}
+func PagerPageType(pageType string) PageOption {
+	return func(pager *Pager) {
+		if pager.PageType == "" {
+			pager.PageType = pageType
+			return
+		}
 	}
 }
 
