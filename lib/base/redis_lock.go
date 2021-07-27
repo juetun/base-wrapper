@@ -3,6 +3,8 @@ package base
 import (
 	"fmt"
 	"time"
+
+	"github.com/go-redis/redis/v8"
 )
 
 // DistributedOkHandler redis 分布式锁实现结构体
@@ -40,10 +42,13 @@ func (r *RedisDistributedLock) Lock() (ok bool, err error) {
 		}, "RedisDistributedLock1")
 		return
 	}
-	ok, err = r.Context.CacheClient.
-		SetNX(r.Context.GinContext.Request.Context(), r.LockKey, r.UniqueKey, r.Duration).
-		Result()
-	if err != nil {
+
+	if ok, err = r.Context.CacheClient.
+		SetNX(r.Context.GinContext.Request.Context(),
+			r.LockKey,
+			r.UniqueKey,
+			r.Duration).
+		Result(); err != nil {
 		r.Context.Error(map[string]interface{}{
 			"err":       err.Error(),
 			"LockKey":   r.LockKey,
@@ -52,6 +57,7 @@ func (r *RedisDistributedLock) Lock() (ok bool, err error) {
 		}, "RedisDistributedLock1")
 		return
 	}
+
 	return
 }
 func (r *RedisDistributedLock) UnLock() (ok bool, err error) {
@@ -104,10 +110,65 @@ func (r *RedisDistributedLock) Run() (getLock bool, err error) {
 		return
 	}
 	if getLock {
+		// 如果加锁成功
+		// 创建协程,定时延期锁的过期时间
+		go func(client *redis.Client) {
+			for {
+				select {
+				case <-time.After(r.Duration / 2):
+					if _, err = r.addTimeout(); err != nil {
+						r.Context.Error(map[string]interface{}{
+							"LockKey": "续租数据",
+							"err":     err.Error(),
+						}, "RedisDistributedLockRun")
+					}
+				}
+			}
+		}(r.Context.CacheClient)
+
 		// 如果是当前操作锁定的数据
 		defer r.UnLock()
+
 		err = r.OkHandler()
+
+		// 阻塞进程,避免退出
+		// select {}
 		return
 	}
+	return
+}
+
+// addTimeout 延期,应该判断value后再延期
+func (r *RedisDistributedLock) addTimeout() (ok bool, err error) {
+
+	ctx := r.Context.GinContext.Request.Context()
+
+	// 获取key的剩余有效时间 当key不存在时返回-2 当未设置过期时间的返回-1
+	var ttlTime int64
+	if ttlTime, err = r.Context.CacheClient.Do(ctx, "TTL", r.LockKey).Int64(); err != nil {
+		r.Context.Error(map[string]interface{}{
+			"LockKey": r.LockKey,
+			"err":     fmt.Sprintf("redis get fail:%s", err.Error()),
+		}, "RedisDistributedLockAddTimeout0")
+		return
+	}
+
+	if ttlTime <= 0 {
+		ok = true
+		return
+	}
+
+	if _, err = r.Context.
+		CacheClient.SetEX(ctx, r.LockKey, r.UniqueKey, r.Duration).
+		Result(); err != redis.Nil {
+		r.Context.Error(map[string]interface{}{
+			"err":       err.Error(),
+			"LockKey":   r.LockKey,
+			"UniqueKey": r.UniqueKey,
+			"Duration":  r.Duration,
+		}, "RedisDistributedLockAddTimeout1")
+		return
+	}
+	err = nil
 	return
 }
