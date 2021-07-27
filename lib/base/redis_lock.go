@@ -66,14 +66,15 @@ func (r *RedisDistributedLock) UnLock() (ok bool, err error) {
 	uniqueKey := r.Context.CacheClient.Get(ctx, r.LockKey).String()
 	// 当前数据才能释放对应的锁
 	if uniqueKey == r.UniqueKey {
-		err = r.Context.CacheClient.Del(ctx, r.LockKey).Err()
-		r.Context.Error(map[string]interface{}{
-			"err":            err.Error(),
-			"LockKey":        r.LockKey,
-			"redisUniqueKey": uniqueKey,
-			"UniqueKey":      r.UniqueKey,
-			"Duration":       r.Duration,
-		}, "RedisDistributedUnLock")
+		if err = r.Context.CacheClient.Del(ctx, r.LockKey).Err(); err != nil {
+			r.Context.Error(map[string]interface{}{
+				"err":            err.Error(),
+				"LockKey":        r.LockKey,
+				"redisUniqueKey": uniqueKey,
+				"UniqueKey":      r.UniqueKey,
+				"Duration":       r.Duration,
+			}, "RedisDistributedUnLock")
+		}
 		return
 	}
 
@@ -120,19 +121,29 @@ func (r *RedisDistributedLock) Run() (getLock bool, err error) {
 						r.Context.Error(map[string]interface{}{
 							"LockKey": "续租数据",
 							"err":     err.Error(),
-						}, "RedisDistributedLockRun")
+						}, "RedisDistributedLockRun0")
 					}
 				}
 			}
 		}(r.Context.CacheClient)
 
 		// 如果是当前操作锁定的数据
-		defer r.UnLock()
+		defer func() {
+			var e1 error
+			if _, e1 = r.UnLock(); e1 != nil {
+				r.Context.Error(map[string]interface{}{
+					"err": e1.Error(),
+				}, "RedisDistributedLockRun1")
+			}
+		}()
 
-		err = r.OkHandler()
-
-		// 阻塞进程,避免退出
-		// select {}
+		// 执行锁逻辑
+		if err = r.OkHandler(); err != nil {
+			r.Context.Error(map[string]interface{}{
+				"err": err.Error(),
+			}, "RedisDistributedLockRun2")
+			return
+		}
 		return
 	}
 	return
@@ -160,7 +171,7 @@ func (r *RedisDistributedLock) addTimeout() (ok bool, err error) {
 
 	if _, err = r.Context.
 		CacheClient.SetEX(ctx, r.LockKey, r.UniqueKey, r.Duration).
-		Result(); err != redis.Nil {
+		Result(); err != nil && err != redis.Nil {
 		r.Context.Error(map[string]interface{}{
 			"err":       err.Error(),
 			"LockKey":   r.LockKey,
