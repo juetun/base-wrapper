@@ -106,14 +106,18 @@ func (r *RedisDistributedLock) RunWithGetLock() (err error) {
 	}
 	return
 }
-func (r *RedisDistributedLock) tTlTime(ctx context.Context) (err error) {
+
+type unLockAct func()
+
+func (r *RedisDistributedLock) tTlTime(ctx context.Context, unLockAct unLockAct) (err error) {
 	// 如果加锁成功
 	// 创建协程,定时延期锁的过期时间
 	for {
 		select {
 		case <-ctx.Done():
 			// log.Printf("结束")
-			return
+			unLockAct()
+			goto BreakLogic
 		case <-time.After(r.Duration / 2):
 			// log.Printf("续租数据\n")
 			if _, err = r.addTimeout(); err != nil {
@@ -124,6 +128,17 @@ func (r *RedisDistributedLock) tTlTime(ctx context.Context) (err error) {
 			}
 		}
 	}
+BreakLogic:
+	return
+}
+func (r *RedisDistributedLock) unLockAct() {
+	var e1 error
+	if _, e1 = r.UnLock(); e1 != nil {
+		r.Context.Error(map[string]interface{}{
+			"err": e1.Error(),
+		}, "RedisDistributedLockRun1")
+	}
+	return
 }
 func (r *RedisDistributedLock) Run() (getLock bool, err error) {
 
@@ -134,21 +149,12 @@ func (r *RedisDistributedLock) Run() (getLock bool, err error) {
 
 	if getLock {
 		// 如果是当前操作锁定的数据
-		defer func() {
-			var e1 error
-			if _, e1 = r.UnLock(); e1 != nil {
-				r.Context.Error(map[string]interface{}{
-					"err": e1.Error(),
-				}, "RedisDistributedLockRun1")
-			}
-			// log.Println("解锁")
-		}()
 		ctx, cancel := context.WithCancel(r.Context.GinContext.Request.Context())
 		defer func() {
 			cancel()
 		}()
 		go func() {
-			_ = r.tTlTime(ctx)
+			_ = r.tTlTime(ctx, r.unLockAct)
 		}()
 
 		// 执行锁逻辑
