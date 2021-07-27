@@ -1,7 +1,9 @@
 package base
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -65,19 +67,19 @@ func (r *RedisDistributedLock) UnLock() (ok bool, err error) {
 	ctx := r.Context.GinContext.Request.Context()
 	uniqueKey := r.Context.CacheClient.Get(ctx, r.LockKey).String()
 	// 当前数据才能释放对应的锁
-	if uniqueKey == r.UniqueKey {
-		if err = r.Context.CacheClient.Del(ctx, r.LockKey).Err(); err != nil {
-			r.Context.Error(map[string]interface{}{
-				"err":            err.Error(),
-				"LockKey":        r.LockKey,
-				"redisUniqueKey": uniqueKey,
-				"UniqueKey":      r.UniqueKey,
-				"Duration":       r.Duration,
-			}, "RedisDistributedUnLock")
-		}
+	if uniqueKey != r.UniqueKey {
+		err = fmt.Errorf("不是当前操作锁定数据(lock:%s,now:%s),没权限解锁", uniqueKey, r.UniqueKey)
 		return
 	}
-
+	if err = r.Context.CacheClient.Del(ctx, r.LockKey).Err(); err != nil {
+		r.Context.Error(map[string]interface{}{
+			"err":            err.Error(),
+			"LockKey":        r.LockKey,
+			"redisUniqueKey": uniqueKey,
+			"UniqueKey":      r.UniqueKey,
+			"Duration":       r.Duration,
+		}, "RedisDistributedUnLock")
+	}
 	return
 }
 
@@ -104,29 +106,33 @@ func (r *RedisDistributedLock) RunWithGetLock() (err error) {
 	}
 	return
 }
+func (r *RedisDistributedLock) tTlTime(ctx context.Context) (err error) {
+	// 如果加锁成功
+	// 创建协程,定时延期锁的过期时间
+	for {
+		select {
+		case <-ctx.Done():
+			// log.Printf("结束")
+			return
+		case <-time.After(r.Duration / 2):
+			// log.Printf("续租数据\n")
+			if _, err = r.addTimeout(); err != nil {
+				r.Context.Error(map[string]interface{}{
+					"LockKey": "续租数据",
+					"err":     err.Error(),
+				}, "RedisDistributedLockRun0")
+			}
+		}
+	}
+}
 func (r *RedisDistributedLock) Run() (getLock bool, err error) {
 
 	// 如果锁成功了，则操作，然后释放锁
 	if getLock, err = r.Lock(); err != nil {
 		return
 	}
-	if getLock {
-		// 如果加锁成功
-		// 创建协程,定时延期锁的过期时间
-		go func(client *redis.Client) {
-			for {
-				select {
-				case <-time.After(r.Duration / 2):
-					if _, err = r.addTimeout(); err != nil {
-						r.Context.Error(map[string]interface{}{
-							"LockKey": "续租数据",
-							"err":     err.Error(),
-						}, "RedisDistributedLockRun0")
-					}
-				}
-			}
-		}(r.Context.CacheClient)
 
+	if getLock {
 		// 如果是当前操作锁定的数据
 		defer func() {
 			var e1 error
@@ -135,6 +141,14 @@ func (r *RedisDistributedLock) Run() (getLock bool, err error) {
 					"err": e1.Error(),
 				}, "RedisDistributedLockRun1")
 			}
+			// log.Println("解锁")
+		}()
+		ctx, cancel := context.WithCancel(r.Context.GinContext.Request.Context())
+		defer func() {
+			cancel()
+		}()
+		go func() {
+			_ = r.tTlTime(ctx)
 		}()
 
 		// 执行锁逻辑
@@ -163,7 +177,7 @@ func (r *RedisDistributedLock) addTimeout() (ok bool, err error) {
 		}, "RedisDistributedLockAddTimeout0")
 		return
 	}
-
+	log.Printf("ttlTime:%d \n", ttlTime)
 	if ttlTime <= 0 {
 		ok = true
 		return
