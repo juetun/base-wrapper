@@ -1,10 +1,10 @@
-package response
+package base
 
 import (
 	"fmt"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/common/response"
 )
 
 // PageCacheRedis 本功能的用途 缓存分页数据
@@ -12,8 +12,8 @@ type PageCacheRedis struct {
 	CacheKeyName string                `json:"cache_key_name"` // 缓存分页数据的作用域key
 	ActHandler   PageCacheRedisGetData `json:"-"`
 	CacheClient  *redis.Client         `json:"-"`
-	Context      *base.Context         `json:"-"`
-	Pager        *Pager                `json:"pager"` // 分页对象,上下文传参使用
+	Context      *Context              `json:"-"`
+	Pager        *response.Pager       `json:"pager"` // 分页对象,上下文传参使用
 }
 
 // NewPageCacheRedis 初始化一个分页缓存数据对象
@@ -26,7 +26,7 @@ func NewPageCacheRedis(arg ...PageCacheRedisOption) (res *PageCacheRedis) {
 }
 
 type PageCacheRedisOption func(arg *PageCacheRedis)
-type PageCacheRedisGetData func(pager *Pager, cacheKeyName string) (data interface{}, err error)
+type PageCacheRedisGetData func(pager *response.Pager, cacheKeyName string) (data interface{}, err error)
 
 func (r *PageCacheRedis) Run(key string, data interface{}) (err error) {
 	// 准备的参数验证
@@ -136,7 +136,7 @@ func PageCacheRedisCacheKeyName(CacheKeyName string) PageCacheRedisOption {
 	}
 }
 
-func PageCacheRedisPager(pager *Pager) PageCacheRedisOption {
+func PageCacheRedisPager(pager *response.Pager) PageCacheRedisOption {
 	return func(arg *PageCacheRedis) {
 		arg.Pager = pager
 	}
@@ -154,7 +154,7 @@ func PageCacheRedisCacheClient(cacheClient *redis.Client) PageCacheRedisOption {
 	}
 }
 
-func PageCacheRedisCtx(ctx *base.Context) PageCacheRedisOption {
+func PageCacheRedisCtx(ctx *Context) PageCacheRedisOption {
 	return func(arg *PageCacheRedis) {
 		arg.Context = ctx
 	}
