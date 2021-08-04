@@ -12,4 +12,8 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	DefaultDbNameSpace = "default"
+)
+
 var DbMysql = make(map[string]*gorm.DB, 2)

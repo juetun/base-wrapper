@@ -16,42 +16,48 @@ import (
 	"gorm.io/gorm"
 )
 
-// FetchDataHandler 调用数据库查询数据操作
-
-type SubTreasuryBaseOption func(p *SubTreasuryBase)
-
-// NewSubTreasuryBase 初始化数据模型
-func NewSubTreasuryBase(options ...SubTreasuryBaseOption) (res SubTreasury) {
-	p := &SubTreasuryBase{} // Dbs: app_obj.DbMysql,
-	for _, option := range options {
-		option(p)
-	}
-	return p
-}
-
+// SubTreasuryBase 分库分表实现
+// 可通过自定义 GetDbFunc  GetTableFunc 数据数据库和表的算法实现
+// 如果不传递方法，则默认使用数值(字符串取每个字符的assi码值之和)取余数作为数据库和表的定位
 type SubTreasuryBase struct {
-	// 数据库前缀
-	DbPrefix string `json:"db_prefix"`
 
 	// 表统一前缀
 	TablePrefix string `json:"table_prefix"`
 
-	// 总数据库数
-	DbNumber int64 `json:"db_number"`
-
 	// 总计表数
 	TableNumber int64 `json:"table_number"`
+
+	// 总数据库数,通过计算DbNameSpaceList的长度获取
+	dbNumber int64 `json:"-"`
+
+	// 数据库访问空间名
+	DbNameSpaceList []string `json:"db_name_list"`
+
+	// 获取数据库连接的算法
+	GetDbFuncHandler GetDbFunc
+
+	// 获取数据表连接的算法
+	GetTableFuncHandler GetTableFunc
+
 	// 当前配置的数据库连接
-	// Dbs     map[string]*gorm.DB `json:"-"`
 	Context *base.Context `json:"-"`
 }
+
+// GetDbFunc 自定义操作哪个数据库算法实现的操作方法
+type GetDbFunc func(subTreasury SubTreasury, columnValue int64) (db *gorm.DB, dbName string, err error)
+
+// GetTableFunc 自定义操作哪个table实现的操作方法
+type GetTableFunc func(subTreasury SubTreasury, columnValue int64) (tableName string, err error)
+
+// SubTreasuryBaseOption 调用分布式数据库操作的对象结构体参数
+type SubTreasuryBaseOption func(p *SubTreasuryBase)
 
 func (r *SubTreasuryBase) OperateEveryDatabase(handler OperateEveryDatabaseHandler) (err error) {
 
 	var i int64
 	var syncG sync.WaitGroup
-	syncG.Add(int(r.DbNumber))
-	for ; i < r.DbNumber; i++ {
+	syncG.Add(int(r.dbNumber))
+	for ; i < r.dbNumber; i++ {
 
 		// 并行更新每个数据库，串行更新数据库的每张表
 		go func(ind int64) {
@@ -69,17 +75,17 @@ func (r *SubTreasuryBase) doEveryDb(handler OperateEveryDatabaseHandler, i int64
 		dbName               string
 		j                    int64
 	)
+
 	if db, dbName, err = r.getDbByIndex(i); err != nil {
 		return
 	}
-	operateEveryDatabase = OperateEveryDatabase{
-		DbName: dbName,
-		Db:     db,
-		Tables: make([]string, 0, r.TableNumber),
-	}
+
+	operateEveryDatabase = OperateEveryDatabase{DbName: dbName, Db: db, Tables: make([]string, 0, r.TableNumber)}
+
 	for ; j < r.TableNumber; j++ {
-		operateEveryDatabase.Tables = append(operateEveryDatabase.Tables, r.tableNameString(j))
+		operateEveryDatabase.Tables = append(operateEveryDatabase.Tables, r.TableNameString(j))
 	}
+
 	if err = handler(&operateEveryDatabase); err != nil {
 		r.Context.Error(map[string]interface{}{"err": err.Error()}, "SubTreasuryBaseOperateEveryDatabase")
 	}
@@ -87,25 +93,12 @@ func (r *SubTreasuryBase) doEveryDb(handler OperateEveryDatabaseHandler, i int64
 }
 func (r *SubTreasuryBase) GetHashDbAndTableByStringId(id string) (db *gorm.DB, dbName, tableName string, err error) {
 	code := r.GetASCII(id)
-	return r.GetHashDbAndTableById(code)
+	db, dbName, tableName, err = r.GetHashDbAndTableById(code)
+	return
 }
 
 func (r *SubTreasuryBase) GetDataByStringId(id string, fetchDataHandler FetchDataHandler) (err error) {
 	err = r.GetDataByIntegerId(r.GetASCII(id), fetchDataHandler)
-	return
-}
-
-func (r *SubTreasuryBase) GetHashNumber(columnValue int64) (dbNumber, tableNumber int64) {
-	if r.DbNumber == 0 {
-		r.DbNumber = 1
-	}
-	if r.TableNumber == 0 {
-		r.TableNumber = 1
-	}
-	dbNumber = columnValue % r.DbNumber
-
-	div := columnValue / r.DbNumber
-	tableNumber = div % r.TableNumber
 	return
 }
 
@@ -125,12 +118,24 @@ func (r *SubTreasuryBase) GetDataByIntegerId(id int64, fetchDataHandler FetchDat
 	return
 }
 func (r *SubTreasuryBase) GetHashTable(columnValue int64) (tableName string, err error) {
+	if r.GetTableFuncHandler != nil {
+		tableName, err = r.GetTableFuncHandler(r, columnValue)
+		return
+	}
 	_, tableIndex := r.GetHashNumber(columnValue)
-	tableName = r.tableNameString(tableIndex)
+	tableName = r.TableNameString(tableIndex)
+	return
+}
+func (r *SubTreasuryBase) GetHashNumber(columnValue int64) (dbNumber, tableNumber int64) {
+
+	dbNumber = columnValue % r.dbNumber
+
+	div := columnValue / r.dbNumber
+	tableNumber = div % r.TableNumber
 	return
 }
 
-func (r *SubTreasuryBase) tableNameString(tableIndex int64) (tableName string) {
+func (r *SubTreasuryBase) TableNameString(tableIndex int64) (tableName string) {
 	tableName = fmt.Sprintf("%s%d", r.TablePrefix, tableIndex)
 	return
 }
@@ -242,7 +247,14 @@ func (r *SubTreasuryBase) getById(it FetchDataParameter, fetchDataHandler FetchD
 }
 
 func (r *SubTreasuryBase) getDbByIndex(index int64) (db *gorm.DB, dbName string, err error) {
-	dbName = fmt.Sprintf("%s%d", r.DbPrefix, index)
+
+	dbName = r.DbNameSpaceList[index]
+	return r.GetDbByDbName(dbName)
+
+}
+
+func (r *SubTreasuryBase) GetDbByDbName(dbNameString string) (db *gorm.DB, dbName string, err error) {
+	dbName = dbNameString
 	s := ""
 	var ctx = context.TODO()
 	if nil != r.Context.GinContext {
@@ -262,11 +274,15 @@ func (r *SubTreasuryBase) getDbByIndex(index int64) (db *gorm.DB, dbName string,
 			return
 		},
 	})
-
 	return
 }
 
 func (r *SubTreasuryBase) GetHashIntegerDb(columnValue int64) (db *gorm.DB, dbName string, err error) {
+	// 如果自定义了获取数据连接的算法
+	if r.GetDbFuncHandler != nil {
+		return r.GetDbFuncHandler(r, columnValue)
+	}
+
 	dbNumber, _ := r.GetHashNumber(columnValue)
 	db, dbName, err = r.getDbByIndex(dbNumber)
 	return
@@ -289,9 +305,10 @@ func SubTreasuryTablePrefix(tablePrefix string) SubTreasuryBaseOption {
 		p.TablePrefix = tablePrefix
 	}
 }
-func SubTreasuryDbNumber(dbNumber int64) SubTreasuryBaseOption {
+
+func SubTreasuryDbNameSpace(dbNameSpace ...string) SubTreasuryBaseOption {
 	return func(p *SubTreasuryBase) {
-		p.DbNumber = dbNumber
+		p.DbNameSpaceList = dbNameSpace
 	}
 }
 func SubTreasuryTableNumber(tableNumber int64) SubTreasuryBaseOption {
@@ -299,13 +316,38 @@ func SubTreasuryTableNumber(tableNumber int64) SubTreasuryBaseOption {
 		p.TableNumber = tableNumber
 	}
 }
+
+func SubTreasuryGetTableFuncHandler(getTableFuncHandler GetTableFunc) SubTreasuryBaseOption {
+	return func(p *SubTreasuryBase) {
+		p.GetTableFuncHandler = getTableFuncHandler
+	}
+}
+func SubTreasuryGetDbFunc(getDbFunc GetDbFunc) SubTreasuryBaseOption {
+	return func(p *SubTreasuryBase) {
+		p.GetDbFuncHandler = getDbFunc
+	}
+}
 func SubTreasuryContext(ctx *base.Context) SubTreasuryBaseOption {
 	return func(p *SubTreasuryBase) {
 		p.Context = ctx
 	}
 }
-func SubTreasuryDbPrefix(dbPrefix string) SubTreasuryBaseOption {
-	return func(p *SubTreasuryBase) {
-		p.DbPrefix = dbPrefix
+
+// NewSubTreasuryBase 初始化数据模型
+func NewSubTreasuryBase(options ...SubTreasuryBaseOption) (res SubTreasury) {
+
+	p := &SubTreasuryBase{} // Dbs: app_obj.DbMysql,
+
+	for _, option := range options {
+		option(p)
 	}
+	p.dbNumber = int64(len(p.DbNameSpaceList))
+	if p.dbNumber == 0 {
+		p.dbNumber = 1
+		p.DbNameSpaceList = []string{app_obj.DefaultDbNameSpace}
+	}
+	if p.TableNumber == 0 {
+		p.TableNumber = 1
+	}
+	return p
 }

@@ -65,4 +65,8 @@ type SubTreasury interface {
 	GetASCII(str string) (code int64)
 
 	GetHashNumber(columnValue int64) (dbNumber, tableNumber int64)
+
+	GetDbByDbName(dbNameString string) (db *gorm.DB, dbName string, err error)
+
+	TableNameString(tableIndex int64) (tableName string)
 }
