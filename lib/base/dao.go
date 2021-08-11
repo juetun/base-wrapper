@@ -104,8 +104,10 @@ type BatchAddDataParameter struct {
 	Data          []ModelBase `json:"data"`            // 添加的数据
 }
 
+type TableSetOption map[string]string
+
 // CreateTableWithError 判断SQL err 如果表不存在，则创建表
-func (r *ServiceDao) CreateTableWithError(db *gorm.DB, tableName string, e, model interface{}) (err error) {
+func (r *ServiceDao) CreateTableWithError(db *gorm.DB, tableName string, e, model interface{}, comment ...TableSetOption) (err error) {
 
 	var file string
 	// 获取上层调用者PC，文件名，所在行	// 拼接文件名与所在行
@@ -121,8 +123,13 @@ func (r *ServiceDao) CreateTableWithError(db *gorm.DB, tableName string, e, mode
 	case *mysql.MySQLError: // 运行时错误
 		me := e.(*mysql.MySQLError)
 		if me.Number == 1146 {
-			if err = db.Table(tableName).Migrator().
-				CreateTable(model); err != nil {
+			dba := db.Table(tableName)
+			for _, option := range comment {
+				for s, s2 := range option {
+					dba = dba.Set("gorm:table_options", fmt.Sprintf("%s='%s'", s, s2))
+				}
+			}
+			if err = dba.Migrator().CreateTable(model); err != nil {
 				return
 			}
 			return

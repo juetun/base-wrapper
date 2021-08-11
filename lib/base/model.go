@@ -24,6 +24,13 @@ type Model struct {
 	DeletedAt *TimeNormal `sql:"index" json:"-"`
 }
 
+type CreateTable interface {
+	// TableName 获取表名
+	TableName() string
+	// GetTableComment 获取表注册名
+	GetTableComment() (res string)
+}
+
 type TimeNormal struct {
 	time.Time
 }
