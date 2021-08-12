@@ -82,6 +82,7 @@ func (r *ServiceDao) formatValue(db *gorm.DB, valueStruct reflect.Value) (res in
 
 type ModelBase interface {
 	TableName() string
+	GetTableComment() (res string)
 }
 type DaoBatchAdd interface {
 	BatchAdd(data *BatchAddDataParameter) (err error)
