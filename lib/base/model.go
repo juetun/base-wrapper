@@ -31,6 +31,23 @@ type CreateTable interface {
 	GetTableComment() (res string)
 }
 
+// ScopesDeletedAt 查询条件添加删除条件为空
+func ScopesDeletedAt(prefix ...string) func(db *gorm.DB) *gorm.DB {
+	pre := ""
+	if len(prefix) > 0 {
+		pre = prefix[0]
+	}
+	return func(db *gorm.DB) *gorm.DB {
+		if pre != "" {
+			db = db.Where(fmt.Sprintf("%s.deleted_at IS NULL", pre))
+		} else {
+			db = db.Where("deleted_at IS NULL")
+		}
+
+		return db
+	}
+}
+
 type TimeNormal struct {
 	time.Time
 }
@@ -38,6 +55,14 @@ type TimeNormal struct {
 func (t TimeNormal) MarshalJSON() ([]byte, error) {
 	tune := t.Format(`"2006-01-02 15:04:05"`)
 	return []byte(tune), nil
+}
+
+// IsZero 判断当前时间是否为空
+func (t *TimeNormal) IsZero() (res bool) {
+	if t.Time.IsZero() {
+		res = true
+	}
+	return
 }
 func (t *TimeNormal) UnmarshalJSON(b []byte) (err error) {
 	b = bytes.Trim(b, "\"") // 此除需要去掉传入的数据的两端的 ""
