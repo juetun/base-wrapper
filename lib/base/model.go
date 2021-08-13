@@ -31,23 +31,6 @@ type CreateTable interface {
 	GetTableComment() (res string)
 }
 
-// ScopesDeletedAt 查询条件添加删除条件为空
-func ScopesDeletedAt(prefix ...string) func(db *gorm.DB) *gorm.DB {
-	pre := ""
-	if len(prefix) > 0 {
-		pre = prefix[0]
-	}
-	return func(db *gorm.DB) *gorm.DB {
-		if pre != "" {
-			db = db.Where(fmt.Sprintf("%s.deleted_at IS NULL", pre))
-		} else {
-			db = db.Where("deleted_at IS NULL")
-		}
-
-		return db
-	}
-}
-
 type TimeNormal struct {
 	time.Time
 }

@@ -17,6 +17,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
+	"github.com/juetun/base-wrapper/lib/common/response"
 	"gorm.io/gorm"
 )
 
@@ -78,6 +79,37 @@ func (r *ServiceDao) formatValue(db *gorm.DB, valueStruct reflect.Value) (res in
 		}
 	}
 	return
+}
+
+// ScopesPager 分页操作条件
+func (r *ServiceDao) ScopesPager(pager *response.Pager) func(db *gorm.DB) *gorm.DB {
+	return ScopesPager(pager)
+}
+func ScopesPager(pager *response.Pager) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Offset(pager.PagerParameter.GetOffset()).Limit(pager.PageSize)
+	}
+}
+
+// ScopesDeletedAt 查询条件添加删除条件为空
+func (r *ServiceDao) ScopesDeletedAt(prefix ...string) func(db *gorm.DB) *gorm.DB {
+	return ScopesDeletedAt(prefix...)
+}
+func ScopesDeletedAt(prefix ...string) func(db *gorm.DB) *gorm.DB {
+	pre := ""
+	if len(prefix) > 0 {
+		pre = prefix[0]
+	}
+	return func(db *gorm.DB) *gorm.DB {
+		if pre != "" {
+			db = db.Where(fmt.Sprintf("%s.deleted_at IS NULL", pre))
+		} else {
+			db = db.Where("deleted_at IS NULL")
+		}
+
+		return db
+	}
+
 }
 
 type ModelBase interface {

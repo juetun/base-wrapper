@@ -34,7 +34,13 @@ type PageQuery struct {
 	IsDel  int    `form:"is_del" json:"is_del,omitempty"`
 	PagerParameter
 }
-
+func (r *PagerParameter) GetOffset() (offset int) {
+	if r.PageNo < 1 {
+		r.PageNo = DefaultPageNo
+	}
+	offset = (r.PageNo - 1) * r.PageSize
+	return
+}
 func (r *PageQuery) GetOffset() (offset int) {
 	if r.PageNo < 1 {
 		r.PageNo = DefaultPageNo
