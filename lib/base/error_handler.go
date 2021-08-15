@@ -1,9 +1,13 @@
 package base
 
 const (
-	ErrorSqlCode       = iota + 11000 // 数据库错误信息
-	ErrorRedisCode                    // Redis错误信息
-	ErrorParameterCode                // 参数错误
+	ErrorParameterCode = 1 // 参数错误
+)
+const (
+	ErrorSqlCode           = iota + 11000 // 数据库错误信息
+	ErrorRedisCode                        // Redis错误信息
+	ErrorElasticSearchCode                // ElasticSearch错误信息
+	ErrorOssCode                          // Oss错误信息
 )
 
 type ErrorRuntime struct {
