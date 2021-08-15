@@ -42,11 +42,19 @@ type Result struct {
 	Msg  string      `json:"message"`
 }
 
+func (r *Result) SetCode(code int) (res *Result) {
+	r.Code = code
+	return r
+}
 func (r *Result) SetErrorMsg(err error) (res *Result) {
-	r.Code = -1
+
 	switch err.(type) {
 	case *ErrorRuntimeStruct:
 		r.Code = err.(*ErrorRuntimeStruct).Code
+	default:
+		if r.Code == 0 {
+			r.Code = -1
+		}
 	}
 	r.Msg = err.Error()
 	return r
@@ -63,17 +71,17 @@ func (r *ControllerBase) Response(c *gin.Context, code int, data interface{}, ms
 	c.JSON(http.StatusOK, Result{Code: code, Data: data, Msg: strings.Join(msg, ",")})
 }
 
-// 处理正常结果集
+// ResponseResult 处理正常结果集
 func (r *ControllerBase) ResponseResult(c *gin.Context, result *Result) {
 	c.JSON(http.StatusOK, result)
 	return
 }
 
-// 处理错误信息句柄
-func (r *ControllerBase) ResponseError(c *gin.Context, err error) {
+// ResponseError 处理错误信息句柄
+func (r *ControllerBase) ResponseError(c *gin.Context, err error, code int) {
 	result := NewResult().
-		SetErrorMsg(err)
-	c.JSON(http.StatusOK, result)
+		SetErrorMsg(err).
+		c.JSON(http.StatusOK, result)
 	return
 }
 
