@@ -10,10 +10,12 @@ const (
 	ErrorOssCode                          // Oss错误信息
 )
 
-type ErrorRuntime struct {
+
+type ErrorRuntimeStruct struct {
 	Code int   `json:"code"`
 	err  error `json:"err"`
 }
+
 
 // NewErrorRuntime SQL错误信息
 func NewErrorRuntime(err error, code ...int) (res error) {
@@ -21,14 +23,14 @@ func NewErrorRuntime(err error, code ...int) (res error) {
 	if len(code) > 0 {
 		cd = code[0]
 	}
-	res = &ErrorRuntime{
+	res = &ErrorRuntimeStruct{
 		Code: cd,
 		err:  err,
 	}
 	return
 }
 
-func (r *ErrorRuntime) Error() (res string) {
+func (r *ErrorRuntimeStruct) Error() (res string) {
 	res = r.err.Error()
 	return
 }

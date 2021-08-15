@@ -44,6 +44,10 @@ type Result struct {
 
 func (r *Result) SetErrorMsg(err error) (res *Result) {
 	r.Code = -1
+	switch err.(type) {
+	case *ErrorRuntimeStruct:
+		r.Code = err.(*ErrorRuntimeStruct).Code
+	}
 	r.Msg = err.Error()
 	return r
 }
