@@ -78,10 +78,14 @@ func (r *ControllerBase) ResponseResult(c *gin.Context, result *Result) {
 }
 
 // ResponseError 处理错误信息句柄
-func (r *ControllerBase) ResponseError(c *gin.Context, err error, code int) {
+func (r *ControllerBase) ResponseError(c *gin.Context, err error, code ...int) {
 	result := NewResult().
-		SetErrorMsg(err).
-		c.JSON(http.StatusOK, result)
+		SetErrorMsg(err)
+	if len(code) > 0 {
+		result.SetCode(code[0])
+	}
+
+	c.JSON(http.StatusOK, result)
 	return
 }
 
