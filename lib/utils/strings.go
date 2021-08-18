@@ -1,3 +1,4 @@
+// Package utils
 /**
 * Author:changjiang
 * Description:
@@ -14,11 +15,12 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
+	"regexp"
 	"strings"
 	"unicode"
 )
 
-//生成32位MD5摘要
+// Md5 生成32位MD5摘要
 // 字符串加密 md5算法
 func Md5(str string) string {
 	c := md5.New()
@@ -37,7 +39,7 @@ func round(a int, b int) int {
 	}
 }
 
-//判断一个字符串是否为数字
+// IsDigit 判断一个字符串是否为数字
 // +0.00001是数字
 // -0.1111是数字
 // -0.11.11不是数字
@@ -49,12 +51,12 @@ func IsDigit(str string) (res bool) {
 	doUnicodeDesc := '-'
 	runeString := []rune(str)
 	for k, x := range runeString {
-		if k == 0 && (x == doUnicodeAdd || x == doUnicodeDesc) { //首字母为"+"或"-"
+		if k == 0 && (x == doUnicodeAdd || x == doUnicodeDesc) { // 首字母为"+"或"-"
 			continue
 		}
 		if !unicode.IsDigit(x) {
-			if x == doUnicode { //如果是小数点
-				//如果小数点在第一位或者最后一位，则不是数字
+			if x == doUnicode { // 如果是小数点
+				// 如果小数点在第一位或者最后一位，则不是数字
 				if k == 0 || k == len(runeString)-1 {
 					return
 				}
@@ -115,7 +117,7 @@ func MyPaginate(count int64, limit int, page int) Paginate {
 	}
 }
 
-// 汉字截取
+// SubString 汉字截取
 func SubString(strValue string, num int, suffix ...string) (res string) {
 	var b []int32
 	var i = 0
@@ -130,7 +132,7 @@ func SubString(strValue string, num int, suffix ...string) (res string) {
 	return
 }
 
-// 将字符串转换为数字
+// GetStringUniqueNumber 将字符串转换为数字
 // param strValue
 // return int64
 func GetStringUniqueNumber(strValue string) (num int64) {
@@ -143,7 +145,7 @@ func GetStringUniqueNumber(strValue string) (num int64) {
 
 // 短信验证码字符串生成
 
-// 短信验证码字符串生成
+// RandomString 短信验证码字符串生成
 func RandomString(length ...int) (authCode string, err error) {
 	len := len(length)
 	if len > 1 {
@@ -159,5 +161,19 @@ func RandomString(length ...int) (authCode string, err error) {
 		buff.WriteString(result.String())
 	}
 	authCode = buff.String()
+	return
+}
+
+// IsIdCard 判断身份证号是否合法
+func IsIdCard(idCard string) (ok bool, err error) {
+	if ok, err = regexp.Match("/^([1-6][1-9]|50)\\d{4}\\d{2}((0[1-9])|10|11|12)(([0-2][1-9])|10|20|30|31)\\d{3}$/", []byte(idCard)); err != nil {
+		return
+	}
+	if ok {
+		return
+	}
+	if ok, err = regexp.Match("/^([1-6][1-9]|50)\\d{4}(18|19|20)\\d{2}((0[1-9])|10|11|12)(([0-2][1-9])|10|20|30|31)\\d{3}[0-9Xx]$/", []byte(idCard)); err != nil {
+		return
+	}
 	return
 }
