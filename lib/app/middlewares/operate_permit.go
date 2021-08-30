@@ -1,3 +1,4 @@
+// Package middlewares
 // @Copyright (c) 2020.
 // @Author ${USER}
 // @Date ${DATE}
@@ -12,6 +13,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/common"
 )
 
+// GetRUri 获取重写URL参数
 func GetRUri(c *gin.Context) string {
 	uri := strings.TrimLeft(c.Request.RequestURI, common.GetAppConfig().AppName+"/"+common.GetAppConfig().AppApiVersion)
 	if uri == "" { // 如果是默认页 ，则直接让过
@@ -23,11 +25,10 @@ func GetRUri(c *gin.Context) string {
 	return s2
 }
 
-// 用户登录逻辑处理
+// Auth 用户登录逻辑处理
 func Auth(c *gin.Context) (exit bool) {
 
 	token := c.Request.Header.Get(app_obj.HttpUserToken)
-
 
 	if token == "" {
 		msg := "token is null"

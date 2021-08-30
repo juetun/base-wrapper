@@ -6,11 +6,13 @@ import (
 )
 
 var MiddleWareComponent = []gin.HandlerFunc{
-	CrossOriginResourceSharing(), // 配置跨域逻辑
+	ErrorHandler(),                  // 捕捉程序异常操作
+	CrossOriginResourceSharing(),    // 配置跨域逻辑
+	GinLogCollect(), // 日志操作逻辑
 }
 var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
 
-// 加载权限验证Gin中间件
+// LoadMiddleWare 加载权限验证Gin中间件
 func LoadMiddleWare(privateMiddleWares ...gin.HandlerFunc) {
 
 	io.SystemOutPrintln("Load GIN middleWare start")

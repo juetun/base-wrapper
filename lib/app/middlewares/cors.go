@@ -13,7 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// 跨域配置设置
+// CrossOriginResourceSharing 跨域配置设置
 func CrossOriginResourceSharing() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		{ // 跨域逻辑添加
@@ -34,5 +34,3 @@ func CrossOriginResourceSharing() gin.HandlerFunc {
 		c.Next()
 	}
 }
-
-

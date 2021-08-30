@@ -1,5 +1,6 @@
+// Package middlewares
 /**
-* @Author:changjiang
+* @Author:ChangJiang
 * @Description:
 * @File:sign
 * @Version: 1.0.0
@@ -15,7 +16,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/common/signencrypt"
 )
 
-// 接口签名验证
+// SignHttp 接口签名验证
 func SignHttp() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var res bool

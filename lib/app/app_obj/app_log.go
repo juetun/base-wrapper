@@ -33,11 +33,16 @@ func newAppLog() (res *AppLog) {
 }
 
 // GetLog 获取日志操作对象
-func GetLog() *AppLog {
+func GetLog() (res *AppLog) {
+	var err error
 	if logApp == nil {
+		err = fmt.Errorf("【%s】Log object is nil", "ERROR")
 		systemLog.Printf("【%s】Log object is nil", "ERROR")
+		panic(err)
+		return
 	}
-	return logApp
+	res = logApp
+	return
 }
 func (r *AppLog) GetFields(data map[string]interface{}, defaultLoc ...int) (res logrus.Fields) {
 	var file = "-" // 获取当前日志写入时的代码位置 （文件名称，函数名称）

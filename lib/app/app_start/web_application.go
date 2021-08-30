@@ -56,19 +56,8 @@ func NewWebApplication(privateMiddleWares ...gin.HandlerFunc) *WebApplication {
 		syslog:    base.NewSystemOut(),
 	}
 
-	// 日志对象获取,最先执行的中间件
-	var preMiddleWare = []gin.HandlerFunc{
-		func(c *gin.Context) { // 链路追踪埋点
-
-			c.Set(app_obj.TraceId, c.GetHeader(app_obj.HttpTraceId))
-			c.Next()
-		},
-		middlewares.GinLogCollect(app_obj.GetLog()),
-	}
-	privateMiddleWares = append(preMiddleWare, privateMiddleWares...)
-
 	// 加载GIN框架 中间件
-	middlewares.LoadMiddleWare(privateMiddleWares...)
+	middlewares.LoadMiddleWare()
 
 	// gin加载中间件
 	webApp.GinEngine.Use(middlewares.MiddleWareComponent...)
@@ -144,9 +133,8 @@ func (r *WebApplication) LoadRouter(routerHandler ...RouterHandler) (res *WebApp
 		r.syslog.SetInfoType(base.LogLevelInfo).
 			SystemOutPrintln("注册外网访问接口路由....")
 		for _, router := range HandleFuncAdminNet {
-			ginEngine := r.GinEngine
-			ginEngine.Use(middlewares.AdminMiddlewares())
-			router(ginEngine, fmt.Sprintf("%s/%s", UrlPrefix, app_obj.App.AppRouterPrefix.AdminNet))
+			r.GinEngine.Use(middlewares.AdminMiddlewares())
+			router(r.GinEngine, fmt.Sprintf("%s/%s", UrlPrefix, app_obj.App.AppRouterPrefix.AdminNet))
 		}
 	}
 	if len(HandleFuncPage) > 0 {
@@ -158,7 +146,7 @@ func (r *WebApplication) LoadRouter(routerHandler ...RouterHandler) (res *WebApp
 			pr = "/" + pr
 		}
 		for _, router := range HandleFuncPage {
-			router(r.GinEngine, fmt.Sprintf("%s%s", UrlPrefix, pr))
+ 			router(r.GinEngine, fmt.Sprintf("%s%s", UrlPrefix, pr))
 		}
 	}
 	return

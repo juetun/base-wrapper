@@ -1,16 +1,18 @@
 package middlewares
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/satori/go.uuid"
 	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/satori/go.uuid"
 )
 
 type RequestIDOptions struct {
 	AllowSetting bool
 }
 
+// RequestID 获取请求ID 中间件
 func RequestID(options RequestIDOptions) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var requestID string
@@ -24,15 +26,15 @@ func RequestID(options RequestIDOptions) gin.HandlerFunc {
 
 		if requestID == "" {
 			s := uuid.NewV4()
-			//if err != nil {
+			// if err != nil {
 			//	zgh.ZLog().Error("message","uuid create  error","error",err.Error())
-			//}
+			// }
 			requestID = s.String()
 		}
 
 		c.Writer.Header().Set("X-Begin-Time", beginTime)
 		c.Writer.Header().Set("X-Request-Id", requestID)
-		//zgh.ZLog().Info("Message", "API Request", "header", c.Request.Header)
+		// zgh.ZLog().Info("Message", "API Request", "header", c.Request.Header)
 		c.Next()
 	}
 }

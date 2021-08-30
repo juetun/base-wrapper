@@ -40,7 +40,7 @@ func AuthParse(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 	}
 }
 
-//Authentication 判断用户是否登录如果未登录则退出
+// Authentication 判断用户是否登录如果未登录则退出
 func Authentication(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var jwtUser app_obj.JwtUserMessage
