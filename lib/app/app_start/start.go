@@ -12,13 +12,13 @@ import (
 
 type PluginHandleFunction func(arg *PluginsOperate) (err error)
 
-// 加载插件结构体
+// PluginHandleStruct 加载插件结构体
 type PluginHandleStruct struct {
 	FuncHandler PluginHandleFunction
 	Name        string
 }
 
-// 插件结构体装载对象 ,采用指针共享数据
+// PluginsHandleStruct 插件结构体装载对象 ,采用指针共享数据
 var PluginsHandleStruct = &[]PluginHandleStruct{}
 
 type AuthorizationStruct interface {
@@ -44,7 +44,7 @@ func Authorization(authorization AuthorizationStruct) (handler PluginsOperateOpt
 
 type PluginsOperateOptionHandler func(arg *PluginsOperate)
 
-// 执行加载插件过程
+// LoadPlugins 执行加载插件过程
 func (r *PluginsOperate) LoadPlugins() (res *PluginsOperate) {
 	res = r
 	if len(*PluginsHandleStruct) == 0 {
@@ -74,7 +74,7 @@ func (r *PluginsOperate) Use(pluginFunc ...PluginHandleFunction) (res *PluginsOp
 	return
 }
 
-// 注册系统插件
+// Use 注册系统插件
 func Use(pluginFunc ...PluginHandleFunction) {
 	for _, value := range pluginFunc {
 		*PluginsHandleStruct = append(*PluginsHandleStruct, PluginHandleStruct{
