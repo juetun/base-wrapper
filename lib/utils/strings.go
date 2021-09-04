@@ -13,7 +13,6 @@ import (
 	"crypto/md5"
 	"crypto/rand" // 真随机
 	"encoding/hex"
-	"fmt"
 	"math/big"
 	"regexp"
 	"strings"
@@ -147,16 +146,14 @@ func GetStringUniqueNumber(strValue string) (num int64) {
 
 // RandomString 短信验证码字符串生成
 func RandomString(length ...int) (authCode string, err error) {
-	len := len(length)
-	if len > 1 {
-		err = fmt.Errorf("length 最多1个数字")
+	var lengthNumber = 6
+	if len(length) > 0 {
+		lengthNumber = length[0]
 		return
-	} else if len == 0 {
-		len = 6
 	}
 	var buff bytes.Buffer
 
-	for i := 0; i < length[0]; i++ {
+	for i := 0; i < lengthNumber; i++ {
 		result, _ := rand.Int(rand.Reader, big.NewInt(10))
 		buff.WriteString(result.String())
 	}
