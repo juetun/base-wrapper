@@ -1,15 +1,10 @@
-//Package utils
-/**
- * Created by GoLand.
- * User: xzghua@gmail.com
- * Date: 2018-12-13
- * Time: 21:29
- */
+// Package utils
+
 package utils
 
 import (
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
- 	hashids "github.com/speps/go-hashids/v2"
+	hashids "github.com/speps/go-hashids/v2"
 )
 
 type HashIdParams struct {
