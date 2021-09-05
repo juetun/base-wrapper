@@ -32,7 +32,6 @@ func (r *ServiceDao) SetContext(context ...*Context) (s *ServiceDao) {
 	switch len(context) {
 	case 0:
 		r.Context = NewContext()
-
 		break
 	case 1:
 		r.Context = context[0]

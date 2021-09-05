@@ -32,25 +32,11 @@ type DbContextValue struct {
 }
 
 func (r *GetDbClientData) DefaultGetDbClientDataCallBack(db *gorm.DB) (dba *gorm.DB, err error) {
-	var s string
-	if nil != r.Context.GinContext {
-		if tp, ok := r.Context.GinContext.Get(app_obj.TraceId); ok {
-			s = fmt.Sprintf("%v", tp)
-		}
-	}
-
-	var ctx context.Context
-	if r.Context.GinContext != nil {
-		ctx = r.Context.GinContext.Request.Context()
-	} else {
-		ctx = context.TODO()
-	}
-
+	s, ctx := r.Context.GetTraceId()
 	dba = db.WithContext(context.WithValue(ctx, app_obj.DbContextValueKey, DbContextValue{
 		TraceId: s,
 		DbName:  r.DbNameSpace,
 	}))
-
 	return
 
 }

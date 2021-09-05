@@ -64,6 +64,19 @@ func Log(opt *app_obj.AppLog) ContextOption {
 		context.log = opt
 	}
 }
+
+// GetTraceId 根据请求获取trace_id
+func (r *Context) GetTraceId() (res string, ctx context.Context) {
+	res = ""
+	ctx = context.TODO()
+	if nil != r.GinContext {
+		if tp, ok := r.GinContext.Get(app_obj.TraceId); ok {
+			res = fmt.Sprintf("%v", tp)
+		}
+		ctx = r.GinContext.Request.Context()
+	}
+	return
+}
 func Db(opt *gorm.DB) ContextOption {
 	return func(context *Context) {
 		context.Db = opt
