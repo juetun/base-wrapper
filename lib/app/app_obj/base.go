@@ -18,6 +18,7 @@ const (
 	AppFieldKey          = "type"          // 日志类型字段KEY的值
 	AppLogLoc            = "src"           // 代码所在位置
 	HttpTraceId          = "X-Trace-Id"    // 页面请求时的 传参或者nginx生成的trace_id的key
+	HttpUserHid          = "X-User-Hid"    // 页面请求时的 用户ID
 	HttpUserToken        = "X-Auth-Token"  // 页面请求时用户token
 	HttpHeaderApp        = "X-App"         // 接口请求头信息
 	HttpHeaderVersion    = "X-App-version" // 接口请求版本信息
