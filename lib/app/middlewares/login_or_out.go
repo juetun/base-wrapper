@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -66,15 +67,6 @@ func Authentication(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 			}
 		}
 		c.Next()
-
-		// s := middlewares.GetRUri(c)
-		// var needValidateUrl = false
-		// if needValidateUrl {
-		//	//res = RequestPathPermit(c, s)
-		//	if !res {
-		//		return
-		//	}
-		// }
 		return
 	}
 }
@@ -84,7 +76,8 @@ func Authentication(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 // return bool 					true:用户信息获取失败，false:正常操作
 func tokenValidate(c *gin.Context, notStrictValue bool) (jwtUser app_obj.JwtUserMessage, exit bool) {
 	jwtUser = app_obj.JwtUserMessage{}
-	var token string
+	var token, userHid string
+	var err error
 	c.Set(app_obj.TraceId, c.GetHeader(app_obj.HttpTraceId))
 	if token = c.Request.Header.Get(app_obj.HttpUserToken); token == "" { // 如果token为空
 
@@ -102,7 +95,9 @@ func tokenValidate(c *gin.Context, notStrictValue bool) (jwtUser app_obj.JwtUser
 		return
 	}
 
-	if jwtUser, err := common.ParseToken(token, c); err != nil { // 如果解析token失败
+	userHid = c.Request.Header.Get(app_obj.HttpUserHid)
+
+	if jwtUser, err = common.ParseToken(token, c); err != nil { // 如果解析token失败
 
 		app_obj.GetLog().Error(c, map[string]interface{}{
 			"token": token,
@@ -110,13 +105,17 @@ func tokenValidate(c *gin.Context, notStrictValue bool) (jwtUser app_obj.JwtUser
 		})
 		c.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusForbidden).SetMessage(err.Error()))
 		exit = true
-
-	} else { // 解析token成功 将用户信息放进gin 上下文对象context中
-
-		c.Set(app_obj.ContextUserObjectKey, jwtUser)
-		c.Set(app_obj.ContextUserTokenKey, token)
-
+		return
 	}
+	if jwtUser.UserId != userHid {
+		err = fmt.Errorf("用户信息(token uid)不匹配")
+		c.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusForbidden).SetMessage(err.Error()))
+		exit = true
+		return
+	}
+	// 解析token成功 将用户信息放进gin 上下文对象context中
+	c.Set(app_obj.ContextUserObjectKey, jwtUser)
+	c.Set(app_obj.ContextUserTokenKey, token)
 
 	return
 }
