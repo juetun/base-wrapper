@@ -73,7 +73,6 @@ func (r *Context) GetTraceId() (res string, ctx context.Context) {
 		if tp, ok := r.GinContext.Get(app_obj.TraceId); ok {
 			res = fmt.Sprintf("%v", tp)
 		}
-		ctx = r.GinContext.Request.Context()
 	}
 	return
 }
