@@ -66,9 +66,13 @@ func Log(opt *app_obj.AppLog) ContextOption {
 }
 
 // GetTraceId 根据请求获取trace_id
-func (r *Context) GetTraceId() (res string, ctx context.Context) {
+func (r *Context) GetTraceId(ctxObj ...context.Context) (res string, ctx context.Context) {
 	res = ""
-	ctx = context.TODO()
+	if len(ctxObj) > 0 {
+		ctx = ctxObj[0]
+	} else {
+		ctx = context.TODO()
+	}
 	if nil != r.GinContext {
 		if tp, ok := r.GinContext.Get(app_obj.TraceId); ok {
 			res = fmt.Sprintf("%v", tp)
@@ -97,14 +101,7 @@ func (r *Context) InitContext() (c *Context) {
 	if r.log == nil {
 		r.log = app_obj.GetLog()
 	}
-	s := ""
-	var ctx = context.TODO()
-	if nil != r.GinContext {
-		if tp, ok := r.GinContext.Get(app_obj.TraceId); ok {
-			s = fmt.Sprintf("%v", tp)
-		}
-		ctx = r.GinContext.Request.Context()
-	}
+	s, ctx := r.GetTraceId()
 	if r.Db == nil {
 		r.initDb(s, ctx)
 	}
