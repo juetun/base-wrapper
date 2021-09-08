@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 
 	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/wumansgy/goEncrypt"
 )
 
 // Aes 加密解密
@@ -14,22 +15,32 @@ type Aes struct {
 	Context *base.Context
 }
 
-// NewAes
+// NewAes 加密操作函数
 func NewAes() (res *Aes) {
 	res = &Aes{}
 	return
 }
-func (r *Aes) Encryption(text string, aesKey string) (res string, err error) {
-	var encrypted []byte
-	encrypted, err = r.aesEncrypt([]byte(text), []byte(aesKey))
-	res = base64.StdEncoding.EncodeToString(encrypted)
+
+// EncryptionCtr 加密操作
+func (r *Aes) EncryptionCtr(text string, aesKey string) (res string, err error) {
+	var cryptText []byte
+	if cryptText, err = goEncrypt.AesCtrEncrypt([]byte(text), []byte(aesKey), nil); err != nil {
+		return
+	}
+	res = base64.StdEncoding.EncodeToString(cryptText)
 	return
 }
 
-func (r *Aes) Decrypt(encrypted, aesKey string) (res string, err error) {
-	var origin []byte
-	origin, err = r.aesDecrypt([]byte(encrypted), []byte(aesKey))
-	res = string(origin)
+func (r *Aes) DecryptCtr(text, aesKey string) (res string, err error) {
+	var encrypted, resBt []byte
+	if encrypted, err = base64.StdEncoding.DecodeString(text); err != nil {
+		return
+	}
+	// 传入密文和自己定义的密钥，需要和加密的密钥一样，不一样会报错 可以自己传入初始化向量,如果不传就使用默认的初始化向量,16字节
+	if resBt, err = goEncrypt.AesCtrDecrypt(encrypted, []byte(aesKey), nil); err != nil {
+		return
+	}
+	res = string(resBt)
 	return
 }
 
