@@ -9,6 +9,8 @@ package common
 import (
 	"strconv"
 	"time"
+
+	"github.com/juetun/base-wrapper/lib/utils"
 )
 
 func Offset(page string, limit string) (limitInt int, offset int) {
@@ -51,7 +53,7 @@ func Rem(divisor int) bool {
 }
 
 func MDate(times time.Time) string {
-	return times.Format("2006-01-02 15:04:05")
+	return times.Format(utils.DateTimeGeneral)
 }
 
 func MDate2(times time.Time) string {

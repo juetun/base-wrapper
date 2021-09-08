@@ -1,16 +1,19 @@
-// @Copyright (c) 2021. 
+// Package utils
+// @Copyright (c) 2021.
 // @Author ${USER}
 // @Date ${DATE}
 package utils
 
-import "time"
+import (
+	"time"
+)
 
-//转换日期格式
+// ParseDate 转换日期格式
 func ParseDate(t time.Time) (res string) {
 	return t.Format("2006-01-02")
 }
 
-//转换时间格式
+// ParseDateTime 转换时间格式
 func ParseDateTime(t time.Time) (res string) {
-	return t.Format("2006-01-02 15:04:05")
+	return t.Format(DateTimeGeneral)
 }

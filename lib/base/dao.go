@@ -18,6 +18,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/common/response"
+	"github.com/juetun/base-wrapper/lib/utils"
 	"gorm.io/gorm"
 )
 
@@ -66,9 +67,9 @@ func (r *ServiceDao) formatValue(db *gorm.DB, valueStruct reflect.Value) (res in
 		switch valueStruct.Type().String() {
 		case "base.TimeNormal":
 			dt := valueStruct.Interface().(TimeNormal)
-			res = dt.Format("2006-01-02 15:04:05")
+			res = dt.Format(utils.DateTimeGeneral)
 		case "time.Time":
-			res = valueStruct.Interface().(time.Time).Format("2006-01-02 15:04:05")
+			res = valueStruct.Interface().(time.Time).Format(utils.DateTimeGeneral)
 		case "time.Duration":
 			res = valueStruct.Interface().(time.Duration).String()
 		case "int":

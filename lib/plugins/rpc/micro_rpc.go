@@ -1,6 +1,6 @@
 // Package rpc
 /**
-* @Author:changjiang
+* @Author:ChangJiang
 * @Description:
 * @File:micro_rpc
 * @Version: 1.0.0
@@ -22,14 +22,15 @@ import (
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/utils"
 )
 
 type CollectParam struct {
 	PathUrl string `json:"path_url"`
 }
 type RequestOptions struct {
-	Method         string        `json:"method"`
-	AppName        string        `json:"app_name"`
+	Method         string        `json:"method"`   // http请求方法
+	AppName        string        `json:"app_name"` // 应用名
 	URI            string        `json:"uri"`
 	Header         http.Header   `json:"header"`
 	Value          url.Values    `json:"value"`
@@ -39,8 +40,7 @@ type RequestOptions struct {
 	Context        *base.Context `json:"-"`                // 上下文传参 操作日志对象
 	ConnectTimeOut time.Duration `json:"connect_time_out"` // 请求连接超时时长 默认300毫秒(建立HTTP请求的时长)
 	RequestTimeOut time.Duration `json:"request_time_out"` // 获取请求时长 默认5秒(获取数据的时长)
-
-	CollectParams CollectParam `json:"collect_params"`
+	CollectParams  CollectParam  `json:"collect_params"`
 }
 
 // 请求操作结构体
@@ -108,7 +108,7 @@ func (r *RequestOptions) validateParams() (err error) {
 	return
 }
 
-// 发送请求
+// Send 发送请求
 func (r *httpRpc) Send() (res *httpRpc) {
 	res = r
 	if r.Error != nil {
@@ -145,7 +145,7 @@ func (r *httpRpc) initClient() (res *httpRpc) {
 						"err":      err.Error(),
 						"network":  network,
 						"addr":     addr,
-						"deadline": deadline.Format("2006-01-02 15:04:05"),
+						"deadline": deadline.Format(utils.DateTimeGeneral),
 					}, "rpcHttpRpcInitClient")
 					return
 				}
@@ -154,7 +154,7 @@ func (r *httpRpc) initClient() (res *httpRpc) {
 						"err":      err.Error(),
 						"network":  network,
 						"addr":     addr,
-						"deadline": deadline.Format("2006-01-02 15:04:05"),
+						"deadline": deadline.Format(utils.DateTimeGeneral),
 					}, "rpcHttpRpcInitClient")
 					return
 				}
@@ -188,27 +188,27 @@ func (r *httpRpc) getUrl(paramString ...string) (res string) {
 
 func (r *httpRpc) get() {
 	var request *http.Request
-	url := r.getUrl(r.Request.Value.Encode())
+	urlPath := r.getUrl(r.Request.Value.Encode())
 
-	request, r.Error = http.NewRequest(http.MethodGet, url, nil)
+	request, r.Error = http.NewRequest(http.MethodGet, urlPath, nil)
 	request.Header = r.Request.Header
 	r.resp, r.Error = r.client.Do(request)
 }
 func (r *httpRpc) delete() {
 	var request *http.Request
-	url := r.getUrl(r.Request.Value.Encode())
-	request, r.Error = http.NewRequest(http.MethodDelete, url, nil)
+	urlPath := r.getUrl(r.Request.Value.Encode())
+	request, r.Error = http.NewRequest(http.MethodDelete, urlPath, nil)
 	request.Header = r.Request.Header
 	r.resp, r.Error = r.client.Do(request)
 }
 func (r *httpRpc) put() {
 	var request *http.Request
-	url := r.getUrl()
+	urlPath := r.getUrl()
 	if len(r.Request.BodyJson) > 0 {
 		r.Request.Header.Add("Content-Type", "application/json")
-		request, r.Error = http.NewRequest(http.MethodPut, url, bytes.NewReader(r.Request.BodyJson))
+		request, r.Error = http.NewRequest(http.MethodPut, urlPath, bytes.NewReader(r.Request.BodyJson))
 	} else {
-		request, r.Error = http.NewRequest(http.MethodPut, url, nil)
+		request, r.Error = http.NewRequest(http.MethodPut, urlPath, nil)
 	}
 	request.Header = r.Request.Header
 	if len(r.Request.Value) > 0 {
@@ -218,12 +218,12 @@ func (r *httpRpc) put() {
 }
 func (r *httpRpc) patch() {
 	var request *http.Request
-	url := r.getUrl()
+	urlPath := r.getUrl()
 	if len(r.Request.BodyJson) > 0 {
 		r.Request.Header.Add("Content-Type", "application/json")
-		request, r.Error = http.NewRequest(http.MethodPatch, url, bytes.NewReader(r.Request.BodyJson))
+		request, r.Error = http.NewRequest(http.MethodPatch, urlPath, bytes.NewReader(r.Request.BodyJson))
 	} else {
-		request, r.Error = http.NewRequest(http.MethodPatch, url, nil)
+		request, r.Error = http.NewRequest(http.MethodPatch, urlPath, nil)
 	}
 	request.Header = r.Request.Header
 	if len(r.Request.Value) > 0 {
@@ -233,19 +233,19 @@ func (r *httpRpc) patch() {
 }
 func (r *httpRpc) post() {
 	var request *http.Request
-	url := r.getUrl()
+	urlPath := r.getUrl()
 	if len(r.Request.BodyJson) > 0 {
 		r.Request.Header.Add("Content-Type", "application/json")
-		request, r.Error = http.NewRequest(http.MethodPost, url, bytes.NewReader(r.Request.BodyJson))
+		request, r.Error = http.NewRequest(http.MethodPost, urlPath, bytes.NewReader(r.Request.BodyJson))
 	} else {
 		r.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		request, r.Error = http.NewRequest(http.MethodPost, url, strings.NewReader(r.Request.Value.Encode()))
+		request, r.Error = http.NewRequest(http.MethodPost, urlPath, strings.NewReader(r.Request.Value.Encode()))
 	}
 	request.Header = r.Request.Header
 	r.resp, r.Error = r.client.Do(request)
 }
 
-// 生成GET URL结构
+// SetURLParams 生成GET URL结构
 func (r *httpRpc) SetURLParams(data map[string]string) (res *httpRpc) {
 	res = r
 	u, _ := url.Parse(r.Request.URI)
@@ -295,8 +295,9 @@ func (r *httpRpc) GetBody() (res *httpRpc) {
 	}
 	// 保证I/O正常关闭
 	defer func() {
+
 		if r.resp != nil && r.resp.Body != nil {
-			r.resp.Body.Close()
+			_ = r.resp.Body.Close()
 		}
 	}()
 	// 判断请求状态

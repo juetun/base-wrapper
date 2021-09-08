@@ -22,7 +22,7 @@ func TestDateStandard(t *testing.T) {
 			args: args{
 				value: ti.Format(time.RFC3339),
 			},
-			wantT: ti.Format("2006-01-02 15:04:05"),
+			wantT: ti.Format(DateTimeGeneral),
 		},
 	}
 	for _, tt := range tests {
@@ -32,7 +32,7 @@ func TestDateStandard(t *testing.T) {
 				t.Errorf("DateStandard() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if gotT.Format("2006-01-02 15:04:05") != tt.wantT {
+			if gotT.Format(DateTimeGeneral) != tt.wantT {
 				t.Errorf("DateParse() gotStamp = %v, want %v", gotT, tt.wantT)
 			}
 		})
@@ -64,7 +64,7 @@ func TestDateParse(t *testing.T) {
 				t.Errorf("DateParse() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if gotStamp.Format("2006-01-02 15:04:05") != tt.wantStamp {
+			if gotStamp.Format(DateTimeGeneral) != tt.wantStamp {
 				t.Errorf("DateParse() gotStamp = %v, want %v", gotStamp, tt.wantStamp)
 			}
 		})
