@@ -2,6 +2,7 @@ package base
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
 )
 
 type RequestUser struct {
@@ -20,7 +21,7 @@ type RequestUser struct {
 
 func (r *RequestUser) InitRequestUser(c *gin.Context) (err error) {
 	if r.UserHid == "" {
-		r.UserHid = c.GetHeader("X-User-Hid")
+		r.UserHid = c.GetHeader(app_obj.HttpUserHid)
 	}
 	return
 }
