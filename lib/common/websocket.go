@@ -1,7 +1,9 @@
+// Package common
+// @Deprecated 即将弃用方法
 // @Copyright (c) 2020.
 // @Author ${USER}
 // @Date ${DATE}
-//websocket gin集成方法
+// websocket gin集成方法
 package common
 
 import (
@@ -23,6 +25,7 @@ func GinWebsocketHandler(wsConnHandle websocket.Handler) gin.HandlerFunc {
 		}
 	}
 }
+
 // websocket连接处理
 func WsConnHandle(conn *websocket.Conn) {
 	for {
@@ -41,4 +44,3 @@ func WsConnHandle(conn *websocket.Conn) {
 		}
 	}
 }
-
