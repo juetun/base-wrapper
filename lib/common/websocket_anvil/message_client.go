@@ -11,22 +11,29 @@ import (
 
 // MessageClient 消息客户端
 type MessageClient struct {
-	WebsocketBaseHandler
-	Context *base.Context
+	WebsocketBaseHandler `json:"-"`
+	Context              *base.Context `json:"-"`
+
 	// 当前socket key
-	Key string
+	Key string `json:"key"`
+
 	// 当前socket连接实例
-	Conn *websocket.Conn
+	Conn *websocket.Conn `json:"conn"`
+
 	// 当前登录用户
-	User UserInterface
+	UserFunc UserHandler `json:"-"`
+
 	// 当前登录用户ip地址
-	Ip string
+	Ip string `json:"ip"`
+
 	// 发送消息通道
-	SendChan *Chan
+	SendChan *Chan `json:"-"`
+
 	// 上次活跃时间
-	LastActiveTime time.Time
+	LastActiveTime time.Time `json:"last_active_time"`
+
 	// 重试次数
-	RetryCount uint
+	RetryCount uint `json:"retry_count"`
 }
 
 // Contains 判断uint数组是否包含item元素
@@ -38,50 +45,71 @@ func (r *MessageClient) Contains(arr []string, item string) bool {
 	}
 	return false
 }
+
 func (r *MessageClient) Register() {
 	HubMessage.lock.Lock()
 	defer HubMessage.lock.Unlock()
-	userHid, _ := r.User.GetUserHid()
+	userHid, _ := r.GetUserHid()
 	t := time.Now()
 	active, ok := HubMessage.UserLastActive[userHid]
 	last := time.Unix(active, 0) // carbon.CreateFromTimestamp(active)
 	HubMessage.Clients[r.Key] = r
+	var userData UserInterface
+	var err error
 	if !ok || last.Add(lastActiveRegisterPeriod).Before(t) {
 		if !r.Contains(HubMessage.UserIds, userHid) {
 			HubMessage.UserIds = append(HubMessage.UserIds, userHid)
 		}
-
-		r.Context.Error(map[string]interface{}{
+		logContent := map[string]interface{}{
 			"desc": fmt.Sprintf("[消息中心][用户上线][%s]%s-%s", r.Key, userHid, r.Ip),
-		}, "MessageClientRegister")
+		}
+
+		defer func() {
+			if err != nil {
+				logContent["err"] = err.Error()
+				r.Context.Error(logContent, "MessageClientRegister")
+			} else {
+				r.Context.Info(logContent, "MessageClientRegister")
+			}
+		}()
 
 		go func() {
 			HubMessage.RefreshUserMessage.SafeSend([]string{userHid})
 		}()
 
-		// 广播当前用户上线
-		msg := MessageWsResponseStruct{
-			Type: MessageRespOnline,
-			Detail: r.GetSuccessWithData(map[string]interface{}{
-				"user": r.User,
-			}),
-		}
+		if userData, err = r.UserFunc(); err == nil {
+			// 广播当前用户上线
+			msg := MessageWsResponseStruct{
+				Type: MessageRespOnline,
+				Detail: r.GetSuccessWithData(map[string]interface{}{
+					"user": userData,
+				}),
+			}
 
-		// 通知除自己之外的人
-		go HubMessage.Broadcast.SafeSend(MessageBroadcast{
-			MessageWsResponseStruct: msg,
-			UserIds:                 r.ContainsThenRemove(HubMessage.UserIds, userHid),
-		})
+			// 通知除自己之外的人
+			go HubMessage.Broadcast.SafeSend(MessageBroadcast{
+				MessageWsResponseStruct: msg,
+				UserIds:                 r.ContainsThenRemove(HubMessage.UserIds, userHid),
+			})
+		}
 
 	}
 	// 记录最后活跃时间戳
 	HubMessage.UserLastActive[userHid] = t.Unix()
 
 }
-func (r *MessageClient) GetUserHid() (res string) {
-	res, _ = r.User.GetUserHid()
+
+func (r *MessageClient) GetUserHid() (res string, err error) {
+	var resData UserInterface
+	if resData, err = r.UserFunc(); err != nil {
+		return
+	}
+	if res, err = resData.GetUserHid(); err != nil {
+		return
+	}
 	return
 }
+
 func (r *MessageClient) Receive() {
 	var err error
 	defer func() {
@@ -92,7 +120,7 @@ func (r *MessageClient) Receive() {
 			}, "MessageClientReceive0")
 		}
 	}()
-	userHid := r.GetUserHid()
+	userHid, _ := r.GetUserHid()
 	for {
 
 		var msg string
@@ -303,14 +331,17 @@ func (r *MessageClient) Send() {
 
 // 回写消息
 func (r *MessageClient) writeMessage(messageType int, data string) (err error) {
+
 	// 字符串压缩
 	// s, _ := utils.CompressStrByZlib(data)
-	s := &data
+
 	r.Context.Error(map[string]interface{}{
-		"desc": fmt.Sprintf("[消息中心][发送端][%s] %v", r.Key, *s),
+		"desc": fmt.Sprintf("[消息中心][发送端][%s] %v", r.Key, data),
 	}, "MessageClientWriteMessage")
+
 	// err= r.Conn.WriteMessage(messageType, []byte(*s))
-	_, err = r.Conn.Write([]byte(*s))
+
+	_, err = r.Conn.Write([]byte(data))
 	return
 }
 
@@ -320,13 +351,18 @@ func (r *MessageClient) close() (err error) {
 	defer HubMessage.lock.Unlock()
 
 	if _, ok := HubMessage.Clients[r.Key]; ok {
+
 		delete(HubMessage.Clients, r.Key)
+
 		// 关闭发送通道
 		r.SendChan.SafeClose()
-		userHid, _ := r.User.GetUserHid()
+
+		userHid, _ := r.UserFunc()
+
 		r.Context.Error(map[string]interface{}{
 			"desc": fmt.Sprintf("[消息中心][用户下线][%s]%s-%s", r.Key, userHid, r.Ip),
 		}, "MessageWriteMessageClose")
+
 	}
 
 	err = r.Conn.Close()

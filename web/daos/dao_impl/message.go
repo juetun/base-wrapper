@@ -18,7 +18,7 @@ func (r *DaoWebSocketImpl) GetUnReadMessageCount(userHIds string) (total int64, 
 	panic("implement me")
 }
 
-func (r *DaoWebSocketImpl) CreateMessage(r *websocket_anvil.PushMessageRequestStruct) (err error) {
+func (r *DaoWebSocketImpl) CreateMessage(arg *websocket_anvil.PushMessageRequestStruct) (err error) {
 	panic("implement me")
 }
 

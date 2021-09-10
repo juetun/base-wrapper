@@ -48,7 +48,7 @@ func (r *ConPageImpl) Websocket(conn *websocket.Conn) {
 
 	// srv := srv_impl.NewSrvWebSocketImpl(CreateContext(&r.ControllerBase))
 	srv := srv_impl.NewSrvWebSocketImpl()
-	srv.Websocket(conn)
+	srv.WebsocketSrv(conn)
 	// websocket_anvil.NewMessageService()
 	// for {
 	// 	var msg string

@@ -52,6 +52,12 @@ type (
 	Req struct {
 		Ids string `json:"ids" form:"ids"` // 传多个id
 	}
+
+	// UserInterface 用户信息
+	UserInterface interface {
+		// GetUserHid 获取用户信息
+		GetUserHid() (userHid string, err error)
+	}
 )
 
 // FieldTrans 翻译需要校验的字段名称

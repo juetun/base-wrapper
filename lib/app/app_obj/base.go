@@ -25,6 +25,9 @@ const (
 	HttpHeaderTerminal   = "X-Terminal"    // 终端类型 android ,ios ,web weixin
 	HttpHeaderAdminToken = "X-Console"     // 客服后台接口多的key值
 
+	WebSocketKey      = "Sec-WebSocket-Key"
+	WebSocketHeaderIp = "X-Forwarded-For" // 取Ip地址方法
+
 	DbNameKey         = "dbName"
 	DbContextValueKey = "DbContextValue" // 数据库操作上下文传参保存的KEY
 )

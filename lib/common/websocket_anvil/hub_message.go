@@ -49,7 +49,7 @@ func (r *MessageHub) Contains(arr []string, item string) bool {
 func (r *MessageHub) broadcast(broadcast *MessageBroadcast) {
 
 	for _, client := range r.GetClients() {
-		userHid, _ := client.User.GetUserHid()
+		userHid, _ := client.GetUserHid()
 		// 通知指定用户
 		if r.Contains(broadcast.UserIds, userHid) {
 			client.SendChan.SafeSend(broadcast)
@@ -57,6 +57,7 @@ func (r *MessageHub) broadcast(broadcast *MessageBroadcast) {
 	}
 	return
 }
+
 func (r *MessageHub) refreshMsg(userIds ...string) (err error) {
 
 	// 同步用户消息
@@ -65,7 +66,7 @@ func (r *MessageHub) refreshMsg(userIds ...string) (err error) {
 	}
 	for _, client := range r.GetClients() {
 		for _, id := range userIds {
-			userHid, _ := client.User.GetUserHid()
+			userHid, _ := client.GetUserHid()
 			if userHid == id {
 				// 获取未读消息条数
 				total, _ := HubMessage.Service.Dao.GetUnReadMessageCount(userHid)
@@ -110,7 +111,7 @@ func (r *MessageHub) Count() {
 		case <-ticker.C:
 			infos := make([]string, 0)
 			for _, client := range r.GetClients() {
-				uid, _ := client.User.GetUserHid()
+				uid, _ := client.GetUserHid()
 				infos = append(infos, fmt.Sprintf("%s-%s", uid, client.Ip))
 			}
 			r.Service.Context.Debug(map[string]interface{}{
