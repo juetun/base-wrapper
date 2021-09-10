@@ -11,7 +11,7 @@ import (
 
 // MessageClient 消息客户端
 type MessageClient struct {
-	BaseHandler
+	WebsocketBaseHandler
 	Context *base.Context
 	// 当前socket key
 	Key string

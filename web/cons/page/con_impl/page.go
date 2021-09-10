@@ -13,11 +13,11 @@ package con_impl
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin/render"
-	"github.com/juetun/base-wrapper/lib/utils"
-	"log"
 	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin/render"
+	"github.com/juetun/base-wrapper/lib/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
@@ -27,6 +27,7 @@ import (
 	"github.com/juetun/base-wrapper/web/cons/page"
 	"github.com/juetun/base-wrapper/web/srvs/srv_impl"
 	"github.com/juetun/base-wrapper/web/wrapper"
+
 	"golang.org/x/net/websocket"
 )
 
@@ -41,30 +42,36 @@ func NewConPage() (res page.ConPage) {
 	return p
 }
 
-// web socket操作
+// Websocket web socket操作
 func (r *ConPageImpl) Websocket(conn *websocket.Conn) {
-	for {
-		var msg string
-		if err := websocket.Message.Receive(conn, &msg); err != nil {
-			log.Println(err)
-			return
-		}
-		log.Printf("recv: %v", msg)
-		go func() {
-			time.Sleep(time.Second * 1)
-			data := []byte(
-				"延迟发送" + time.Now().Format(time.RFC3339))
-			if _, err := conn.Write(data); err != nil {
-				log.Println(err)
-				return
-			}
-		}()
-		data := []byte(time.Now().Format(time.RFC3339))
-		if _, err := conn.Write(data); err != nil {
-			log.Println(err)
-			return
-		}
-	}
+	// conn.Request().Header.Set(app_obj.HttpTraceId,)
+
+	// srv := srv_impl.NewSrvWebSocketImpl(CreateContext(&r.ControllerBase))
+	srv := srv_impl.NewSrvWebSocketImpl()
+	srv.Websocket(conn)
+	// websocket_anvil.NewMessageService()
+	// for {
+	// 	var msg string
+	// 	if err := websocket.Message.Receive(conn, &msg); err != nil {
+	// 		log.Println(err)
+	// 		return
+	// 	}
+	// 	log.Printf("recv: %v", msg)
+	// 	go func() {
+	// 		time.Sleep(time.Second * 1)
+	// 		data := []byte(
+	// 			"延迟发送" + time.Now().Format(time.RFC3339))
+	// 		if _, err := conn.Write(data); err != nil {
+	// 			log.Println(err)
+	// 			return
+	// 		}
+	// 	}()
+	// 	data := []byte(time.Now().Format(time.RFC3339))
+	// 	if _, err := conn.Write(data); err != nil {
+	// 		log.Println(err)
+	// 		return
+	// 	}
+	// }
 
 }
 

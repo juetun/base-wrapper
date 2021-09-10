@@ -1,3 +1,4 @@
+// Package page
 // @Copyright (c) 2020.
 // @Author ${USER}
 // @Date ${DATE}
@@ -23,5 +24,6 @@ func init() {
 			p.DELETE("/page_sign/:id", page.MainSign)
 			p.GET("/page/test", page.Tsst)
 			p.GET("/page/ws", common.GinWebsocketHandler(page.Websocket))
+
 		})
 }

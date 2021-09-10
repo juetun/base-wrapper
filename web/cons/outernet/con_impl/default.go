@@ -1,11 +1,4 @@
-/**
-* @Author:changjiang
-* @Description:
-* @File:default
-* @Version: 1.0.0
-* @Date 2020/8/18 6:04 下午
- */
-
+// Package con_impl
 // @Copyright (c) 2020.
 // @Author ${USER}
 // @Date ${DATE}
@@ -22,7 +15,6 @@ import (
 type ConDefaultImpl struct {
 	base.ControllerBase
 }
-
 
 func NewConDefault() (res outernet.ConDefault) {
 	p := &ConDefaultImpl{}

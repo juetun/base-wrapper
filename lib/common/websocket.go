@@ -8,13 +8,12 @@ package common
 
 import (
 	"log"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/net/websocket"
 )
 
-// websocket.Handler 转 gin HandlerFunc
+// GinWebsocketHandler websocket.Handler 转 gin HandlerFunc
 func GinWebsocketHandler(wsConnHandle websocket.Handler) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		log.Printf("new ws request: %v", c.Request.RemoteAddr)
@@ -26,21 +25,22 @@ func GinWebsocketHandler(wsConnHandle websocket.Handler) gin.HandlerFunc {
 	}
 }
 
-// websocket连接处理
-func WsConnHandle(conn *websocket.Conn) {
-	for {
-		var msg string
-		if err := websocket.Message.Receive(conn, &msg); err != nil {
-			log.Println(err)
-			return
-		}
-
-		log.Printf("recv: %v", msg)
-
-		data := []byte(time.Now().Format(time.RFC3339))
-		if _, err := conn.Write(data); err != nil {
-			log.Println(err)
-			return
-		}
-	}
-}
+//
+// // WsConnHandle websocket连接处理
+// func WsConnHandle(conn *websocket.Conn) {
+// 	for {
+// 		var msg string
+// 		if err := websocket.Message.Receive(conn, &msg); err != nil {
+// 			log.Println(err)
+// 			return
+// 		}
+//
+// 		log.Printf("recv: %v", msg)
+//
+// 		data := []byte(time.Now().Format(time.RFC3339))
+// 		if _, err := conn.Write(data); err != nil {
+// 			log.Println(err)
+// 			return
+// 		}
+// 	}
+// }

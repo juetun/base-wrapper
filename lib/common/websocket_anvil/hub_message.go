@@ -9,7 +9,7 @@ import (
 
 // MessageHub 消息仓库, 用于维护整个消息中心连接
 type MessageHub struct {
-	BaseHandler
+	WebsocketBaseHandler
 
 	lock sync.RWMutex
 
