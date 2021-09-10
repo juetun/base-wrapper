@@ -13,7 +13,7 @@ type MessageHub struct {
 	lock sync.RWMutex
 
 	// redis连接
-	Service MessageService
+	Service *MessageService
 
 	// 客户端用户id集合
 	UserIds []string
@@ -84,7 +84,8 @@ func (r *MessageHub) refreshMsg(userIds ...string) (err error) {
 }
 
 // Run 运行仓库
-func (r *MessageHub) Run() {
+func (r *MessageHub) Run() (res *MessageHub) {
+	res = r
 	for {
 		select {
 		case data := <-r.Broadcast.C: // 广播(全部用户均可接收)
@@ -95,10 +96,12 @@ func (r *MessageHub) Run() {
 			_ = r.refreshMsg(userIds...)
 		}
 	}
+	return
 }
 
 // Count 活跃连接检查
-func (r *MessageHub) Count() {
+func (r *MessageHub) Count() (res *MessageHub) {
+	res = r
 	// 创建定时器, 超出指定时间间隔
 	ticker := time.NewTicker(HeartBeatPeriod)
 	defer func() {
@@ -119,6 +122,8 @@ func (r *MessageHub) Count() {
 			}, "MessageHubCount")
 		}
 	}
+
+	return
 }
 
 // GetClients 获取client列表

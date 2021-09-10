@@ -46,7 +46,7 @@ func main() {
 		PluginAuthorization,
 		func(arg *app_start.PluginsOperate) (err error) {
 			// 启动websocket
-			websocket_anvil.WebsocketStart()
+			go websocket_anvil.WebsocketStart()
 			return
 		},
 		// plugins.PluginOss,

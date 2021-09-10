@@ -2,7 +2,7 @@ package dao_impl
 
 import (
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/base-wrapper/lib/common/websocket_anvil"
+	"github.com/juetun/base-wrapper/lib/common/websocket_anvil/ext"
 	"github.com/juetun/base-wrapper/web/daos"
 )
 
@@ -18,7 +18,7 @@ func (r *DaoWebSocketImpl) GetUnReadMessageCount(userHIds string) (total int64, 
 	panic("implement me")
 }
 
-func (r *DaoWebSocketImpl) CreateMessage(arg *websocket_anvil.PushMessageRequestStruct) (err error) {
+func (r *DaoWebSocketImpl) CreateMessage(arg *ext.PushMessageRequestStruct) (err error) {
 	panic("implement me")
 }
 

@@ -3,7 +3,7 @@ package srv_impl
 import (
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/base-wrapper/lib/common/websocket_anvil"
+	"github.com/juetun/base-wrapper/lib/common/websocket_anvil/ext"
 	"github.com/juetun/base-wrapper/web/models"
 	"github.com/juetun/base-wrapper/web/srvs"
 	"golang.org/x/net/websocket"
@@ -15,9 +15,9 @@ type SrvWebSocketImpl struct {
 
 func (r *SrvWebSocketImpl) WebsocketSrv(conn *websocket.Conn) {
 
-	websocket_anvil.NewWebSocketAnvil(
-		websocket_anvil.WebSocketAnvilOptionContext(r.Context),
-		websocket_anvil.WebSocketAnvilOptionUser(func() (user websocket_anvil.UserInterface, err error) {
+	ext.NewWebSocketAnvil(
+		ext.WebSocketAnvilOptionContext(r.Context),
+		ext.WebSocketAnvilOptionUser(func() (user ext.UserInterface, err error) {
 			conn.Request().ParseForm()
 			if userId := conn.Request().FormValue(app_obj.WebSocketUid); userId == "" {
 				return
@@ -26,7 +26,7 @@ func (r *SrvWebSocketImpl) WebsocketSrv(conn *websocket.Conn) {
 				return
 			}
 		}),
-		websocket_anvil.WebSocketAnvilOptionConn(conn),
+		ext.WebSocketAnvilOptionConn(conn),
 	).Start()
 
 	// daoMessage := dao_impl.NewDaoWebSocketImpl(r.Context)
