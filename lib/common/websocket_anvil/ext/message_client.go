@@ -1,4 +1,4 @@
-package websocket_anvil
+package ext
 
 import (
 	"encoding/json"
@@ -12,7 +12,8 @@ import (
 // MessageClient 消息客户端
 type MessageClient struct {
 	WebsocketBaseHandler `json:"-"`
-	Context              *base.Context `json:"-"`
+
+	Context *base.Context `json:"-"`
 
 	// 当前socket key
 	Key string `json:"key"`
@@ -49,13 +50,18 @@ func (r *MessageClient) Contains(arr []string, item string) bool {
 func (r *MessageClient) Register() {
 	HubMessage.lock.Lock()
 	defer HubMessage.lock.Unlock()
-	userHid, _ := r.GetUserHid()
+	var err error
+
+	userHid, userData, err := r.GetUserHid()
 	t := time.Now()
 	active, ok := HubMessage.UserLastActive[userHid]
 	last := time.Unix(active, 0) // carbon.CreateFromTimestamp(active)
+
 	HubMessage.Clients[r.Key] = r
-	var userData UserInterface
-	var err error
+
+	// 记录最后活跃时间戳
+	HubMessage.UserLastActive[userHid] = t.Unix()
+
 	if !ok || last.Add(lastActiveRegisterPeriod).Before(t) {
 		if !r.Contains(HubMessage.UserIds, userHid) {
 			HubMessage.UserIds = append(HubMessage.UserIds, userHid)
@@ -77,34 +83,27 @@ func (r *MessageClient) Register() {
 			HubMessage.RefreshUserMessage.SafeSend([]string{userHid})
 		}()
 
-		if userData, err = r.UserFunc(); err == nil {
-			// 广播当前用户上线
-			msg := MessageWsResponseStruct{
+		// 广播当前用户上线
+		// 通知除自己之外的人
+		go HubMessage.Broadcast.SafeSend(MessageBroadcast{
+			MessageWsResponseStruct: MessageWsResponseStruct{
 				Type: MessageRespOnline,
 				Detail: r.GetSuccessWithData(map[string]interface{}{
 					"user": userData,
 				}),
-			}
-
-			// 通知除自己之外的人
-			go HubMessage.Broadcast.SafeSend(MessageBroadcast{
-				MessageWsResponseStruct: msg,
-				UserIds:                 r.ContainsThenRemove(HubMessage.UserIds, userHid),
-			})
-		}
+			},
+			UserIds: r.ContainsThenRemove(HubMessage.UserIds, userHid),
+		})
 
 	}
-	// 记录最后活跃时间戳
-	HubMessage.UserLastActive[userHid] = t.Unix()
 
 }
 
-func (r *MessageClient) GetUserHid() (res string, err error) {
-	var resData UserInterface
-	if resData, err = r.UserFunc(); err != nil {
+func (r *MessageClient) GetUserHid() (res string, user UserInterface, err error) {
+	if user, err = r.UserFunc(); err != nil {
 		return
 	}
-	if res, err = resData.GetUserHid(); err != nil {
+	if res, err = user.GetUserHid(); err != nil {
 		return
 	}
 	return
@@ -120,13 +119,16 @@ func (r *MessageClient) Receive() {
 			}, "MessageClientReceive0")
 		}
 	}()
-	userHid, _ := r.GetUserHid()
+	userHid, _, _ := r.GetUserHid()
 	for {
 
 		var msg string
 		if err = websocket.Message.Receive(r.Conn, &msg); err != nil {
 			r.Context.Error(map[string]interface{}{
-				"desc": fmt.Sprintf("[消息中心][接收端][%s]连接可能已断开: %v", r.Key, err),
+				"msgV": msg,
+				"err":  err.Error(),
+				"key":  r.Key,
+				"desc": fmt.Sprintf("[消息中心][接收端]连接可能已断开"),
 			}, "MessageClientReceive1")
 			return
 		}
@@ -141,13 +143,16 @@ func (r *MessageClient) Receive() {
 		// data := utils.DeCompressStrByZlib(string(msg))
 
 		r.Context.Info(map[string]interface{}{
-			"desc": fmt.Sprintf("[消息中心][接收端][%s]接收数据成功: %s, %s", r.Key, userHid, msg),
+			"msgV":    msg,
+			"userHid": userHid,
+			"desc":    fmt.Sprintf("[消息中心][接收端][%s]接收数据成功", r.Key),
 		}, "MessageClientReceive1")
 
 		// 数据转为json
 		var req MessageWebSocketRequestStruct
 		if err = json.Unmarshal([]byte(msg), &req); err != nil {
 			r.Context.Error(map[string]interface{}{
+				"msg":  msg,
 				"desc": fmt.Sprintf("[Json2Struct]转换异常: %v", err.Error()),
 			}, "MessageClientReceive2")
 		}
@@ -282,7 +287,9 @@ func (r *MessageClient) Send() {
 		err = r.close()
 		if rv := recover(); rv != nil {
 			r.Context.Error(map[string]interface{}{
-				"desc": fmt.Sprintf("[消息中心][发送端][%s]连接可能已断开: %v", r.Key, rv),
+				"key":  r.Key,
+				"rv":   rv,
+				"desc": fmt.Sprintf("[消息中心][发送端]连接可能已断开"),
 			}, "MessageClientSend0")
 		}
 	}()
@@ -293,12 +300,18 @@ func (r *MessageClient) Send() {
 		// 发送通道
 		case msg, ok := <-r.SendChan.C:
 
-			// 设定回写超时时间
+			// 设定回写超时时间 10 S
 			err = r.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
 				// send通道已关闭
 				if err = r.writeMessage(websocket.CloseFrame, "closed"); err != nil {
-					panic(err)
+					r.Context.Error(map[string]interface{}{
+						"key":  r.Key,
+						"ip":   r.Ip,
+						"msg":  msg,
+						"ok":   ok,
+						"desc": fmt.Sprintf("send通道已关闭"),
+					}, "MessageClientSend1")
 				}
 				panic("connection closed")
 			}
@@ -306,22 +319,40 @@ func (r *MessageClient) Send() {
 			if msg != nil {
 				if bt, err = json.Marshal(msg); err != nil {
 					r.Context.Error(map[string]interface{}{
+						"key": r.Key,
+						"ip":  r.Ip,
 						"err": err.Error(),
-						"msg": fmt.Sprintf("%v", msg),
-					}, "MessageClientSend1")
+						"msg": msg,
+					}, "MessageClientSend2")
 				}
 			}
 			// 发送文本消息
 			if err = r.writeMessage(websocket.TextFrame, string(bt)); err != nil {
+				r.Context.Error(map[string]interface{}{
+					"key": r.Key,
+					"ip":  r.Ip,
+					"err": err.Error(),
+					"msg": msg,
+				}, "MessageClientSend3")
 				panic(err)
 			}
 		// 长时间无新消息
 		case <-ticker.C:
 			if err = r.Conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
+				r.Context.Error(map[string]interface{}{
+					"key": r.Key,
+					"ip":  r.Ip,
+					"err": err.Error(),
+				}, "MessageClientSend4")
 				panic(err)
 			}
 			// 发送ping消息
 			if err = r.writeMessage(websocket.PingFrame, "ping"); err != nil {
+				r.Context.Error(map[string]interface{}{
+					"key": r.Key,
+					"ip":  r.Ip,
+					"err": err.Error(),
+				}, "MessageClientSend5")
 				panic(err)
 			}
 		}
@@ -335,8 +366,11 @@ func (r *MessageClient) writeMessage(messageType int, data string) (err error) {
 	// 字符串压缩
 	// s, _ := utils.CompressStrByZlib(data)
 
-	r.Context.Error(map[string]interface{}{
-		"desc": fmt.Sprintf("[消息中心][发送端][%s] %v", r.Key, data),
+	r.Context.Info(map[string]interface{}{
+		"key":         r.Key,
+		"data":        data,
+		"messageType": messageType,
+		"desc":        fmt.Sprintf("[消息中心][发送端]"),
 	}, "MessageClientWriteMessage")
 
 	// err= r.Conn.WriteMessage(messageType, []byte(*s))
@@ -360,7 +394,10 @@ func (r *MessageClient) close() (err error) {
 		userHid, _ := r.UserFunc()
 
 		r.Context.Error(map[string]interface{}{
-			"desc": fmt.Sprintf("[消息中心][用户下线][%s]%s-%s", r.Key, userHid, r.Ip),
+			"userHid": userHid,
+			"ip":      r.Ip,
+			"key":     r.Key,
+			"desc":    fmt.Sprintf("[消息中心][用户下线]"),
 		}, "MessageWriteMessageClose")
 
 	}

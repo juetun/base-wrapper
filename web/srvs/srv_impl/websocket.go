@@ -18,7 +18,8 @@ func (r *SrvWebSocketImpl) WebsocketSrv(conn *websocket.Conn) {
 	websocket_anvil.NewWebSocketAnvil(
 		websocket_anvil.WebSocketAnvilOptionContext(r.Context),
 		websocket_anvil.WebSocketAnvilOptionUser(func() (user websocket_anvil.UserInterface, err error) {
-			if userId := conn.Request().Header.Get(app_obj.HttpUserHid); userId == "" {
+			conn.Request().ParseForm()
+			if userId := conn.Request().FormValue(app_obj.WebSocketUid); userId == "" {
 				return
 			} else {
 				user, err = r.getCurrentUserByUid(userId)
@@ -38,7 +39,7 @@ func (r *SrvWebSocketImpl) WebsocketSrv(conn *websocket.Conn) {
 
 // GetCurrentUser 获取当前请求用户信息
 func (r *SrvWebSocketImpl) getCurrentUserByUid(userHid string) (res *models.User, err error) {
-
+	res = &models.User{UserHid: userHid}
 	return
 }
 

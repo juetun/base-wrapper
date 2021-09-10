@@ -1,12 +1,15 @@
-package websocket_anvil
+package ext
 
 import (
 	"time"
 )
 
 const (
+	//ClientConnectMax 最大的socket连接数（当前服务器连接数小于此值时，性能较优）
+	ClientConnectMax = 3000
+
 	// Time allowed to write a message to the peer.
-	writeWait = 10 * time.Second
+	writeWait = 30 * time.Second
 
 	// Time allowed to read the next pong message from the peer.
 	pongWait = 60 * time.Second

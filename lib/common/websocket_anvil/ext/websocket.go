@@ -1,4 +1,4 @@
-package websocket_anvil
+package ext
 
 import (
 	"fmt"
@@ -18,9 +18,8 @@ type WebSocketAnvil struct {
 	Ip  string `json:"ip"`
 	Key string `json:"key"`
 }
-type WebSocketAnvilOption func(arg *WebSocketAnvil)
 
-type UserHandler func() (userHid UserInterface, err error)
+
 
 func NewWebSocketAnvil(options ...WebSocketAnvilOption) (res *WebSocketAnvil) {
 
@@ -58,12 +57,25 @@ func WebSocketAnvilOptionContext(context *base.Context) WebSocketAnvilOption {
 
 // Start 启动消息连接
 func (r *WebSocketAnvil) Start() (err error) {
+	logContent := map[string]interface{}{}
+	defer func() {
+		if err != nil {
+			logContent["err"] = err.Error()
+			r.Context.Error(logContent, "WebSocketAnvilStart")
+		} else {
+			r.Context.Info(logContent, "WebSocketAnvilStart")
+		}
+	}()
 	if err = r.initWebSocketKey(); err != nil {
 		return
 	}
+	logContent["key"] = r.Key
+
 	if err = r.initClientIp(); err != nil {
 		return
 	}
+
+	logContent["ip"] = r.Ip
 
 	// 注册到消息仓库
 	client := &MessageClient{
@@ -98,15 +110,12 @@ func (r *WebSocketAnvil) initWebSocketKey() (err error) {
 }
 
 func (r *WebSocketAnvil) initClientIp() (err error) {
-
-	if key, ok := r.Conn.Request().Header[app_obj.WebSocketHeaderIp]; ok {
-		r.Key = strings.Join(key, "")
+	header := r.Conn.Request().Header
+	if key, ok := header[app_obj.WebSocketHeaderIp]; ok {
+		r.Ip = strings.Join(key, "")
 	}
-	if r.Key == "" {
-		r.Key = r.Conn.Request().RemoteAddr
-	}
-	if r.Key == "" {
-		err = fmt.Errorf("没获取到(%s)值", app_obj.WebSocketKey)
+	if r.Ip == "" {
+		r.Ip = r.Conn.Request().RemoteAddr
 	}
 
 	return

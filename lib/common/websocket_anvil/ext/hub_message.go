@@ -1,8 +1,7 @@
-package websocket_anvil
+package ext
 
 import (
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 )
@@ -49,7 +48,7 @@ func (r *MessageHub) Contains(arr []string, item string) bool {
 func (r *MessageHub) broadcast(broadcast *MessageBroadcast) {
 
 	for _, client := range r.GetClients() {
-		userHid, _ := client.GetUserHid()
+		userHid, _, _ := client.GetUserHid()
 		// 通知指定用户
 		if r.Contains(broadcast.UserIds, userHid) {
 			client.SendChan.SafeSend(broadcast)
@@ -66,7 +65,7 @@ func (r *MessageHub) refreshMsg(userIds ...string) (err error) {
 	}
 	for _, client := range r.GetClients() {
 		for _, id := range userIds {
-			userHid, _ := client.GetUserHid()
+			userHid, _, _ := client.GetUserHid()
 			if userHid == id {
 				// 获取未读消息条数
 				total, _ := HubMessage.Service.Dao.GetUnReadMessageCount(userHid)
@@ -111,11 +110,12 @@ func (r *MessageHub) Count() {
 		case <-ticker.C:
 			infos := make([]string, 0)
 			for _, client := range r.GetClients() {
-				uid, _ := client.GetUserHid()
+				uid, _, _ := client.GetUserHid()
 				infos = append(infos, fmt.Sprintf("%s-%s", uid, client.Ip))
 			}
 			r.Service.Context.Debug(map[string]interface{}{
-				"desc": fmt.Sprintf("[消息中心]当前活跃连接: %v", strings.Join(infos, ",")),
+				"infos": infos,
+				"desc":  fmt.Sprintf("[消息中心]当前活跃连接"),
 			}, "MessageHubCount")
 		}
 	}

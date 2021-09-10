@@ -1,4 +1,4 @@
-package websocket_anvil
+package ext
 
 import (
 	"sync"
@@ -36,4 +36,3 @@ func (s *Chan) SafeSend(data interface{}) {
 		s.C <- data
 	}
 }
-

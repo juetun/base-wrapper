@@ -13,20 +13,22 @@ import (
 )
 
 const (
-	TraceId              = "trace_id"      // 请求上下文传递时 的唯一ID （日志链路追踪使用）
-	AppLogKey            = "app"           // 当前操作所属的代码库微服务应用名（日志链路追踪使用）
-	AppFieldKey          = "type"          // 日志类型字段KEY的值
-	AppLogLoc            = "src"           // 代码所在位置
-	HttpTraceId          = "X-Trace-Id"    // 页面请求时的 传参或者nginx生成的trace_id的key
-	HttpUserHid          = "X-User-Hid"    // 页面请求时的 用户ID
+	TraceId     = "trace_id"   // 请求上下文传递时 的唯一ID （日志链路追踪使用）
+	AppLogKey   = "app"        // 当前操作所属的代码库微服务应用名（日志链路追踪使用）
+	AppFieldKey = "type"       // 日志类型字段KEY的值
+	AppLogLoc   = "src"        // 代码所在位置
+	HttpTraceId = "X-Trace-Id" // 页面请求时的 传参或者nginx生成的trace_id的key
+	HttpUserHid = "X-User-Hid" // 页面请求时的 用户ID
+
 	HttpUserToken        = "X-Auth-Token"  // 页面请求时用户token
 	HttpHeaderApp        = "X-App"         // 接口请求头信息
 	HttpHeaderVersion    = "X-App-version" // 接口请求版本信息
 	HttpHeaderTerminal   = "X-Terminal"    // 终端类型 android ,ios ,web weixin
 	HttpHeaderAdminToken = "X-Console"     // 客服后台接口多的key值
 
-	WebSocketKey      = "Sec-WebSocket-Key"
+	WebSocketKey      = "Sec-Websocket-Key"
 	WebSocketHeaderIp = "X-Forwarded-For" // 取Ip地址方法
+	WebSocketUid      = "uid"
 
 	DbNameKey         = "dbName"
 	DbContextValueKey = "DbContextValue" // 数据库操作上下文传参保存的KEY

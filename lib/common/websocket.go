@@ -16,7 +16,7 @@ import (
 // GinWebsocketHandler websocket.Handler 转 gin HandlerFunc
 func GinWebsocketHandler(wsConnHandle websocket.Handler) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		log.Printf("new ws request: %v", c.Request.RemoteAddr)
+		log.Printf("new ws request: %v", c.Request.Header)
 		if c.IsWebsocket() {
 			wsConnHandle.ServeHTTP(c.Writer, c.Request)
 		} else {

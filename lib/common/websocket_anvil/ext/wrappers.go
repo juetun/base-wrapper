@@ -1,4 +1,4 @@
-package websocket_anvil
+package ext
 
 import (
 	"strings"
@@ -58,6 +58,10 @@ type (
 		// GetUserHid 获取用户信息
 		GetUserHid() (userHid string, err error)
 	}
+
+	WebSocketAnvilOption func(arg *WebSocketAnvil)
+
+	UserHandler func() (userHid UserInterface, err error)
 )
 
 // FieldTrans 翻译需要校验的字段名称

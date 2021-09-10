@@ -1,10 +1,10 @@
-package websocket_anvil
+package ext
 
 import (
 	"github.com/juetun/base-wrapper/lib/base"
 )
 
-var HubMessage MessageHub
+var HubMessage  MessageHub
 
 // NewMessageService 初始化服务
 // NewMessageService([]MessageServiceOption{

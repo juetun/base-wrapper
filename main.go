@@ -17,6 +17,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/app/app_start"
 	_ "github.com/juetun/base-wrapper/lib/app/init" // 加载公共插件项
 	"github.com/juetun/base-wrapper/lib/authorization/model"
+	"github.com/juetun/base-wrapper/lib/common/websocket_anvil"
 	. "github.com/juetun/base-wrapper/lib/plugins" // 组件目录
 	_ "github.com/juetun/base-wrapper/web/router"  // 加载路由
 
@@ -43,6 +44,11 @@ func main() {
 		PluginShortMessage,
 		PluginAppMap,
 		PluginAuthorization,
+		func(arg *app_start.PluginsOperate) (err error) {
+			// 启动websocket
+			websocket_anvil.WebsocketStart()
+			return
+		},
 		// plugins.PluginOss,
 	).LoadPlugins() // 加载插件动作
 
