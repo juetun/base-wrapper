@@ -20,6 +20,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	. "github.com/juetun/base-wrapper/lib/base"
 	. "github.com/juetun/base-wrapper/lib/base/page_block"
@@ -27,8 +28,6 @@ import (
 	"github.com/juetun/base-wrapper/web/cons/page"
 	"github.com/juetun/base-wrapper/web/srvs/srv_impl"
 	"github.com/juetun/base-wrapper/web/wrapper"
-
-	"golang.org/x/net/websocket"
 )
 
 type ConPageImpl struct {
@@ -43,12 +42,23 @@ func NewConPage() (res page.ConPage) {
 }
 
 // Websocket web socket操作
-func (r *ConPageImpl) Websocket(conn *websocket.Conn) {
+func (r *ConPageImpl) Websocket(c *gin.Context) {
+	var arg wrapper.ArgWebSocket
+	var err error
+	var conn *websocket.Conn
+	var commonParams ArgWebSocketBase
+	if conn, commonParams, err = r.UpgradeWebsocket(c, &arg); err != nil {
+		r.Response(c, 0, nil, err.Error())
+		return
+	}
+	arg.ArgWebSocketBase = commonParams
+	srv_impl.NewSrvWebSocketImpl().
+		WebsocketSrv(conn, &arg)
+
 	// conn.Request().Header.Set(app_obj.HttpTraceId,)
 
 	// srv := srv_impl.NewSrvWebSocketImpl(CreateContext(&r.ControllerBase))
-	srv := srv_impl.NewSrvWebSocketImpl()
-	srv.WebsocketSrv(conn)
+
 	// websocket_anvil.NewMessageService()
 	// for {
 	// 	var msg string

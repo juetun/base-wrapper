@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/juetun/base-wrapper/lib/base"
-	"golang.org/x/net/websocket"
 )
 
 // MessageClient 消息客户端
@@ -67,7 +67,10 @@ func (r *MessageClient) Register() {
 			HubMessage.UserIds = append(HubMessage.UserIds, userHid)
 		}
 		logContent := map[string]interface{}{
-			"desc": fmt.Sprintf("[消息中心][用户上线][%s]%s-%s", r.Key, userHid, r.Ip),
+			"key":     r.Key,
+			"userHid": userHid,
+			"Ip":      r.Ip,
+			"desc":    fmt.Sprintf("[消息中心][用户上线]"),
 		}
 
 		defer func() {
@@ -79,21 +82,22 @@ func (r *MessageClient) Register() {
 			}
 		}()
 
-		go func() {
-			HubMessage.RefreshUserMessage.SafeSend([]string{userHid})
-		}()
-
-		// 广播当前用户上线
-		// 通知除自己之外的人
-		go HubMessage.Broadcast.SafeSend(MessageBroadcast{
-			MessageWsResponseStruct: MessageWsResponseStruct{
-				Type: MessageRespOnline,
-				Detail: r.GetSuccessWithData(map[string]interface{}{
-					"user": userData,
-				}),
-			},
-			UserIds: r.ContainsThenRemove(HubMessage.UserIds, userHid),
-		})
+		_ = userData
+		// go func() {
+		// 	HubMessage.RefreshUserMessage.SafeSend([]string{userHid})
+		// }()
+		//
+		// // 广播当前用户上线
+		// // 通知除自己之外的人
+		// go HubMessage.Broadcast.SafeSend(MessageBroadcast{
+		// 	MessageWsResponseStruct: MessageWsResponseStruct{
+		// 		Type: MessageRespOnline,
+		// 		Detail: r.GetSuccessWithData(map[string]interface{}{
+		// 			"user": userData,
+		// 		}),
+		// 	},
+		// 	UserIds: r.ContainsThenRemove(HubMessage.UserIds, userHid),
+		// })
 
 	}
 
@@ -114,21 +118,24 @@ func (r *MessageClient) Receive() {
 	defer func() {
 		err = r.close()
 		if e := recover(); e != nil {
-			r.Context.Error(map[string]interface{}{
-				"desc": fmt.Sprintf("[消息中心][接收端][%s]连接可能已断开: %v", r.Key, e),
-			}, "MessageClientReceive0")
+			panic(e)
+			// r.Context.Error(map[string]interface{}{
+			// 	"key":  r.Key,
+			// 	"e":    e,
+			// 	"desc": fmt.Sprintf("[消息中心][接收端]连接可能已断开"),
+			// }, "MessageClientReceive0")
 		}
 	}()
 	userHid, _, _ := r.GetUserHid()
 	for {
 
-		var msg string
-		if err = websocket.Message.Receive(r.Conn, &msg); err != nil {
+		var msg []byte
+		if _, msg, err = r.Conn.ReadMessage(); err != nil {
 			r.Context.Error(map[string]interface{}{
 				"msgV": msg,
 				"err":  err.Error(),
 				"key":  r.Key,
-				"desc": fmt.Sprintf("[消息中心][接收端]连接可能已断开"),
+				"desc": fmt.Sprintf("[消息中心][接收端]接收消息异常"),
 			}, "MessageClientReceive1")
 			return
 		}
@@ -143,17 +150,18 @@ func (r *MessageClient) Receive() {
 		// data := utils.DeCompressStrByZlib(string(msg))
 
 		r.Context.Info(map[string]interface{}{
-			"msgV":    msg,
+			"msgV":    string(msg),
 			"userHid": userHid,
 			"desc":    fmt.Sprintf("[消息中心][接收端][%s]接收数据成功", r.Key),
 		}, "MessageClientReceive1")
 
 		// 数据转为json
 		var req MessageWebSocketRequestStruct
-		if err = json.Unmarshal([]byte(msg), &req); err != nil {
+		if err = json.Unmarshal(msg, &req); err != nil {
 			r.Context.Error(map[string]interface{}{
 				"msg":  msg,
-				"desc": fmt.Sprintf("[Json2Struct]转换异常: %v", err.Error()),
+				"err":  err.Error(),
+				"desc": fmt.Sprintf("[Json2Struct]转换异常"),
 			}, "MessageClientReceive2")
 		}
 		switch req.Type {
@@ -304,7 +312,7 @@ func (r *MessageClient) Send() {
 			err = r.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
 				// send通道已关闭
-				if err = r.writeMessage(websocket.CloseFrame, "closed"); err != nil {
+				if err = r.writeMessage(websocket.CloseMessage, "closed"); err != nil {
 					r.Context.Error(map[string]interface{}{
 						"key":  r.Key,
 						"ip":   r.Ip,
@@ -327,7 +335,7 @@ func (r *MessageClient) Send() {
 				}
 			}
 			// 发送文本消息
-			if err = r.writeMessage(websocket.TextFrame, string(bt)); err != nil {
+			if err = r.writeMessage(websocket.TextMessage, string(bt)); err != nil {
 				r.Context.Error(map[string]interface{}{
 					"key": r.Key,
 					"ip":  r.Ip,
@@ -347,7 +355,7 @@ func (r *MessageClient) Send() {
 				panic(err)
 			}
 			// 发送ping消息
-			if err = r.writeMessage(websocket.PingFrame, "ping"); err != nil {
+			if err = r.writeMessage(websocket.PingMessage, "ping"); err != nil {
 				r.Context.Error(map[string]interface{}{
 					"key": r.Key,
 					"ip":  r.Ip,
@@ -373,9 +381,8 @@ func (r *MessageClient) writeMessage(messageType int, data string) (err error) {
 		"desc":        fmt.Sprintf("[消息中心][发送端]"),
 	}, "MessageClientWriteMessage")
 
-	// err= r.Conn.WriteMessage(messageType, []byte(*s))
+	err = r.Conn.WriteMessage(messageType, []byte(data))
 
-	_, err = r.Conn.Write([]byte(data))
 	return
 }
 

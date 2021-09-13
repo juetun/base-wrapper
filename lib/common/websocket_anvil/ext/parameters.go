@@ -18,7 +18,7 @@ const (
 	pingPeriod = (pongWait * 9) / 10
 
 	// HeartBeatPeriod 心跳间隔
-	HeartBeatPeriod = 10 * time.Second
+	HeartBeatPeriod = 3 * time.Second
 
 	// 最后一次活跃上线通知时间间隔
 	lastActiveRegisterPeriod = 10 * time.Minute

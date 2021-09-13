@@ -1,11 +1,14 @@
 package base
 
 import (
+	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 )
 
@@ -25,7 +28,7 @@ func (r *ControllerBase) GetAdminUserName(c *gin.Context) string {
 	return r.GetUser(c).Name
 }
 
-// 当前登录用户的信息
+// GetUser 当前登录用户的信息
 func (r *ControllerBase) GetUser(c *gin.Context) (jwtUser app_obj.JwtUserMessage) {
 	jwtUser = app_obj.JwtUserMessage{}
 	v, e := c.Get(app_obj.ContextUserObjectKey)
@@ -34,6 +37,43 @@ func (r *ControllerBase) GetUser(c *gin.Context) (jwtUser app_obj.JwtUserMessage
 	}
 
 	return jwtUser
+}
+
+// 升级websocket操作
+var upGrader = websocket.Upgrader{
+	// 解决跨域问题
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+type ArgWebSocketBase struct {
+	WebsocketKey string `json:"websocket_key" form:"WebsocketKey"`
+	Ip           string `json:"ip" form:"ip"`
+}
+
+// UpgradeWebsocket websocket.Handler 转 gin HandlerFunc
+// argObject 必须为一个指针
+func (r *ControllerBase) UpgradeWebsocket(c *gin.Context, argObject interface{}) (conn *websocket.Conn, commonParam ArgWebSocketBase, err error) {
+	commonParam = ArgWebSocketBase{}
+	if !c.IsWebsocket() {
+		err = fmt.Errorf("now request is not a websocket")
+		return
+	}
+
+	if err = c.ShouldBind(argObject); err != nil {
+		log.Printf("new websocket request err : %v", err.Error())
+		return
+	}
+
+	commonParam.WebsocketKey = c.Request.Header.Get(app_obj.WebSocketKey)
+	commonParam.Ip = c.ClientIP()
+
+	if conn, err = upGrader.Upgrade(c.Writer, c.Request, nil); err != nil {
+		log.Printf("new websocket request err : %v", err.Error())
+		return
+	}
+	return
 }
 
 type Result struct {

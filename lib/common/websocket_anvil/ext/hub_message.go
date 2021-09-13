@@ -112,13 +112,15 @@ func (r *MessageHub) Count() (res *MessageHub) {
 		// 到心跳检测时间
 		case <-ticker.C:
 			infos := make([]string, 0)
-			for _, client := range r.GetClients() {
+			clients := r.GetClients()
+			count := len(clients)
+			for _, client := range clients {
 				uid, _, _ := client.GetUserHid()
 				infos = append(infos, fmt.Sprintf("%s-%s", uid, client.Ip))
 			}
-			r.Service.Context.Debug(map[string]interface{}{
-				"infos": infos,
-				"desc":  fmt.Sprintf("[消息中心]当前活跃连接"),
+			r.Service.Context.Info(map[string]interface{}{
+				// "infos": infos,
+				"desc":  fmt.Sprintf("[消息中心]当前活跃连接数:%d", count),
 			}, "MessageHubCount")
 		}
 	}

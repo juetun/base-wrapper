@@ -2,24 +2,18 @@ package ext
 
 import (
 	"fmt"
-	"strings"
 
-	"github.com/juetun/base-wrapper/lib/app/app_obj"
+	"github.com/gorilla/websocket"
 	"github.com/juetun/base-wrapper/lib/base"
-	"golang.org/x/net/websocket"
 )
 
 // WebSocketAnvil websocket操作基本结构体
 type WebSocketAnvil struct {
-	Context  *base.Context   `json:"-"`
-	Conn     *websocket.Conn `json:"-"`
-	UserFunc UserHandler     `json:"-"`
-
-	Ip  string `json:"ip"`
-	Key string `json:"key"`
+	Context      *base.Context          `json:"-"`
+	Conn         *websocket.Conn        `json:"-"`
+	UserFunc     UserHandler            `json:"-"`
+	CommonParams *base.ArgWebSocketBase `json:"common_params"`
 }
-
-
 
 func NewWebSocketAnvil(options ...WebSocketAnvilOption) (res *WebSocketAnvil) {
 
@@ -37,9 +31,9 @@ func WebSocketAnvilOptionUser(user UserHandler) WebSocketAnvilOption {
 	}
 }
 
-func WebSocketAnvilOptionIp(ip string) WebSocketAnvilOption {
+func WebSocketAnvilOptionCommonParams(commonParams *base.ArgWebSocketBase) WebSocketAnvilOption {
 	return func(arg *WebSocketAnvil) {
-		arg.Ip = ip
+		arg.CommonParams = commonParams
 	}
 }
 
@@ -66,57 +60,33 @@ func (r *WebSocketAnvil) Start() (err error) {
 			r.Context.Info(logContent, "WebSocketAnvilStart")
 		}
 	}()
-	if err = r.initWebSocketKey(); err != nil {
+	if r.CommonParams == nil {
+		err = fmt.Errorf("common_params must be not null")
 		return
 	}
-	logContent["key"] = r.Key
+	logContent["key"] = r.CommonParams.WebsocketKey
 
-	if err = r.initClientIp(); err != nil {
-		return
-	}
-
-	logContent["ip"] = r.Ip
+	logContent["ip"] = r.CommonParams.Ip
 
 	// 注册到消息仓库
 	client := &MessageClient{
 		Context:  r.Context,
-		Key:      r.Key,
+		Key:      r.CommonParams.WebsocketKey,
 		Conn:     r.Conn,
 		UserFunc: r.UserFunc,
-		Ip:       r.Ip,
+		Ip:       r.CommonParams.Ip,
 		SendChan: NewCh(),
 	}
-
-	go client.Register()
-
-	// 监听数据的接收/发送/心跳
-	go client.Receive()
+	go func() {
+		client.Receive() // 监听数据的接收/发送/心跳
+	}()
+	go func() {
+		client.Register()
+	}()
 
 	go client.Send()
+
 	// go client.heartBeat()
-
-	return
-}
-
-func (r *WebSocketAnvil) initWebSocketKey() (err error) {
-
-	if key, ok := r.Conn.Request().Header[app_obj.WebSocketKey]; ok {
-		r.Key = strings.Join(key, "")
-	}
-	if r.Key == "" {
-		err = fmt.Errorf("没获取到(%s)值", app_obj.WebSocketKey)
-	}
-	return
-}
-
-func (r *WebSocketAnvil) initClientIp() (err error) {
-	header := r.Conn.Request().Header
-	if key, ok := header[app_obj.WebSocketHeaderIp]; ok {
-		r.Ip = strings.Join(key, "")
-	}
-	if r.Ip == "" {
-		r.Ip = r.Conn.Request().RemoteAddr
-	}
 
 	return
 }

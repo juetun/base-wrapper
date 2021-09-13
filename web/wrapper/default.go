@@ -1,3 +1,4 @@
+// Package wrapper
 /**
 * @Author:changjiang
 * @Description:
@@ -8,10 +9,16 @@
 package wrapper
 
 import (
+	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/web/models"
 )
 
 type (
+
+	ArgWebSocket struct {
+		UserHid string `json:"uid" form:"uid"`
+		base.ArgWebSocketBase
+	}
 	ArgumentDefault struct {
 		IdKey string `json:"id_key" form:"id_key"`
 	}

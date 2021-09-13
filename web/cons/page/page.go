@@ -6,13 +6,12 @@ package page
 
 import (
 	"github.com/gin-gonic/gin"
-	"golang.org/x/net/websocket"
 )
 
 type ConPage interface {
 
 	// Websocket web socket操作
-	Websocket(c *websocket.Conn)
+	Websocket(c *gin.Context)
 
 	Tsst(c *gin.Context)
 

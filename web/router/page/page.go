@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_start"
 	"github.com/juetun/base-wrapper/lib/app/middlewares"
-	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/juetun/base-wrapper/web/cons/page/con_impl"
 )
 
@@ -23,7 +22,9 @@ func init() {
 			p.PUT("/page_sign", page.MainSign)
 			p.DELETE("/page_sign/:id", page.MainSign)
 			p.GET("/page/test", page.Tsst)
-			p.GET("/page/ws", common.GinWebsocketHandler(page.Websocket))
+
+			//websocket 操作
+			p.GET("/page/ws", page.Websocket)
 
 		})
 }

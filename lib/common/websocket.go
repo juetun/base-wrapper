@@ -8,17 +8,38 @@ package common
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"golang.org/x/net/websocket"
+	"github.com/gorilla/websocket"
 )
 
+var upGrader = websocket.Upgrader{
+	// 解决跨域问题
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+type WebsocketHandler func(conn *websocket.Conn, arg interface{})
+
 // GinWebsocketHandler websocket.Handler 转 gin HandlerFunc
-func GinWebsocketHandler(wsConnHandle websocket.Handler) gin.HandlerFunc {
+func GinWebsocketHandler(wsConnHandle WebsocketHandler, argObject interface{}) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		log.Printf("new ws request: %v", c.Request.Header)
+		log.Printf("new websocket request: %v", c.Request.Header)
 		if c.IsWebsocket() {
-			wsConnHandle.ServeHTTP(c.Writer, c.Request)
+			var err error
+			if err = c.ShouldBind(argObject); err != nil {
+				log.Printf("new websocket request err : %v", err.Error())
+				return
+			}
+			var conn *websocket.Conn
+			if conn, err = upGrader.Upgrade(c.Writer, c.Request, nil); err != nil {
+				log.Printf("new websocket request err : %v", err.Error())
+				return
+			}
+			wsConnHandle(conn, argObject)
+			// wsConnHandle.ServeHTTP(c.Writer, &req)
 		} else {
 			_, _ = c.Writer.WriteString("===not websocket request===")
 		}

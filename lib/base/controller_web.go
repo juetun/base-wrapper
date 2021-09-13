@@ -1,11 +1,4 @@
-/**
-* @Author:changjiang
-* @Description:
-* @File:controller_web
-* @Version: 1.0.0
-* @Date 2020/4/20 9:12 上午
- */
-
+// Package base
 // @Copyright (c) 2020.
 // @Author ${USER}
 // @Date ${DATE}
@@ -51,9 +44,9 @@ func (r *ControllerWeb) ResponseError(c *gin.Context, err error) {
 	return
 }
 
-//渲染html
+// 渲染html
 func (r *ControllerWeb) ResponseHtml(c *gin.Context, tpl string, data gin.H) {
- 	c.HTML(http.StatusOK, tpl, data)
+	c.HTML(http.StatusOK, tpl, data)
 }
 
 // 获取详情的扩展名
