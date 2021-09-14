@@ -83,7 +83,7 @@ func (r *WebSocketAnvil) Start() (err error) {
 	go func() {
 		client.Register()
 	}()
-
+	// 监听发送消息
 	go client.Send()
 
 	// go client.heartBeat()

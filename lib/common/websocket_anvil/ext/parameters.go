@@ -42,6 +42,8 @@ const (
 	MessageReqAllRead string = "1-2-4"
 	// MessageReqAllDeleted 全部删除
 	MessageReqAllDeleted string = "1-2-5"
+	// MessageReqBreak 连接关闭
+	MessageReqBreak = "0-0-0"
 
 	// MessageRespHeartBeat 消息响应类型(首字符为2)
 	// 心跳消息

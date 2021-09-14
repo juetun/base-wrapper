@@ -3,6 +3,7 @@ package ext
 import (
 	"encoding/json"
 	"fmt"
+	"runtime"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -112,156 +113,189 @@ func (r *MessageClient) GetUserHid() (res string, user UserInterface, err error)
 	}
 	return
 }
+func (r *MessageClient) receiveMessageAct(msg []byte, userHid string) (needBreak bool, err error) {
+	// 数据转为json
+	var req MessageWebSocketRequestStruct
+	if err = json.Unmarshal(msg, &req); err != nil {
+		r.Context.Error(map[string]interface{}{
+			"msg":  msg,
+			"err":  err.Error(),
+			"desc": fmt.Sprintf("[Json2Struct]转换异常"),
+		}, "MessageClientReceive2")
+		return
+	}
+	switch req.Type {
+	case MessageReqBreak:
+		needBreak = true
+	case MessageReqHeartBeat: // 心跳消息
+		if _, ok := req.Data.(float64); ok {
+			// 发送心跳
+			r.SendChan.SafeSend(MessageWsResponseStruct{
+				Type:   MessageRespHeartBeat,
+				Detail: r.GetSuccess(),
+			})
+		}
+	case MessageReqPush: // 推送新消息
+		var data PushMessageRequestStruct
+		err = r.Struct2StructByJson(req.Data, &data)
+
+		// mapColumn:=  data.FieldTrans()
+		// if data
+		// // 参数校验
+		// err = global.NewValidatorError(global.Validate.Struct(data),)
+		detail := r.GetSuccess()
+		if err == nil {
+			if !HubMessage.CheckIdempotenceTokenFunc(data.IdempotenceToken) {
+				err = fmt.Errorf(IdempotenceTokenInvalidMsg)
+			} else {
+				data.FromUserId = userHid
+				err = HubMessage.Service.Dao.CreateMessage(&data)
+			}
+		}
+		if err != nil {
+			detail = r.GetFailWithMsg(err.Error())
+		} else {
+			// 刷新条数
+			HubMessage.RefreshUserMessage.SafeSend(HubMessage.UserIds)
+		}
+		// 发送响应
+		r.SendChan.SafeSend(MessageWsResponseStruct{
+			Type:   MessageRespNormal,
+			Detail: detail,
+		})
+	case MessageReqBatchRead: // 批量已读
+		var data Req
+		err = r.Struct2StructByJson(req.Data, &data)
+		err = HubMessage.Service.Dao.BatchUpdateMessageRead(data.GetIds())
+		detail := r.GetSuccess()
+		if err != nil {
+			detail = r.GetFailWithMsg(err.Error())
+		}
+		// 刷新条数
+		HubMessage.RefreshUserMessage.SafeSend(HubMessage.UserIds)
+		// 发送响应
+		r.SendChan.SafeSend(MessageWsResponseStruct{
+			Type:   MessageRespNormal,
+			Detail: detail,
+		})
+	case MessageReqBatchDeleted: // 批量删除
+		var data Req
+		err = r.Struct2StructByJson(req.Data, &data)
+		err = HubMessage.Service.Dao.BatchUpdateMessageDeleted(data.GetIds())
+		detail := r.GetSuccess()
+		if err != nil {
+			detail = r.GetFailWithMsg(err.Error())
+		}
+		// 刷新条数
+		HubMessage.RefreshUserMessage.SafeSend(HubMessage.UserIds)
+		// 发送响应
+		r.SendChan.SafeSend(MessageWsResponseStruct{
+			Type:   MessageRespNormal,
+			Detail: detail,
+		})
+	case MessageReqAllRead: // 全部已读
+		err = HubMessage.Service.Dao.UpdateAllMessageRead(userHid)
+		detail := r.GetSuccess()
+		if err != nil {
+			detail = r.GetFailWithMsg(err.Error())
+		}
+		// 刷新条数
+		HubMessage.RefreshUserMessage.SafeSend(HubMessage.UserIds)
+		// 发送响应
+		r.SendChan.SafeSend(MessageWsResponseStruct{
+			Type:   MessageRespNormal,
+			Detail: detail,
+		})
+	case MessageReqAllDeleted: // 全部删除
+		err = HubMessage.Service.Dao.UpdateAllMessageDeleted(userHid)
+		detail := r.GetSuccess()
+		if err != nil {
+			detail = r.GetFailWithMsg(err.Error())
+		}
+		// 刷新条数
+		HubMessage.RefreshUserMessage.SafeSend(HubMessage.UserIds)
+		// 发送响应
+		r.SendChan.SafeSend(MessageWsResponseStruct{
+			Type:   MessageRespNormal,
+			Detail: detail,
+		})
+	default:
+		r.SendChan.SafeSend(MessageWsResponseStruct{
+			Type:   MessageRespNormal,
+			Detail: r.GetFailWithMsg(fmt.Sprintf("当前不支持您选择的消息类型（%s）", req.Type)),
+		})
+	}
+	return
+}
+func (r *MessageClient) errorHandler() {
+	var err error
+	if e := recover(); e != nil {
+		err = r.close()
+		_, file, line, _ := runtime.Caller(1)
+		logContent := map[string]interface{}{
+			"key":  r.Key,
+			"e":    e,
+			"loc":  fmt.Sprintf("%s(l:%d)", file, line),
+			"desc": fmt.Sprintf("[消息中心][接收端]连接可能已断开"),
+		}
+		if err != nil {
+			logContent["err"] = err.Error()
+		}
+		r.Context.Error(logContent, "MessageClientErrorHandler")
+	}
+}
 
 func (r *MessageClient) Receive() {
-	var err error
+	var (
+		needBreak bool
+		err       error
+	)
 	defer func() {
-		if e := recover(); e != nil {
-			err = r.close()
-			r.Context.Error(map[string]interface{}{
-				"key":  r.Key,
-				"e":    e,
-				"desc": fmt.Sprintf("[消息中心][接收端]连接可能已断开"),
-			}, "MessageClientReceive0")
-		}
+		r.errorHandler()
 	}()
+
 	userHid, _, _ := r.GetUserHid()
+
 	for {
 
+		logContent := map[string]interface{}{
+			"Key":     r.Key,
+			"userHid": userHid,
+		}
 		var msg []byte
 		if _, msg, err = r.Conn.ReadMessage(); err != nil {
-			r.Context.Error(map[string]interface{}{
-				"msgV": msg,
-				"err":  err.Error(),
-				"key":  r.Key,
-				"desc": fmt.Sprintf("[消息中心][接收端]接收消息异常"),
-			}, "MessageClientReceive1")
-			return
+			logContent["err"] = err.Error()
+			logContent["desc"] = fmt.Sprintf("[消息中心][接收端]接收消息异常")
+			r.Context.Error(logContent, "MessageClientReceive1")
+			continue
 		}
+
+		logContent["msgV"] = string(msg)
 
 		// 记录活跃时间
 		r.LastActiveTime = time.Now()
 		r.RetryCount = 0
-		if err != nil {
-			panic(err)
-		}
+
+		logContent["desc"] = fmt.Sprintf("[消息中心][接收端][%s]接收数据成功", r.Key)
+
 		// 解压数据
 		// data := utils.DeCompressStrByZlib(string(msg))
-
-		r.Context.Info(map[string]interface{}{
-			"msgV":    string(msg),
-			"userHid": userHid,
-			"desc":    fmt.Sprintf("[消息中心][接收端][%s]接收数据成功", r.Key),
-		}, "MessageClientReceive1")
-
-		// 数据转为json
-		var req MessageWebSocketRequestStruct
-		if err = json.Unmarshal(msg, &req); err != nil {
-			r.Context.Error(map[string]interface{}{
-				"msg":  msg,
-				"err":  err.Error(),
-				"desc": fmt.Sprintf("[Json2Struct]转换异常"),
-			}, "MessageClientReceive2")
+		if needBreak, err = r.receiveMessageAct(msg, userHid); err != nil {
+			logContent["err"] = err.Error()
+			r.Context.Error(logContent, "MessageClientReceive1")
+			continue
 		}
-		switch req.Type {
-		case MessageReqHeartBeat: // 心跳消息
-			if _, ok := req.Data.(float64); ok {
-				// 发送心跳
-				r.SendChan.SafeSend(MessageWsResponseStruct{
-					Type:   MessageRespHeartBeat,
-					Detail: r.GetSuccess(),
-				})
+		if needBreak {
+			if err = r.close(); err != nil {
+				logContent["closeErr"] = err.Error()
+				r.Context.Error(logContent, "MessageClientReceive1")
+				return
 			}
-		case MessageReqPush: // 推送新消息
-			var data PushMessageRequestStruct
-			err = r.Struct2StructByJson(req.Data, &data)
-
-			// mapColumn:=  data.FieldTrans()
-			// if data
-			// // 参数校验
-			// err = global.NewValidatorError(global.Validate.Struct(data),)
-			detail := r.GetSuccess()
-			if err == nil {
-				if !HubMessage.CheckIdempotenceTokenFunc(data.IdempotenceToken) {
-					err = fmt.Errorf(IdempotenceTokenInvalidMsg)
-				} else {
-					data.FromUserId = userHid
-					err = HubMessage.Service.Dao.CreateMessage(&data)
-				}
-			}
-			if err != nil {
-				detail = r.GetFailWithMsg(err.Error())
-			} else {
-				// 刷新条数
-				HubMessage.RefreshUserMessage.SafeSend(HubMessage.UserIds)
-			}
-			// 发送响应
-			r.SendChan.SafeSend(MessageWsResponseStruct{
-				Type:   MessageRespNormal,
-				Detail: detail,
-			})
-		case MessageReqBatchRead: // 批量已读
-			var data Req
-			err = r.Struct2StructByJson(req.Data, &data)
-			err = HubMessage.Service.Dao.BatchUpdateMessageRead(data.GetIds())
-			detail := r.GetSuccess()
-			if err != nil {
-				detail = r.GetFailWithMsg(err.Error())
-			}
-			// 刷新条数
-			HubMessage.RefreshUserMessage.SafeSend(HubMessage.UserIds)
-			// 发送响应
-			r.SendChan.SafeSend(MessageWsResponseStruct{
-				Type:   MessageRespNormal,
-				Detail: detail,
-			})
-		case MessageReqBatchDeleted: // 批量删除
-			var data Req
-			err = r.Struct2StructByJson(req.Data, &data)
-			err = HubMessage.Service.Dao.BatchUpdateMessageDeleted(data.GetIds())
-			detail := r.GetSuccess()
-			if err != nil {
-				detail = r.GetFailWithMsg(err.Error())
-			}
-			// 刷新条数
-			HubMessage.RefreshUserMessage.SafeSend(HubMessage.UserIds)
-			// 发送响应
-			r.SendChan.SafeSend(MessageWsResponseStruct{
-				Type:   MessageRespNormal,
-				Detail: detail,
-			})
-		case MessageReqAllRead: // 全部已读
-			err = HubMessage.Service.Dao.UpdateAllMessageRead(userHid)
-			detail := r.GetSuccess()
-			if err != nil {
-				detail = r.GetFailWithMsg(err.Error())
-			}
-			// 刷新条数
-			HubMessage.RefreshUserMessage.SafeSend(HubMessage.UserIds)
-			// 发送响应
-			r.SendChan.SafeSend(MessageWsResponseStruct{
-				Type:   MessageRespNormal,
-				Detail: detail,
-			})
-		case MessageReqAllDeleted: // 全部删除
-			err = HubMessage.Service.Dao.UpdateAllMessageDeleted(userHid)
-			detail := r.GetSuccess()
-			if err != nil {
-				detail = r.GetFailWithMsg(err.Error())
-			}
-			// 刷新条数
-			HubMessage.RefreshUserMessage.SafeSend(HubMessage.UserIds)
-			// 发送响应
-			r.SendChan.SafeSend(MessageWsResponseStruct{
-				Type:   MessageRespNormal,
-				Detail: detail,
-			})
-		default:
-			r.SendChan.SafeSend(MessageWsResponseStruct{
-				Type:   MessageRespNormal,
-				Detail: r.GetFailWithMsg(fmt.Sprintf("当前不支持您选择的消息类型（%s）", req.Type)),
-			})
+			r.Context.Info(logContent, "MessageClientReceive1")
+			return
 		}
+		r.Context.Info(logContent, "MessageClientReceive1")
+
 	}
 }
 
