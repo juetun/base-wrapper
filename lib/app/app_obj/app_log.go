@@ -125,9 +125,13 @@ func InitAppLog() {
 func logFormatter(logConfig *OptionLog, log *logrus.Logger) {
 	switch strings.ToLower(logConfig.Format) { // 日志格式
 	case "json":
-		log.SetFormatter(&logrus.JSONFormatter{})
+		logFor := &logrus.JSONFormatter{}
+		logFor.TimestampFormat = "2006-01-02 15:04:05"
+		log.SetFormatter(logFor)
 	default:
-		log.SetFormatter(&logrus.TextFormatter{})
+		logFor := &logrus.TextFormatter{}
+		logFor.TimestampFormat = "2006-01-02 15:04:05"
+		log.SetFormatter(logFor)
 	}
 
 }

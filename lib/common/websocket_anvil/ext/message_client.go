@@ -116,14 +116,13 @@ func (r *MessageClient) GetUserHid() (res string, user UserInterface, err error)
 func (r *MessageClient) Receive() {
 	var err error
 	defer func() {
-		err = r.close()
 		if e := recover(); e != nil {
-			panic(e)
-			// r.Context.Error(map[string]interface{}{
-			// 	"key":  r.Key,
-			// 	"e":    e,
-			// 	"desc": fmt.Sprintf("[消息中心][接收端]连接可能已断开"),
-			// }, "MessageClientReceive0")
+			err = r.close()
+			r.Context.Error(map[string]interface{}{
+				"key":  r.Key,
+				"e":    e,
+				"desc": fmt.Sprintf("[消息中心][接收端]连接可能已断开"),
+			}, "MessageClientReceive0")
 		}
 	}()
 	userHid, _, _ := r.GetUserHid()

@@ -29,10 +29,10 @@ type (
 
 	// PushMessageRequestStruct 推送消息结构体
 	PushMessageRequestStruct struct {
-		FromUserId       string
+		FromUserId       string   `json:"fromUserId" form:"fromUserId"`
 		Type             *ReqUint `json:"type" form:"type" validate:"required"`
-		ToUserIds        []uint   `json:"toUserIds" form:"toUserIds"`
-		ToRoleIds        []uint   `json:"toRoleIds" form:"toRoleIds"`
+		ToUserIds        []string `json:"toUserIds" form:"toUserIds"`
+		ToRoleIds        []string `json:"toRoleIds" form:"toRoleIds"`
 		Title            string   `json:"title" form:"title" validate:"required"`
 		Content          string   `json:"content" form:"content" validate:"required"`
 		IdempotenceToken string   `json:"idempotenceToken" form:"idempotenceToken"`
@@ -46,7 +46,7 @@ type (
 	}
 
 	// ReqUint 请求uint类型
-	ReqUint uint
+	ReqUint string
 
 	// Req 适用于大多数场景的请求参数绑定
 	Req struct {
