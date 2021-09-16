@@ -26,6 +26,7 @@ func (r *SrvWebSocketImpl) WebsocketSrv(conn *websocket.Conn, arg *wrapper.ArgWe
 			return
 		}),
 		ext.WebSocketAnvilOptionConn(conn),
+		ext.WebSocketAnvilOptionMessageHandler(r.messageLogicHandler),
 	).Start()
 
 }
@@ -33,6 +34,13 @@ func (r *SrvWebSocketImpl) WebsocketSrv(conn *websocket.Conn, arg *wrapper.ArgWe
 // GetCurrentUser 获取当前请求用户信息
 func (r *SrvWebSocketImpl) getCurrentUserByUid(userHid string) (res *models.User, err error) {
 	res = &models.User{UserHid: userHid}
+	return
+}
+
+
+// 消息接收处理
+func (r *SrvWebSocketImpl) messageLogicHandler(data interface{}) (res interface{}, err error) {
+
 	return
 }
 

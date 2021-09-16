@@ -5,6 +5,10 @@ import (
 )
 
 type (
+
+	// MessageHandler 普通消息处理逻辑
+	MessageHandler func(data interface{}) (res interface{}, err error)
+
 	// MessageBroadcast 消息广播
 	MessageBroadcast struct {
 		MessageWsResponseStruct
@@ -25,6 +29,7 @@ type (
 		Data      interface{} `json:"data"`      // 数据内容
 		Msg       string      `json:"msg"`       // 消息提示
 		RequestId string      `json:"requestId"` // 请求id
+		Time      string      `json:"time"`      // 时间戳
 	}
 
 	// PushMessageRequestStruct 推送消息结构体

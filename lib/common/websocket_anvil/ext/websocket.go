@@ -9,10 +9,11 @@ import (
 
 // WebSocketAnvil websocket操作基本结构体
 type WebSocketAnvil struct {
-	Context      *base.Context          `json:"-"`
-	Conn         *websocket.Conn        `json:"-"`
-	UserFunc     UserHandler            `json:"-"`
-	CommonParams *base.ArgWebSocketBase `json:"common_params"`
+	Context       *base.Context          `json:"-"`
+	Conn          *websocket.Conn        `json:"-"`
+	UserFunc      UserHandler            `json:"-"`
+	MessageAccept MessageHandler         `json:"-"`
+	CommonParams  *base.ArgWebSocketBase `json:"common_params"`
 }
 
 func NewWebSocketAnvil(options ...WebSocketAnvilOption) (res *WebSocketAnvil) {
@@ -37,6 +38,11 @@ func WebSocketAnvilOptionCommonParams(commonParams *base.ArgWebSocketBase) WebSo
 	}
 }
 
+func WebSocketAnvilOptionMessageHandler(messageAccept MessageHandler) WebSocketAnvilOption {
+	return func(arg *WebSocketAnvil) {
+		arg.MessageAccept = messageAccept
+	}
+}
 func WebSocketAnvilOptionConn(conn *websocket.Conn) WebSocketAnvilOption {
 	return func(arg *WebSocketAnvil) {
 		arg.Conn = conn
@@ -70,19 +76,20 @@ func (r *WebSocketAnvil) Start() (err error) {
 
 	// 注册到消息仓库
 	client := &MessageClient{
-		Context:  r.Context,
-		Key:      r.CommonParams.WebsocketKey,
-		Conn:     r.Conn,
-		UserFunc: r.UserFunc,
-		Ip:       r.CommonParams.Ip,
-		SendChan: NewCh(),
+		MessageAction: r.MessageAccept,
+		Key:           r.CommonParams.WebsocketKey,
+		Conn:          r.Conn,
+		UserFunc:      r.UserFunc,
+		Ip:            r.CommonParams.Ip,
+		SendChan:      NewCh(),
 	}
-	go func() {
-		client.Receive() // 监听数据的接收/发送/心跳
-	}()
-	go func() {
-		client.Register()
-	}()
+	client.Context = r.Context
+	client.RequestId = r.CommonParams.WebsocketKey
+
+	go client.Register() // 注册
+
+	go client.Receive() // 监听数据的接收/发送/心跳
+
 	// 监听发送消息
 	go client.Send()
 
