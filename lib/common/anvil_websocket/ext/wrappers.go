@@ -7,7 +7,7 @@ import (
 type (
 
 	// MessageHandler 普通消息处理逻辑
-	MessageHandler func(data interface{}) (res interface{}, err error)
+	MessageHandler func(userHid string, data interface{}) (res interface{}, err error)
 
 	// MessageBroadcast 消息广播
 	MessageBroadcast struct {

@@ -1,7 +1,7 @@
 package daos
 
 import (
-	"github.com/juetun/base-wrapper/lib/common/websocket_anvil/ext"
+	"github.com/juetun/base-wrapper/lib/common/anvil_websocket/ext"
 )
 
 type DaoWebSocket interface {

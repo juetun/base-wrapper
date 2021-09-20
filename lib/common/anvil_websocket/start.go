@@ -1,8 +1,8 @@
-package websocket_anvil
+package anvil_websocket
 
 import (
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/base-wrapper/lib/common/websocket_anvil/ext"
+	"github.com/juetun/base-wrapper/lib/common/anvil_websocket/ext"
 	"github.com/juetun/base-wrapper/web/daos/dao_impl"
 )
 

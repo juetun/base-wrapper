@@ -129,9 +129,10 @@ func (r *MessageClient) receiveMessageAct(msg []byte, userHid string) (needBreak
 	case MessageReqAllDeleted: // 全部删除
 		err = r.msgDelete(userHid, detail, req.Data)
 	default:
+
 		var resData interface{}
 		// 如果是一般的消息 可以通过定义个函数，将参数传递过去处理
-		if resData, err = r.MessageAction(req.Data); err != nil {
+		if resData, err = r.MessageAction(userHid,req.Data); err != nil {
 			detail = r.GetFailWithMsg(err.Error())
 			// 发送响应
 			r.SendChan.SafeSend(MessageWsResponseStruct{
@@ -144,10 +145,6 @@ func (r *MessageClient) receiveMessageAct(msg []byte, userHid string) (needBreak
 				Detail: r.GetSuccessWithData(resData),
 			})
 		}
-		// r.SendChan.SafeSend(MessageWsResponseStruct{
-		// 	Type:   MessageRespNormal,
-		// 	Detail: r.GetFailWithMsg(fmt.Sprintf("当前不支持您选择的消息类型（%s）", req.Type)),
-		// })
 	}
 	return
 }
