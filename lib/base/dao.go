@@ -43,6 +43,17 @@ func (r *ServiceDao) SetContext(context ...*Context) (s *ServiceDao) {
 
 	return r
 }
+
+// InitFetchParameters 初始化FetchDataParameter
+func (r *ServiceDao) InitFetchParameters(model ModelBase) (fetchData *FetchDataParameter) {
+	fetchData = &FetchDataParameter{
+		SourceDb:  r.Context.Db,
+		DbName:    r.Context.DbName,
+		TableName: model.TableName(),
+	}
+	return
+}
+
 func (r *ServiceDao) formatValue(db *gorm.DB, valueStruct reflect.Value) (res interface{}) {
 
 	switch valueStruct.Kind() {
