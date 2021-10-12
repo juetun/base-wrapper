@@ -4,6 +4,14 @@ import (
 	"time"
 )
 
+// 获取用户信息对应的表
+const (
+	UserDataTypeEmail  = "user_email"
+	UserDataTypeMain   = "user_main"
+	UserDataTypeInfo   = "user_info"
+	UserDataTypeMobile = "user_mobile"
+)
+
 // 获取用户信息的响应参数结构
 type (
 	ResultUser struct {
