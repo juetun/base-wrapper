@@ -49,13 +49,15 @@ func NewContext(contextOption ...ContextOption) *Context {
 }
 
 type Context struct {
-	log         *app_obj.AppLog `json:"log"`
-	Db          *gorm.DB        `json:"db"`
-	DbName      string          `json:"db_name"` // 数据库的链接配置KEY
-	CacheClient *redis.Client   `json:"cache_client"`
-	CacheName   string          `json:"cache_name"` // 缓存的链接配置KEY
-	GinContext  *gin.Context
-	syncLog     sync.Mutex
+	log            *app_obj.AppLog           `json:"log"`
+	Db             *gorm.DB                  `json:"db"`
+	DbName         string                    `json:"db_name"` // 数据库的链接配置KEY
+	CacheClient    *redis.Client             `json:"cache_client"`
+	CacheName      string                    `json:"cache_name"` // 缓存的链接配置KEY
+	ClickHouse     *app_obj.ClickHouseClient `json:"click_house"`
+	ClickHouseName string                    `json:"click_house_name"`
+	GinContext     *gin.Context
+	syncLog        sync.Mutex
 }
 type ContextOption func(context *Context)
 
@@ -103,12 +105,20 @@ func (r *Context) InitContext() (c *Context) {
 	}
 	s, ctx := r.GetTraceId()
 	if r.Db == nil {
-		r.initDb(s, ctx)
+		_ = r.initDb(s, ctx)
+	}
+	if r.ClickHouse == nil {
+		r.initClickHouse()
 	}
 	if r.CacheClient == nil {
 		r.CacheClient, r.CacheName = app_obj.GetRedisClient()
 	}
 	return r
+}
+
+// 初始化clickhouse句柄
+func (r *Context) initClickHouse() {
+	r.ClickHouse, r.ClickHouseName = app_obj.GetClickHouseClient()
 }
 
 func (r *Context) initDb(s string, ctx context.Context) (err error) {
@@ -125,6 +135,7 @@ func (r *Context) initDb(s string, ctx context.Context) (err error) {
 
 	return
 }
+
 func (r *Context) Error(data map[string]interface{}, message ...interface{}) {
 	r.log.Error(r.GinContext, data, message...)
 }

@@ -3,6 +3,7 @@ module github.com/juetun/base-wrapper
 go 1.15
 
 require (
+	github.com/ClickHouse/clickhouse-go v1.5.1
 	github.com/Tang-RoseChild/mahonia v0.0.0-20131226213531-0eef680515cc
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/asim/go-micro/plugins/server/http/v3 v3.0.0-20210623064501-212df8e6c359
@@ -28,6 +29,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.14.5 // indirect
+	github.com/jmoiron/sqlx v1.3.4 // indirect
 	github.com/jonboulle/clockwork v0.2.2 // indirect
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/lestrrat-go/strftime v1.0.4 // indirect
