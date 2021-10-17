@@ -5,6 +5,7 @@ const (
 )
 const (
 	ErrorSystem            = iota + 11000 // 系统错误
+	ErrorBUSSSINESS                       // 业务系统错误
 	ErrorSqlCode                          // 数据库错误信息
 	ErrorUpgradeCode                      // 强制用户升级App状态
 	ErrorRedisCode                        // Redis错误信息
