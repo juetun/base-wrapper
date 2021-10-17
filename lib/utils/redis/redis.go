@@ -7,12 +7,13 @@ package redis
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/go-redis/redis/v8"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
-	"time"
 )
 
-//这是一个redis的缓存操作工具结构体
+// 这是一个redis的缓存操作工具结构体
 type utilsRedis struct {
 	Key         string `json:"key"`
 	Type        string `json:"type"`
@@ -47,9 +48,9 @@ func (r *utilsRedis) Get(data interface{}) (err error) {
 	if err = r.redis.GetSet(context.Background(), r.Key, data).Err(); err != nil {
 		return
 	}
-	//如果缓存中没有数据
+	// 如果缓存中没有数据
 	if data == nil {
-		//调用获取数据功能获取数据
+		// 调用获取数据功能获取数据
 		data = r.getDataFunc(r.Key)
 		if err = r.Set(data); err != nil {
 			return
