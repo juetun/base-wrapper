@@ -25,7 +25,7 @@ const (
 	HttpHeaderVersion         = "X-App-version" // 接口请求版本信息
 	HttpHeaderTerminal        = "X-Terminal"    // 终端类型 android ,ios ,web weixin
 	HttpHeaderAdminToken      = "X-Console"     // 客服后台接口多的key值
-	HttpResponseAdministrator = "X-Admin"       // 管理员
+	HttpResponseAdministrator = "X-Admin"       // 程序负责人、管理员
 
 	WebSocketKey      = "Sec-Websocket-Key"
 	WebSocketHeaderIp = "X-Forwarded-For" // 取Ip地址方法
