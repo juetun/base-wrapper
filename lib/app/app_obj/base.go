@@ -33,6 +33,12 @@ const (
 	DbNameKey         = "dbName"
 	DbContextValueKey = "DbContextValue" // 数据库操作上下文传参保存的KEY
 )
+const (
+	EnvDev  = "dev"  // 开发环境
+	EnvTest = "test" // 测试环境
+	EnvPre  = "pre"  // 预发布环境
+	EnvProd = "prod" // 线上环境
+)
 
 // BaseDirect 当前配置文件所在目录
 var BaseDirect string
