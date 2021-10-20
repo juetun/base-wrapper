@@ -20,11 +20,12 @@ const (
 	HttpTraceId = "X-Trace-Id" // 页面请求时的 传参或者nginx生成的trace_id的key
 	HttpUserHid = "X-User-Hid" // 页面请求时的 用户ID
 
-	HttpUserToken        = "X-Auth-Token"  // 页面请求时用户token
-	HttpHeaderApp        = "X-App"         // 接口请求头信息
-	HttpHeaderVersion    = "X-App-version" // 接口请求版本信息
-	HttpHeaderTerminal   = "X-Terminal"    // 终端类型 android ,ios ,web weixin
-	HttpHeaderAdminToken = "X-Console"     // 客服后台接口多的key值
+	HttpUserToken             = "X-Auth-Token"  // 页面请求时用户token
+	HttpHeaderApp             = "X-App"         // 接口请求头信息
+	HttpHeaderVersion         = "X-App-version" // 接口请求版本信息
+	HttpHeaderTerminal        = "X-Terminal"    // 终端类型 android ,ios ,web weixin
+	HttpHeaderAdminToken      = "X-Console"     // 客服后台接口多的key值
+	HttpResponseAdministrator = "X-Admin"       // 管理员
 
 	WebSocketKey      = "Sec-Websocket-Key"
 	WebSocketHeaderIp = "X-Forwarded-For" // 取Ip地址方法
@@ -39,6 +40,10 @@ const (
 	EnvPre  = "pre"  // 预发布环境
 	EnvProd = "prod" // 线上环境
 )
+
+var EnvList = []string{
+	EnvProd, EnvDev, EnvTest, EnvPre,
+}
 
 // BaseDirect 当前配置文件所在目录
 var BaseDirect string
@@ -60,6 +65,7 @@ type Application struct {
 	AppTemplateDirectory string          `json:"app_template_directory" yaml:"template_directory"` // temp模板默认目录
 	AppRouterPrefix      AppRouterPrefix `json:"app_router_prefix" yaml:"app_router_prefix"`       // 路由前缀
 	AppAdminToken        string          `json:"app_admin_token" yaml:"app_admin_token"`           // 客服后台接口多的token值
+	Administrator        string          `json:"administrator" yaml:"administrator"`
 }
 
 type AppRouterPrefix struct {

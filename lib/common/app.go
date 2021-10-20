@@ -2,33 +2,20 @@ package common
 
 import (
 	"fmt"
-	"github.com/juetun/base-wrapper/lib/app/app_obj"
-	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/base-wrapper/lib/utils"
 	"os"
 	"path"
 	"strings"
-)
 
-const (
-	// 开发环境
-	ENV_DEVELOP = "dev"
-
-	// 测试环境
-	ENV_TEST = "test"
-
-	// demo
-	ENV_DEMO = "demo"
-
-	// 线上环境
-	ENV_RELEASE = "release"
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
+	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/utils"
 )
 
 func GetEnv() string {
 	return os.Getenv("GO_ENV")
 }
 
-// 获取当前应用的基本配置
+// GetAppConfig 获取当前应用的基本配置
 func GetAppConfig() *app_obj.Application {
 	return app_obj.App
 }
@@ -44,7 +31,7 @@ func DefaultAppTemplateDirectory(io *base.SystemOut) (res string) {
 	return
 }
 
-// 获得配置文件所在目录
+// GetConfigFileDirectory 获得配置文件所在目录
 func GetConfigFileDirectory(notEnv ...bool) (res string) {
 
 	var env = ""
@@ -77,7 +64,7 @@ func GetConfigFileDirectory(notEnv ...bool) (res string) {
 
 }
 
-// 获取配置文件的路径
+// GetConfigFilePath 获取配置文件的路径
 func GetConfigFilePath(fileName string, notEnv ...bool) (res string) {
 	dir := GetConfigFileDirectory(notEnv...)
 	res = fmt.Sprintf("%s%s", dir, fileName)
@@ -105,14 +92,14 @@ func GetConfigFilePath(fileName string, notEnv ...bool) (res string) {
 	return
 }
 
-// 初始化应用信息
+// NewApplication 初始化应用信息
 func NewApplication() *app_obj.Application {
 	var env = GetEnv()
 	if env == "" { // 默认环境为线上环境
-		env = ENV_RELEASE
+		env = app_obj.EnvProd
 	}
 	var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
-	io.SystemOutPrintf("Env:'%s'(You can set environment variable with 'export \"GO_ENV=%s\")", env, strings.Join([]string{ENV_DEVELOP, ENV_TEST, ENV_TEST, ENV_DEMO, ENV_RELEASE,}, "|"), )
+	io.SystemOutPrintf("Env:'%s'(You can set environment variable with 'export \"GO_ENV=%s\")", env, strings.Join(app_obj.EnvList, "|"))
 	return &app_obj.Application{
 		AppSystemName:  "",
 		AppName:        "app",

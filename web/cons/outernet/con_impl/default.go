@@ -22,6 +22,7 @@ func NewConDefault() (res outernet.ConDefault) {
 	return p
 }
 
+// TestEs
 // @测试Elasticsearch
 // @Description get record by ID
 // @Accept  json
@@ -93,6 +94,7 @@ func (r *ConDefaultImpl) AuthRes(c *gin.Context) {
 	r.ResponseResult(c, result)
 }
 
+// Index
 // @获取指定ID记录
 // @Description get record by ID
 // @Accept  json

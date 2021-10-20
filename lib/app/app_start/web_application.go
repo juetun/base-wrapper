@@ -42,11 +42,13 @@ type WebApplication struct {
 // NewWebApplication privateMiddleWares 项目自定义的GIN中间件
 func NewWebApplication(privateMiddleWares ...gin.HandlerFunc) *WebApplication {
 	switch strings.ToLower(common.GetAppConfig().AppEnv) {
-	case "release":
+	case app_obj.EnvProd:
 		gin.SetMode(gin.ReleaseMode)
-	case "test":
+	case app_obj.EnvTest:
 		gin.SetMode(gin.TestMode)
-	case "dev":
+	case app_obj.EnvDev:
+		gin.SetMode(gin.DebugMode)
+	case app_obj.EnvPre:
 		gin.SetMode(gin.DebugMode)
 	default:
 		gin.SetMode(gin.ReleaseMode)
@@ -146,7 +148,7 @@ func (r *WebApplication) LoadRouter(routerHandler ...RouterHandler) (res *WebApp
 			pr = "/" + pr
 		}
 		for _, router := range HandleFuncPage {
- 			router(r.GinEngine, fmt.Sprintf("%s%s", UrlPrefix, pr))
+			router(r.GinEngine, fmt.Sprintf("%s%s", UrlPrefix, pr))
 		}
 	}
 	return
@@ -255,7 +257,7 @@ func (r *WebApplication) registerDefaultRoute(UrlPrefix string) {
 }
 func (r *WebApplication) registerSwagger(appConfig *app_obj.Application) {
 	// 如果非线上(release)环境，则可以直接使用
-	if app_obj.App.AppEnv != common.ENV_RELEASE {
+	if app_obj.App.AppEnv != app_obj.EnvProd {
 		return
 	}
 

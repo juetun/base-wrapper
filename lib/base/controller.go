@@ -108,11 +108,13 @@ func NewResult() *Result {
 }
 
 func (r *ControllerBase) Response(c *gin.Context, code int, data interface{}, msg ...string) {
+	c.Header(app_obj.HttpResponseAdministrator, app_obj.App.Administrator)
 	c.JSON(http.StatusOK, Result{Code: code, Data: data, Msg: strings.Join(msg, ",")})
 }
 
 // ResponseResult 处理正常结果集
 func (r *ControllerBase) ResponseResult(c *gin.Context, result *Result) {
+	c.Header(app_obj.HttpResponseAdministrator, app_obj.App.Administrator)
 	c.JSON(http.StatusOK, result)
 	return
 }
@@ -124,7 +126,7 @@ func (r *ControllerBase) ResponseError(c *gin.Context, err error, code ...int) {
 	if len(code) > 0 {
 		result.SetCode(code[0])
 	}
-
+	c.Header(app_obj.HttpResponseAdministrator, app_obj.App.Administrator)
 	c.JSON(http.StatusOK, result)
 	return
 }
@@ -135,5 +137,6 @@ func (r *ControllerBase) ResponseCommonHtml(c *gin.Context, code int, data gin.H
 		defaultExt = extName[0]
 	}
 	codeString := strconv.Itoa(code)
+	c.Header(app_obj.HttpResponseAdministrator, app_obj.App.Administrator)
 	c.HTML(http.StatusOK, codeString[0:1]+"xx."+defaultExt, data)
 }

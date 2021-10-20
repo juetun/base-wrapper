@@ -17,7 +17,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
-	"github.com/juetun/base-wrapper/lib/common"
 )
 
 // 签名的字符编码类型
@@ -149,7 +148,7 @@ func (s *SignUtils) SignGinRequest(c *gin.Context, getSecret GetSecretHandler) (
 	} else if t, err = strconv.Atoi(headerT); err != nil {
 		err = fmt.Errorf("格式不不正确(时间戳:X-Timestamp)")
 		return
-	} else if app_obj.App.AppEnv != common.ENV_RELEASE && int(time.Now().UnixNano()/1e6)-t > 86400000 { // 传递的时间格式必须大于当前时间-一天
+	} else if app_obj.App.AppEnv != app_obj.EnvProd && int(time.Now().UnixNano()/1e6)-t > 86400000 { // 传递的时间格式必须大于当前时间-一天
 		err = fmt.Errorf("the header of  parameter(t) must be more than now desc one days")
 		return
 	} else {
@@ -180,7 +179,7 @@ func (s *SignUtils) SignGinRequest(c *gin.Context, getSecret GetSecretHandler) (
 	listenHandlerStruct := ListenHandlerStruct{}
 
 	// 如果不是线上环境,可输出签名格式 (此处代码为调试 签名是否能正常使用准备)
-	if app_obj.App.AppEnv != common.ENV_RELEASE && c.GetHeader("debug") != "" {
+	if app_obj.App.AppEnv != app_obj.EnvProd && c.GetHeader("debug") != "" {
 		resp := c.Writer.Header()
 		resp.Set("Sign-format", encryptionString)
 		resp.Set("Sign-Base64Code", base64Code)
