@@ -22,7 +22,26 @@ type FetchDataParameterBatch struct {
 	Ids       []string `json:"ids"`
 }
 
+
+type FetchDataParameterTimesBatch struct {
+	SourceDb  *gorm.DB     `json:"-"`
+	DbName    string       `json:"db_name"`
+	TableName string       `json:"table_name"`
+	Times     []TimeNormal `json:"times"`
+}
+
+func NewFetchDataParameterTimesBatch(dbName, tableName string, db *gorm.DB, l int) FetchDataParameterTimesBatch {
+	return FetchDataParameterTimesBatch{
+		DbName:    dbName,
+		TableName: tableName,
+		SourceDb:  db,
+		Times:     make([]TimeNormal, 0, l),
+	}
+}
+
 type FetchDataHandlerBatch func(fetchDataParameter *FetchDataParameterBatch) (err error)
+
+type FetchDataTimeHandlerBatch func(fetchDataParameter *FetchDataParameterTimesBatch) (err error)
 
 type FetchDataHandler func(fetchDataParameter *FetchDataParameter) (err error)
 
@@ -58,6 +77,8 @@ type SubTreasury interface {
 	GetDataByIntegerId(id int64, fetchDataHandler FetchDataHandler) (err error)
 
 	GetHashDbAndTableById(id int64) (db *gorm.DB, dbName, tableName string, err error)
+
+	GetHashDbAndTableByTimeId(timeNormal TimeNormal) (db *gorm.DB, dbName, tableName string, err error)
 
 	GetHashDbAndTableByStringId(id string) (db *gorm.DB, dbName, tableName string, err error)
 

@@ -44,10 +44,10 @@ type SubTreasuryBase struct {
 }
 
 // GetDbFunc 自定义操作哪个数据库算法实现的操作方法
-type GetDbFunc func(subTreasury SubTreasury, columnValue int64) (db *gorm.DB, dbName string, err error)
+type GetDbFunc func(subTreasury *SubTreasuryBase, columnValue int64) (db *gorm.DB, dbName string, err error)
 
 // GetTableFunc 自定义操作哪个table实现的操作方法
-type GetTableFunc func(subTreasury SubTreasury, columnValue int64) (tableName string, err error)
+type GetTableFunc func(subTreasury *SubTreasuryBase, columnValue int64) (tableName string, err error)
 
 // SubTreasuryBaseOption 调用分布式数据库操作的对象结构体参数
 type SubTreasuryBaseOption func(p *SubTreasuryBase)
@@ -334,7 +334,7 @@ func SubTreasuryContext(ctx *base.Context) SubTreasuryBaseOption {
 }
 
 // NewSubTreasuryBase 初始化数据模型
-func NewSubTreasuryBase(options ...SubTreasuryBaseOption) (res SubTreasury) {
+func NewSubTreasuryBase(options ...SubTreasuryBaseOption) (res *SubTreasuryBase) {
 
 	p := &SubTreasuryBase{} // Dbs: app_obj.DbMysql,
 
