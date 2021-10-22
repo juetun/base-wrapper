@@ -1,4 +1,4 @@
-package parameters
+package app_param
 
 import (
 	"time"

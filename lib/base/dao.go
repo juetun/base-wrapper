@@ -193,11 +193,12 @@ func (r *ServiceDao) BatchAdd(data *BatchAddDataParameter) (err error) {
 	var (
 		columns, replaceKeys []string
 		l                    = len(data.Data) * 20
-		vv                   = make([]string, 0, l)
+		vl                   = make([]string, 0, l)
 		val                  = make([]interface{}, 0, l)
 	)
 
 	for k, item := range data.Data {
+		var vv = make([]string, 0, l)
 		if k == 0 {
 			if data.TableName == "" {
 				data.TableName = item.TableName()
@@ -206,9 +207,11 @@ func (r *ServiceDao) BatchAdd(data *BatchAddDataParameter) (err error) {
 		} else {
 			_, _ = r.getItemColumns(data.IgnoreColumn, data.RuleOutColumn, data.Db, item, &val, &vv)
 		}
+		vvs:=fmt.Sprintf("(%s)",strings.Join(vv, ","))
+		vl =append(vl,vvs)
 	}
-	sql := fmt.Sprintf("INSERT INTO `%s`(`"+strings.Join(columns, "`,`")+"`) VALUES ("+strings.Join(vv, ",")+
-		") ON DUPLICATE KEY UPDATE "+strings.Join(replaceKeys, ","), data.TableName)
+	sql := fmt.Sprintf("INSERT INTO `%s`(`"+strings.Join(columns, "`,`")+"`) VALUES "+strings.Join(vl, ",")+
+		" ON DUPLICATE KEY UPDATE "+strings.Join(replaceKeys, ","), data.TableName)
 
 	if err = data.Db.Exec(sql, val...).Error; err != nil {
 		logContent := map[string]interface{}{
