@@ -49,6 +49,7 @@ type httpRpc struct {
 	Error   error           `json:"error"`   //
 	Body    []byte          `json:"-"`
 	BaseUrl string          `json:"base_url"`
+	Uri     string          `json:"uri"`
 	resp    *http.Response
 	client  *http.Client
 }
@@ -193,27 +194,27 @@ func (r *httpRpc) getUrl(paramString ...string) (res string) {
 
 func (r *httpRpc) get() {
 	var request *http.Request
-	urlPath := r.getUrl(r.Request.Value.Encode())
+	r.Uri = r.getUrl(r.Request.Value.Encode())
 
-	request, r.Error = http.NewRequest(http.MethodGet, urlPath, nil)
+	request, r.Error = http.NewRequest(http.MethodGet, r.Uri, nil)
 	request.Header = r.Request.Header
 	r.resp, r.Error = r.client.Do(request)
 }
 func (r *httpRpc) delete() {
 	var request *http.Request
-	urlPath := r.getUrl(r.Request.Value.Encode())
-	request, r.Error = http.NewRequest(http.MethodDelete, urlPath, nil)
+	r.Uri = r.getUrl(r.Request.Value.Encode())
+	request, r.Error = http.NewRequest(http.MethodDelete, r.Uri, nil)
 	request.Header = r.Request.Header
 	r.resp, r.Error = r.client.Do(request)
 }
 func (r *httpRpc) put() {
 	var request *http.Request
-	urlPath := r.getUrl()
+	r.Uri = r.getUrl()
 	if len(r.Request.BodyJson) > 0 {
 		r.Request.Header.Add("Content-Type", "application/json")
-		request, r.Error = http.NewRequest(http.MethodPut, urlPath, bytes.NewReader(r.Request.BodyJson))
+		request, r.Error = http.NewRequest(http.MethodPut, r.Uri, bytes.NewReader(r.Request.BodyJson))
 	} else {
-		request, r.Error = http.NewRequest(http.MethodPut, urlPath, nil)
+		request, r.Error = http.NewRequest(http.MethodPut, r.Uri, nil)
 	}
 	request.Header = r.Request.Header
 	if len(r.Request.Value) > 0 {
@@ -223,12 +224,12 @@ func (r *httpRpc) put() {
 }
 func (r *httpRpc) patch() {
 	var request *http.Request
-	urlPath := r.getUrl()
+	r.Uri = r.getUrl()
 	if len(r.Request.BodyJson) > 0 {
 		r.Request.Header.Add("Content-Type", "application/json")
-		request, r.Error = http.NewRequest(http.MethodPatch, urlPath, bytes.NewReader(r.Request.BodyJson))
+		request, r.Error = http.NewRequest(http.MethodPatch, r.Uri, bytes.NewReader(r.Request.BodyJson))
 	} else {
-		request, r.Error = http.NewRequest(http.MethodPatch, urlPath, nil)
+		request, r.Error = http.NewRequest(http.MethodPatch, r.Uri, nil)
 	}
 	request.Header = r.Request.Header
 	if len(r.Request.Value) > 0 {
@@ -236,18 +237,44 @@ func (r *httpRpc) patch() {
 	}
 	r.resp, r.Error = r.client.Do(request)
 }
+
 func (r *httpRpc) post() {
-	var request *http.Request
-	urlPath := r.getUrl()
+	r.Uri = r.getUrl()
 	if len(r.Request.BodyJson) > 0 {
-		r.Request.Header.Add("Content-Type", "application/json")
-		request, r.Error = http.NewRequest(http.MethodPost, urlPath, bytes.NewReader(r.Request.BodyJson))
-	} else {
-		r.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		request, r.Error = http.NewRequest(http.MethodPost, urlPath, strings.NewReader(r.Request.Value.Encode()))
+		if r.postJson(); r.Error != nil {
+			return
+		}
+		return
 	}
+	if r.postGeneral(); r.Error != nil {
+		return
+	}
+}
+
+// 发送请求
+func (r *httpRpc) sendDo(request *http.Request) {
 	request.Header = r.Request.Header
 	r.resp, r.Error = r.client.Do(request)
+}
+func (r *httpRpc) postGeneral() {
+	var request *http.Request
+	r.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	request, r.Error = http.NewRequest(http.MethodPost, r.Uri, strings.NewReader(r.Request.Value.Encode()))
+	if r.Error != nil {
+		return
+	}
+	r.sendDo(request)
+	return
+}
+func (r *httpRpc) postJson() {
+	var request *http.Request
+	r.Request.Header.Add("Content-Type", "application/json")
+	request, r.Error = http.NewRequest(http.MethodPost, r.Uri, bytes.NewReader(r.Request.BodyJson))
+	if r.Error != nil {
+		return
+	}
+	r.sendDo(request)
+	return
 }
 
 // SetURLParams 生成GET URL结构
@@ -282,8 +309,10 @@ func (r *httpRpc) GetBodyAsString() (res string) {
 }
 
 func (r *httpRpc) GetBody() (res *httpRpc) {
+	res = r
 	logContent := map[string]interface{}{
 		"request": r.Request,
+		"uri":     r.Uri,
 	}
 	defer func() {
 		if r.Error != nil {
@@ -294,13 +323,12 @@ func (r *httpRpc) GetBody() (res *httpRpc) {
 		}
 
 	}()
-	res = r
+
 	if r.Error != nil {
 		return
 	}
 	// 保证I/O正常关闭
 	defer func() {
-
 		if r.resp != nil && r.resp.Body != nil {
 			_ = r.resp.Body.Close()
 		}
@@ -311,8 +339,8 @@ func (r *httpRpc) GetBody() (res *httpRpc) {
 		return
 	}
 	// 失败，返回状态
-	r.Body, r.Error = ioutil.ReadAll(r.resp.Body)
-	if r.Error != nil {
+
+	if r.Body, r.Error = ioutil.ReadAll(r.resp.Body); r.Error != nil {
 		// 读取错误,返回异常
 		r.Error = fmt.Errorf("读取请求返回失败(%s)", r.Error.Error())
 		return
