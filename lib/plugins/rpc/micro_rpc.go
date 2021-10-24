@@ -120,15 +120,20 @@ func (r *httpRpc) Send() (res *httpRpc) {
 	}
 	switch strings.ToUpper(r.Request.Method) {
 	case "GET":
-		r.initClient().get()
+		r.initClient().
+			get()
 	case "POST":
-		r.initClient().post()
+		r.initClient().
+			post()
 	case "PUT":
-		r.initClient().put()
+		r.initClient().
+			put()
 	case "DELETE":
-		r.initClient().delete()
+		r.initClient().
+			delete()
 	case "PATCH":
-		r.initClient().patch()
+		r.initClient().
+			patch()
 	default:
 		r.Error = fmt.Errorf("当前不支您输入的请求方法(%s)", r.Request.Method)
 	}
