@@ -26,6 +26,7 @@ type (
 		Portrait         string     `json:"portrait,omitempty"`  // 头像
 		NickName         string     `json:"nick_name,omitempty"` // 昵称
 		UserName         string     `json:"user_name,omitempty"` // 用户名
+		RealName         string     `json:"real_name"`           // 真实姓名
 		Gender           int        `json:"gender,omitempty"`    //
 		Status           int        `json:"status,omitempty"`    //
 		Score            int        `json:"score,omitempty"`     //
@@ -75,6 +76,7 @@ type (
 	}
 	UserInfo struct {
 		ID                int             `gorm:"column:id;primary_key" json:"id"`
+		RealName          string          `gorm:"column:real_name;type:varchar(60);not null;comment:真实姓名"  json:"real_name"`
 		UserIndexHid      string          `gorm:"column:user_index_hid;type:varchar(60);not null;comment:user_main表位置" json:"user_index_hid"`
 		UserHid           string          `gorm:"column:user_hid;not null;uniqueIndex:idx_userhid;type:varchar(32) COLLATE utf8mb4_bin" json:"user_hid"`
 		AuthDesc          string          `json:"auth_desc" gorm:"column:auth_desc;not null;type:varchar(30);default:'';comment:认证描述"` // 认证描述
@@ -149,6 +151,7 @@ func (r *ResultUserItem) InitData(item *User) {
 		r.AuthDesc = item.UserInfo.AuthDesc
 		r.Signature = item.UserInfo.Signature
 		r.RegisterChannel = item.UserInfo.RegisterChannel
+		r.RealName = item.UserInfo.RealName
 	}
 
 	if item.UserEmail != nil {
