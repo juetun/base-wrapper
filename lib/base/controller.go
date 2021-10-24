@@ -29,11 +29,11 @@ func (r *ControllerBase) GetAdminUserName(c *gin.Context) string {
 }
 
 // GetUser 当前登录用户的信息
-func (r *ControllerBase) GetUser(c *gin.Context) (jwtUser app_obj.JwtUserMessage) {
-	jwtUser = app_obj.JwtUserMessage{}
+func (r *ControllerBase) GetUser(c *gin.Context) (jwtUser app_obj.JwtUser) {
+	jwtUser = app_obj.JwtUser{}
 	v, e := c.Get(app_obj.ContextUserObjectKey)
 	if e {
-		jwtUser = v.(app_obj.JwtUserMessage)
+		jwtUser = v.(app_obj.JwtUser)
 	}
 
 	return jwtUser

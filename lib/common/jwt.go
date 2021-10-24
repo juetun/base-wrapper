@@ -1,9 +1,5 @@
-/**
- * Created by GoLand.
- * User: xzghua@gmail.com
- * Date: 2018-12-14
- * Time: 23:48
- */
+// Package common
+// /**
 package common
 
 import (
@@ -20,7 +16,7 @@ import (
 	utils2 "github.com/juetun/base-wrapper/lib/utils"
 )
 
-func CreateToken(user app_obj.JwtUserMessage, c *gin.Context) (tokenString string, err error) {
+func CreateToken(user app_obj.JwtUser, c *gin.Context) (tokenString string, err error) {
 	//	iss: jwt签发者
 	//	sub: jwt所面向的用户
 	//	aud: 接收jwt的一方
@@ -70,7 +66,7 @@ func CreateToken(user app_obj.JwtUserMessage, c *gin.Context) (tokenString strin
 	return
 }
 
-func ParseToken(myToken string, c *gin.Context) (jwtUser app_obj.JwtUserMessage, err error) {
+func ParseToken(myToken string, c *gin.Context) (jwtUser app_obj.JwtUser, err error) {
 	jwtParam := app_obj.GetJwtParam()
 
 	token, err := jwt.Parse(myToken, func(token *jwt.Token) (interface{}, error) {

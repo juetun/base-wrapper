@@ -4,6 +4,7 @@ const (
 	ErrorParameterCode = 1 // 参数错误
 )
 const (
+	SuccessCode            = 0            // 操作成功返回状态码
 	ErrorSystem            = iota + 11000 // 系统错误
 	ErrorBUSSSINESS                       // 业务系统错误
 	ErrorSqlCode                          // 数据库错误信息

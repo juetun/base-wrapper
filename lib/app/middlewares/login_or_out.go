@@ -11,14 +11,14 @@ import (
 
 // AuthenticationCallBack 用户身份验证成功
 // err的提示内容会在响应中输出
-type AuthenticationCallBack func(user *app_obj.JwtUserMessage, c *gin.Context) (err error)
+type AuthenticationCallBack func(user *app_obj.JwtUser, c *gin.Context) (err error)
 
 // AuthParse 不用严格判断登录，如果前端传递了令牌那么解析令牌,否则直接跳过
 // notStrictValue=true
 // token=""
 func AuthParse(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var jwtUser app_obj.JwtUserMessage
+		var jwtUser app_obj.JwtUser
 		var err error
 
 		//
@@ -44,7 +44,7 @@ func AuthParse(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 // Authentication 判断用户是否登录如果未登录则退出
 func Authentication(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var jwtUser app_obj.JwtUserMessage
+		var jwtUser app_obj.JwtUser
 		var exitStatus bool
 		var err error
 		// 验证token是否合法
@@ -74,8 +74,8 @@ func Authentication(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 // 用户登录逻辑处理
 // param  notStrictValue    	true:当token=""时跳过
 // return bool 					true:用户信息获取失败，false:正常操作
-func tokenValidate(c *gin.Context, notStrictValue bool) (jwtUser app_obj.JwtUserMessage, exit bool) {
-	jwtUser = app_obj.JwtUserMessage{}
+func tokenValidate(c *gin.Context, notStrictValue bool) (jwtUser app_obj.JwtUser, exit bool) {
+	jwtUser = app_obj.JwtUser{}
 	var token, userHid string
 	var err error
 	c.Set(app_obj.TraceId, c.GetHeader(app_obj.HttpTraceId))

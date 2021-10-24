@@ -23,7 +23,7 @@ func init() {
 	HandleFuncAdminNet = append(HandleFuncAdminNet,
 		func(r *gin.Engine, urlPrefix string) {
 			c := con_impl2.NewConDefault()
-			p := r.Group(urlPrefix, middlewares.Authentication(func(user *app_obj.JwtUserMessage, c *gin.Context) (err error) {
+			p := r.Group(urlPrefix, middlewares.Authentication(func(user *app_obj.JwtUser, c *gin.Context) (err error) {
 				return
 			}))
 			p.GET("/test", c.Index)

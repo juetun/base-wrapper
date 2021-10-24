@@ -39,7 +39,7 @@ type JwtParam struct {
 	TokenLife       time.Duration
 	RedisCache      *redis.Client
 }
-type JwtUserMessage struct {
+type JwtUser struct {
 	UserId string `json:"user_hid"` // 用户ID
 	Name   string `json:"name"`     // 用户昵称
 	// Portrait string `json:"portrait"` // 头像
