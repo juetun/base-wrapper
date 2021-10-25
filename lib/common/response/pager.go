@@ -34,6 +34,7 @@ type PageQuery struct {
 	IsDel  int    `form:"is_del" json:"is_del,omitempty"`
 	PagerParameter
 }
+
 func (r *PagerParameter) GetOffset() (offset int) {
 	if r.PageNo < 1 {
 		r.PageNo = DefaultPageNo
@@ -60,7 +61,7 @@ func (r *PageQuery) DefaultPage() {
 
 type Pager struct {
 	List       interface{} `json:"list"`
-	TotalCount int         `json:"total_count,omitempty"`
+	TotalCount int64       `json:"total_count,omitempty"`
 	IsNext     bool        `json:"is_next,omitempty"` // [bool] 是否有下一页，true=有下一页；false=无下页，可关闭列表
 	PagerParameter
 }
@@ -86,7 +87,7 @@ func PagerBaseQuery(baseQuery PageQuery) PageOption {
 		pager.PagerParameter = baseQuery.PagerParameter
 	}
 }
-func PagerTotalCount(totalCount int) PageOption {
+func PagerTotalCount(totalCount int64) PageOption {
 	return func(pager *Pager) {
 		pager.TotalCount = totalCount
 	}
