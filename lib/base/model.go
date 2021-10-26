@@ -35,6 +35,11 @@ type TimeNormal struct {
 	time.Time
 }
 
+// GetNowTimeNormal 获取当前时间的时间格式
+func GetNowTimeNormal() (res TimeNormal) {
+	res = TimeNormal{Time: time.Now()}
+	return
+}
 func (t TimeNormal) MarshalJSON() ([]byte, error) {
 	tune := t.Format(`"2006-01-02 15:04:05"`)
 	return []byte(tune), nil

@@ -2,6 +2,7 @@ package base
 
 type ServiceBase struct {
 	Context *Context
+
 }
 
 
