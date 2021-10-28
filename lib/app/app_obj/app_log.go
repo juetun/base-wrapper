@@ -129,7 +129,7 @@ func logFormatter(logConfig *OptionLog, log *logrus.Logger) {
 		logFor.TimestampFormat = "2006-01-02 15:04:05"
 		log.SetFormatter(logFor)
 	default:
-		logFor := &logrus.TextFormatter{}
+		logFor := &logrus.TextFormatter{ForceColors: true}
 		logFor.TimestampFormat = "2006-01-02 15:04:05"
 		log.SetFormatter(logFor)
 	}

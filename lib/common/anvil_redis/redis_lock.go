@@ -1,4 +1,4 @@
-package base
+package anvil_redis
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/juetun/base-wrapper/lib/base"
 )
 
 // DistributedOkHandler redis 分布式锁实现结构体
@@ -19,7 +20,7 @@ type RedisDistributedLock struct {
 	LockKey          string               `json:"lock_key"`
 	UniqueKey        string               `json:"unique_key"`
 	OkHandler        DistributedOkHandler `json:"-"`
-	Context          *Context             `json:"-"`
+	Context          *base.Context        `json:"-"`
 	Duration         time.Duration        `json:"duration"`
 }
 
