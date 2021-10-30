@@ -1,16 +1,18 @@
+// Package plugins
 // @Copyright (c) 2021.
 // @Author ${USER}
 // @Date ${DATE}
 package plugins
 
 import (
+	"io/ioutil"
+	"sync"
+
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/app/app_start"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
-	"sync"
 )
 
 func PluginsApp(arg *app_start.PluginsOperate) (err error) {

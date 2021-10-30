@@ -1,16 +1,11 @@
-/**
-* @Author:changjiang
-* @Description:
-* @File:loadparams
-* @Version: 1.0.0
-* @Date 2020/5/6 8:51 下午
- */
+// Package plugins /**
 package plugins
 
 import (
 	"encoding/json"
-	"github.com/juetun/base-wrapper/lib/app/app_start"
 	"io/ioutil"
+
+	"github.com/juetun/base-wrapper/lib/app/app_start"
 
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"

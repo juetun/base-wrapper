@@ -1,10 +1,5 @@
-/**
-* @Author:changjiang
-* @Description:
-* @File:oss
-* @Version: 1.0.0
-* @Date 2020/4/7 6:48 下午
- */
+// Package plugins
+// /**
 package plugins
 
 import (

@@ -1,17 +1,12 @@
-/**
-* @Author:changjiang
-* @Description:
-* @File:appmap
-* @Version: 1.0.0
-* @Date 2020/10/21 11:00 下午
- */
+// Package plugins /**
 package plugins
 
 import (
 	"fmt"
-	"github.com/juetun/base-wrapper/lib/app/app_start"
 	"io/ioutil"
 	"sync"
+
+	"github.com/juetun/base-wrapper/lib/app/app_start"
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"

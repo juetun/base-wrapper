@@ -1,3 +1,4 @@
+// Package plugins
 // @Copyright (c) 2021.
 // @Author ${USER}
 // @Date ${DATE}
@@ -5,13 +6,14 @@ package plugins
 
 import (
 	"fmt"
+	"io/ioutil"
+	"sync"
+
 	"github.com/juetun/base-wrapper/lib/app/app_start"
 	"github.com/juetun/base-wrapper/lib/app/micro_service"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
-	"sync"
 )
 
 func PluginRegistry(arg *app_start.PluginsOperate) (err error) {

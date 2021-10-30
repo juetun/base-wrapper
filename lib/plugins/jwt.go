@@ -1,15 +1,10 @@
-/**
-* @Author:changjiang
-* @Description:
-* @File:jwt
-* @Version: 1.0.0
-* @Date 2020/3/28 6:40 下午
- */
+// Package plugins /**
 package plugins
 
 import (
-	"github.com/juetun/base-wrapper/lib/app/app_start"
 	"sync"
+
+	"github.com/juetun/base-wrapper/lib/app/app_start"
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 )
