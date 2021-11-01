@@ -260,7 +260,7 @@ func (r *ServiceDao) getItemColumns(ignoreColumn, ruleOutColumn []string, db *go
 			continue
 		}
 		if tag == "" {
-			tag = r.getDefaultColumnValue(types.Elem().Field(i).Name)
+			tag = r.GetDefaultColumnValue(types.Elem().Field(i).Name)
 		}
 		if tag == "" {
 			continue
@@ -345,7 +345,7 @@ func (r *ServiceDao) AddOneData(parameter *AddOneDataParameter) (err error) {
 			continue
 		}
 		if tag == "" {
-			tag = r.getDefaultColumnValue(types.Elem().Field(i).Name)
+			tag = r.GetDefaultColumnValue(types.Elem().Field(i).Name)
 		}
 		if tag == "" {
 			continue
@@ -407,7 +407,7 @@ func (r *ServiceDao) GetColumnName(s string) (ignoreColumn bool, res string) {
 	return
 }
 
-func (r *ServiceDao) getDefaultColumnValue(name string) (res string) {
+func (r *ServiceDao) GetDefaultColumnValue(name string) (res string) {
 	var buffer = make([]rune, 0, len(name)+50)
 	for i, bt := range name {
 		if unicode.IsUpper(bt) {
