@@ -207,8 +207,8 @@ func (r *ServiceDao) BatchAdd(data *BatchAddDataParameter) (err error) {
 		} else {
 			_, _ = r.getItemColumns(data.IgnoreColumn, data.RuleOutColumn, data.Db, item, &val, &vv)
 		}
-		vvs:=fmt.Sprintf("(%s)",strings.Join(vv, ","))
-		vl =append(vl,vvs)
+		vvs := fmt.Sprintf("(%s)", strings.Join(vv, ","))
+		vl = append(vl, vvs)
 	}
 	sql := fmt.Sprintf("INSERT INTO `%s`(`"+strings.Join(columns, "`,`")+"`) VALUES "+strings.Join(vl, ",")+
 		" ON DUPLICATE KEY UPDATE "+strings.Join(replaceKeys, ","), data.TableName)
@@ -361,12 +361,14 @@ func (r *ServiceDao) GetColumnName(s string) (res string) {
 	li := strings.Split(s, ";")
 	res = s
 	for _, s2 := range li {
-		if s2 == "" {
+		if s2 == "" || s2 == "-" {
 			return
 		}
 		li1 := strings.Split(s2, ":")
 		if len(li1) > 1 && li1[0] == "column" {
-			res = li1[1]
+			if li1[1] != "-" {
+				res = li1[1]
+			}
 		}
 	}
 	return
