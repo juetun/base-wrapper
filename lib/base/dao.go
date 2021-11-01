@@ -14,6 +14,7 @@ import (
 	"runtime"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
@@ -249,11 +250,25 @@ func (r *ServiceDao) getItemColumns(ignoreColumn, ruleOutColumn []string, db *go
 	replaceKeys = make([]string, 0, fieldNum)
 	var tag string
 	var tagValue = "gorm"
+	var ignoreColumnFlag bool
+
 	for i := 0; i < fieldNum; i++ {
-		tag = r.GetColumnName(types.Elem().Field(i).Tag.Get(tagValue))
+
+		ignoreColumnFlag, tag = r.GetColumnName(types.Elem().Field(i).Tag.Get(tagValue))
+
+		if ignoreColumnFlag { // 如果是tag标记忽略字段
+			continue
+		}
+		if tag == "" {
+			tag = r.getDefaultColumnValue(types.Elem().Field(i).Name)
+		}
+		if tag == "" {
+			continue
+		}
 		if r.InStringSlice(tag, ignoreColumn) {
 			continue
 		}
+
 		columns = append(columns, tag)
 		*val = append(*val, r.formatValue(db, values.Elem().Field(i)))
 		*vv = append(*vv, "?")
@@ -322,9 +337,19 @@ func (r *ServiceDao) AddOneData(parameter *AddOneDataParameter) (err error) {
 	val := make([]interface{}, 0, fieldNum)
 	vv := make([]string, 0, fieldNum)
 	var tag string
+	var ignoreColumnFlag bool
 	for i := 0; i < fieldNum; i++ {
 
-		tag = r.GetColumnName(types.Elem().Field(i).Tag.Get(tagValue))
+		ignoreColumnFlag, tag = r.GetColumnName(types.Elem().Field(i).Tag.Get(tagValue))
+		if ignoreColumnFlag { // 如果是tag标记忽略字段
+			continue
+		}
+		if tag == "" {
+			tag = r.getDefaultColumnValue(types.Elem().Field(i).Name)
+		}
+		if tag == "" {
+			continue
+		}
 		if r.InStringSlice(tag, parameter.IgnoreColumn) {
 			continue
 		}
@@ -357,19 +382,42 @@ func (r *ServiceDao) AddOneData(parameter *AddOneDataParameter) (err error) {
 	return
 }
 
-func (r *ServiceDao) GetColumnName(s string) (res string) {
+func (r *ServiceDao) GetColumnName(s string) (ignoreColumn bool, res string) {
+
 	li := strings.Split(s, ";")
-	res = s
 	for _, s2 := range li {
-		if s2 == "" || s2 == "-" {
+		if s2 == "" {
+			return
+		}
+		if s2 == "-" { // 如果是忽略字段
+			ignoreColumn = true
 			return
 		}
 		li1 := strings.Split(s2, ":")
 		if len(li1) > 1 && li1[0] == "column" {
-			if li1[1] != "-" {
+			if li1[1] != "-" { // "column:-"非格式的获取
 				res = li1[1]
+			} else { // 如果是忽略字段
+				ignoreColumn = true
 			}
+			return
 		}
 	}
+	res = s
 	return
+}
+
+func (r *ServiceDao) getDefaultColumnValue(name string) (res string) {
+	var buffer = make([]rune, 0, len(name)+50)
+	for i, bt := range name {
+		if unicode.IsUpper(bt) {
+			if i != 0 {
+				buffer = append(buffer, '_')
+			}
+			buffer = append(buffer, unicode.ToLower(bt))
+		} else {
+			buffer = append(buffer, bt)
+		}
+	}
+	return string(buffer)
 }
