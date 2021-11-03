@@ -87,7 +87,9 @@ func (r *Result) SetCode(code int) (res *Result) {
 	return r
 }
 func (r *Result) SetErrorMsg(err error) (res *Result) {
-
+	if err == nil {
+		return
+	}
 	switch err.(type) {
 	case *ErrorRuntimeStruct:
 		r.Code = err.(*ErrorRuntimeStruct).Code
