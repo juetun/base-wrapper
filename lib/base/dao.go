@@ -254,14 +254,12 @@ func (r *ServiceDao) getItemColumns(ignoreColumn, ruleOutColumn []string, db *go
 
 	for i := 0; i < fieldNum; i++ {
 
-		ignoreColumnFlag, tag = r.GetColumnName(types.Elem().Field(i).Tag.Get(tagValue))
+		ignoreColumnFlag, tag = r.GetColumnName(types.Elem().Field(i).Tag.Get(tagValue), types.Elem().Field(i).Name)
 
 		if ignoreColumnFlag { // 如果是tag标记忽略字段
 			continue
 		}
-		if tag == "" {
-			tag = r.GetDefaultColumnValue(types.Elem().Field(i).Name)
-		}
+
 		if tag == "" {
 			continue
 		}
@@ -340,12 +338,9 @@ func (r *ServiceDao) AddOneData(parameter *AddOneDataParameter) (err error) {
 	var ignoreColumnFlag bool
 	for i := 0; i < fieldNum; i++ {
 
-		ignoreColumnFlag, tag = r.GetColumnName(types.Elem().Field(i).Tag.Get(tagValue))
+		ignoreColumnFlag, tag = r.GetColumnName(types.Elem().Field(i).Tag.Get(tagValue), types.Elem().Field(i).Name)
 		if ignoreColumnFlag { // 如果是tag标记忽略字段
 			continue
-		}
-		if tag == "" {
-			tag = r.GetDefaultColumnValue(types.Elem().Field(i).Name)
 		}
 
 		if tag == "" {
