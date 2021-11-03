@@ -347,6 +347,7 @@ func (r *ServiceDao) AddOneData(parameter *AddOneDataParameter) (err error) {
 		if tag == "" {
 			tag = r.GetDefaultColumnValue(types.Elem().Field(i).Name)
 		}
+
 		if tag == "" {
 			continue
 		}
@@ -382,7 +383,10 @@ func (r *ServiceDao) AddOneData(parameter *AddOneDataParameter) (err error) {
 	return
 }
 
-func (r *ServiceDao) GetColumnName(s string) (ignoreColumn bool, res string) {
+// GetColumnName 获取字段对应的 key
+// param s string 			对象的tag值
+// param fieldName string  	对象的字段名
+func (r *ServiceDao) GetColumnName(s, fieldName string) (ignoreColumn bool, res string) {
 
 	li := strings.Split(s, ";")
 	for _, s2 := range li {
@@ -391,6 +395,7 @@ func (r *ServiceDao) GetColumnName(s string) (ignoreColumn bool, res string) {
 		}
 		if s2 == "-" { // 如果是忽略字段
 			ignoreColumn = true
+			res = r.getDefaultColumnValue(fieldName)
 			return
 		}
 		li1 := strings.Split(s2, ":")
@@ -400,14 +405,19 @@ func (r *ServiceDao) GetColumnName(s string) (ignoreColumn bool, res string) {
 			} else { // 如果是忽略字段
 				ignoreColumn = true
 			}
+			res = r.getDefaultColumnValue(fieldName)
 			return
 		}
+	}
+	if res == "" {
+		res = r.getDefaultColumnValue(fieldName)
+		return
 	}
 	res = s
 	return
 }
 
-func (r *ServiceDao) GetDefaultColumnValue(name string) (res string) {
+func (r *ServiceDao) getDefaultColumnValue(name string) (res string) {
 	var buffer = make([]rune, 0, len(name)+50)
 	for i, bt := range name {
 		if unicode.IsUpper(bt) {
