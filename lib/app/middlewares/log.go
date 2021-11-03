@@ -20,6 +20,20 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var (
+	GinLogHeaderNotCollect = []string{
+		"Accept",
+		"User-Agent",
+		"Cache-Control",
+		"Sec-Ch-Ua-Mobile",
+		"Sec-Ch-Ua",
+		"Pragma",
+		"Accept-Encoding",
+		"Connection",
+		"Accept-Language",
+	} // GIN框架不用收集的header字段
+)
+
 // GinLogCollect gin框架日志收集
 func GinLogCollect() gin.HandlerFunc {
 
@@ -33,10 +47,19 @@ func GinLogCollect() gin.HandlerFunc {
 		c.Next()
 	}
 }
+func inExceptHeaderSlice(key string) (res bool) {
+	for _, s := range GinLogHeaderNotCollect {
+		if s == key {
+			res = true
+			return
+		}
+	}
+	return
+}
 func getUseHeader(header *http.Header) (res http.Header) {
 	res = http.Header{}
-	for s, _ := range *header {
-		if s == "Accept" || s == "Accept-Encoding" || s == "Connection" {
+	for s := range *header {
+		if inExceptHeaderSlice(s) {
 			continue
 		}
 		res.Set(s, header.Get(s))
