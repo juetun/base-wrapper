@@ -3,7 +3,6 @@ package anvil_redis
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -21,7 +20,8 @@ type RedisDistributedLock struct {
 	UniqueKey        string               `json:"unique_key"`
 	OkHandler        DistributedOkHandler `json:"-"`
 	Context          *base.Context        `json:"-"`
-	Duration         time.Duration        `json:"duration"`
+	Ctx              context.Context
+	Duration         time.Duration `json:"duration"`
 }
 
 func (r *RedisDistributedLock) Lock() (ok bool, err error) {
@@ -149,8 +149,11 @@ func (r *RedisDistributedLock) Run() (getLock bool, err error) {
 	}
 
 	if getLock {
+		if r.Ctx == nil {
+			r.Ctx = context.TODO()
+		}
 		// 如果是当前操作锁定的数据
-		ctx, cancel := context.WithCancel(r.Context.GinContext.Request.Context())
+		ctx, cancel := context.WithCancel(r.Ctx)
 		defer func() {
 			cancel()
 		}()
@@ -174,31 +177,35 @@ func (r *RedisDistributedLock) Run() (getLock bool, err error) {
 func (r *RedisDistributedLock) addTimeout() (ok bool, err error) {
 
 	ctx := r.Context.GinContext.Request.Context()
+	logContent := map[string]interface{}{
+		"LockKey": r.LockKey,
+	}
+	defer func() {
+		if err != nil {
+			r.Context.Error(logContent, "RedisDistributedLockAddTimeout")
+			return
+		}
+		r.Context.Info(logContent, "RedisDistributedLockAddTimeout")
 
+	}()
 	// 获取key的剩余有效时间 当key不存在时返回-2 当未设置过期时间的返回-1
 	var ttlTime int64
 	if ttlTime, err = r.Context.CacheClient.Do(ctx, "TTL", r.LockKey).Int64(); err != nil {
-		r.Context.Error(map[string]interface{}{
-			"LockKey": r.LockKey,
-			"err":     fmt.Sprintf("redis get fail:%s", err.Error()),
-		}, "RedisDistributedLockAddTimeout0")
+		logContent["desc"] = "CacheClientDo"
 		return
 	}
-	log.Printf("ttlTime:%d \n", ttlTime)
+	logContent["ttlTime"] = ttlTime
+
 	if ttlTime <= 0 {
 		ok = true
 		return
 	}
+	logContent["UniqueKey"] = r.UniqueKey
+	logContent["Duration"] = r.Duration
 
 	if _, err = r.Context.
 		CacheClient.SetEX(ctx, r.LockKey, r.UniqueKey, r.Duration).
 		Result(); err != nil && err != redis.Nil {
-		r.Context.Error(map[string]interface{}{
-			"err":       err.Error(),
-			"LockKey":   r.LockKey,
-			"UniqueKey": r.UniqueKey,
-			"Duration":  r.Duration,
-		}, "RedisDistributedLockAddTimeout1")
 		return
 	}
 	err = nil
