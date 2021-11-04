@@ -11,7 +11,7 @@ import (
 )
 
 // DistributedOkHandler redis 分布式锁实现结构体
-type DistributedOkHandler func() (err error)
+type DistributedOkHandler func(ctx context.Context) (err error)
 
 // RedisDistributedLock Redis 分布式锁
 type RedisDistributedLock struct {
@@ -159,7 +159,7 @@ func (r *RedisDistributedLock) Run() (getLock bool, err error) {
 		}()
 
 		// 执行锁逻辑
-		if err = r.OkHandler(); err != nil {
+		if err = r.OkHandler(ctx); err != nil {
 			r.Context.Error(map[string]interface{}{
 				"err": err.Error(),
 			}, "RedisDistributedLockRun2")

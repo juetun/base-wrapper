@@ -47,6 +47,7 @@ func GinLogCollect() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
 func inExceptHeaderSlice(key string) (res bool) {
 	for _, s := range GinLogHeaderNotCollect {
 		if s == key {
@@ -56,6 +57,7 @@ func inExceptHeaderSlice(key string) (res bool) {
 	}
 	return
 }
+
 func getUseHeader(header *http.Header) (res http.Header) {
 	res = http.Header{}
 	for s := range *header {
