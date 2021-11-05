@@ -399,6 +399,7 @@ func (r *ServiceDao) GetColumnName(s, fieldName string) (ignoreColumn bool, res 
 				res = li1[1]
 			} else { // 如果是忽略字段
 				ignoreColumn = true
+				return
 			}
 			res = r.getDefaultColumnValue(fieldName)
 			return
@@ -413,6 +414,10 @@ func (r *ServiceDao) GetColumnName(s, fieldName string) (ignoreColumn bool, res 
 }
 
 func (r *ServiceDao) getDefaultColumnValue(name string) (res string) {
+	if name == "ID" {
+		res = "id"
+		return
+	}
 	var buffer = make([]rune, 0, len(name)+50)
 	for i, bt := range name {
 		if unicode.IsUpper(bt) {
