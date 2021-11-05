@@ -431,3 +431,16 @@ func (r *ServiceDao) getDefaultColumnValue(name string) (res string) {
 	}
 	return string(buffer)
 }
+
+// RecordLog 记录日志使用
+func (r *ServiceDao) RecordLog(locKey string, logContent map[string]interface{}, err error, needRecordInfo ...bool) {
+	if err != nil {
+		logContent["err"] = err.Error()
+		r.Context.Error(logContent, locKey)
+
+		return
+	}
+	if len(needRecordInfo) > 0 {
+		r.Context.Info(logContent, locKey)
+	}
+}
