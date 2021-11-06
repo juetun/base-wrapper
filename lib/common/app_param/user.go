@@ -32,6 +32,7 @@ type (
 		Score            int        `json:"score,omitempty"`     //
 		AuthDesc         string     `json:"auth_desc,omitempty"` // 认证描述
 		IsV              int        `json:"is_v,omitempty"`      // 用户头像加V
+		Remark           string     `json:"remark" `             // 个性签名
 		Signature        string     `json:"signature,omitempty"`
 		RegisterChannel  string     `json:"register_channel,omitempty"`
 		CountryCode      string     `json:"country_code,omitempty"`
@@ -79,10 +80,10 @@ type (
 		RealName          string          `gorm:"column:real_name;type:varchar(60);not null;comment:真实姓名"  json:"real_name"`
 		UserIndexHid      string          `gorm:"column:user_index_hid;type:varchar(60);not null;comment:user_main表位置" json:"user_index_hid"`
 		UserHid           string          `gorm:"column:user_hid;not null;uniqueIndex:idx_userhid;type:varchar(32) COLLATE utf8mb4_bin" json:"user_hid"`
-		AuthDesc          string          `json:"auth_desc" gorm:"column:auth_desc;not null;type:varchar(30);default:'';comment:认证描述"` // 认证描述
 		RememberToken     string          `gorm:"column:remember_token;not null;default:'';size:500;comment:登录的token" json:"remember_token"`
 		MsgReadTimeCursor base.TimeNormal `gorm:"column:msg_read_time_cursor;not null;default:CURRENT_TIMESTAMP;comment:最近一次读取系统公告时间" json:"msg_read_time_cursor"`
 		Level             string          `gorm:"column:level;not null;type:tinyint(2);default:0;comment:用户等级0-普通用户" json:"level"`
+		Remark            string          `json:"remark" gorm:"column:remark;not null;type:varchar(150);default:'';comment:个性签名"` // 个性签名
 		Password          string          `gorm:"column:password;not null;type:varchar(256) COLLATE utf8mb4_general_ci;comment:密码" json:"password"`
 		IdCard            string          `gorm:"column:id_card;not null;type:varchar(50) COLLATE utf8mb4_general_ci;comment:身份证号加密串" json:"id_card"`
 		IdCardSuffix      string          `gorm:"column:id_card_suffix;not null;type:varchar(50) COLLATE utf8mb4_general_ci;comment:后缀后6位字符" json:"id_card_suffix"`
@@ -97,6 +98,7 @@ type (
 	UserMain struct {
 		ID              int              `gorm:"column:id;primary_key" json:"id"`
 		UserHid         string           `gorm:"uniqueIndex:idx_user_hid;column:user_hid;not null;type:varchar(60) COLLATE utf8mb4_bin" json:"user_hid"` // sql:"unique_index" 创建表时生成唯一索引
+		AuthDesc        string           `json:"auth_desc" gorm:"column:auth_desc;not null;type:varchar(30);default:'';comment:认证描述"`                    // 认证描述
 		UserMobileIndex string           `gorm:"column:user_mobile_index;not null;type:varchar(60) COLLATE utf8mb4_bin;default:'';comment:手机号索引" json:"-" `
 		UserEmailIndex  string           `gorm:"column:user_email_index;not null;type:varchar(60) COLLATE utf8mb4_bin;default:'';comment:邮箱索引" json:"-" `
 		Portrait        string           `gorm:"column:portrait;not null;type:varchar(1000);default:'';comment:头图地址;" json:"portrait"`
@@ -140,6 +142,7 @@ type (
 func (r *ResultUserItem) InitData(item *User) {
 	r.UserHid = item.UserHid
 	if item.UserMain != nil {
+		r.AuthDesc = item.UserMain.AuthDesc
 		r.Portrait = item.UserMain.Portrait
 		r.NickName = item.UserMain.NickName
 		r.Gender = item.UserMain.Gender
@@ -148,8 +151,8 @@ func (r *ResultUserItem) InitData(item *User) {
 		r.IsV = item.UserMain.IsV
 	}
 	if item.UserInfo != nil {
-		r.AuthDesc = item.UserInfo.AuthDesc
 		r.Signature = item.UserInfo.Signature
+		r.Remark = item.UserInfo.Remark
 		r.RegisterChannel = item.UserInfo.RegisterChannel
 		r.RealName = item.UserInfo.RealName
 	}
