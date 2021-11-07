@@ -1,3 +1,4 @@
+// Package signencrypt
 // @Copyright (c) 2020.
 // @Author ${USER}
 // @Date ${DATE}
@@ -19,7 +20,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 )
 
-// 签名的字符编码类型
+// GolangCharset 签名的字符编码类型
 type GolangCharset string
 
 // 字符编码类型常量
@@ -27,7 +28,7 @@ type GolangCharset string
 // 当前类的指针
 var sign *SignUtils
 
-// 签名类
+// SignUtils 签名类
 type SignUtils struct {
 	mapExtend *MapExtend
 }
@@ -43,7 +44,7 @@ func (r *MapExtend) GetKeys(data map[string]string) (res []string, err error) {
 	return
 }
 
-// 实例化签名
+// NewSign 实例化签名
 func NewSign() *SignUtils {
 	sign = &SignUtils{
 		mapExtend: &MapExtend{},
@@ -51,12 +52,10 @@ func NewSign() *SignUtils {
 	return sign
 }
 
-/**
-签名算法
-parameters 要签名的数据项
-secret 生成的publicKey
-signMethod 签名的字符编码
-*/
+// SignTopRequest 签名算法
+// parameters 要签名的数据项
+// secret 生成的publicKey
+// signMethod 签名的字符编码
 func (s *SignUtils) SignTopRequest(parameters map[string]string, secret string) (bb bytes.Buffer, err error) {
 
 	/**
@@ -125,7 +124,7 @@ func (s *SignUtils) Encrypt(argJoin string, secret string, listenHandlerStruct L
 
 type GetSecretHandler func(appName string) (secret string, err error)
 
-// http请求加密算法
+// SignGinRequest http请求加密算法
 // c *gin.Context,
 func (s *SignUtils) SignGinRequest(c *gin.Context, getSecret GetSecretHandler) (validateResult bool, signResult string, err error) {
 	var appName, secret string
@@ -198,8 +197,7 @@ func (s *SignUtils) SignGinRequest(c *gin.Context, getSecret GetSecretHandler) (
 
 // 加密字符串
 func (s *SignUtils) sortParamsAndJoinData(data map[string]string, secret string) (res bytes.Buffer, err error) {
-	if res, err = s.SignTopRequest(data, secret);
-		err != nil {
+	if res, err = s.SignTopRequest(data, secret); err != nil {
 		return
 	}
 	return

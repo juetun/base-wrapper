@@ -41,14 +41,21 @@ const (
 	EnvProd = "prod" // 线上环境
 )
 
-var EnvList = []string{
-	EnvProd, EnvDev, EnvTest, EnvPre,
-}
+var (
+	EnvList = []string{
+		EnvProd, EnvDev, EnvTest, EnvPre,
+	}
 
-// BaseDirect 当前配置文件所在目录
-var BaseDirect string
+	// BaseDirect 当前配置文件所在目录
+	BaseDirect string
 
-var App *Application
+	App *Application
+
+	RouteTypeDefaultIntranet = "in"
+	RouteTypeDefaultOutranet = "out"
+	RouteTypeDefaultAdminNet = "admin"
+	RouteTypeDefaultPage     = ""
+)
 
 // Application 应用基本的配置结构体
 type Application struct {
@@ -84,7 +91,7 @@ func (r *Application) Default() {
 	if r.AppPort == 0 { // 默认80端口
 		r.AppPort = 80
 	}
-	if r.AppEnv != "" && r.AppEnv == "" {
+	if r.AppEnv == "" {
 		r.AppEnv = App.AppEnv
 	}
 	if r.CronPort == 0 {
@@ -92,12 +99,16 @@ func (r *Application) Default() {
 	}
 	r.AppVersion = "v" + r.AppVersion
 	if r.AppRouterPrefix.Intranet == "" {
-		r.AppRouterPrefix.Intranet = "in"
+		r.AppRouterPrefix.Intranet = RouteTypeDefaultIntranet
 	}
 	if r.AppRouterPrefix.Outranet == "" {
-		r.AppRouterPrefix.Outranet = "out"
+		r.AppRouterPrefix.Outranet = RouteTypeDefaultOutranet
 	}
 	if r.AppRouterPrefix.AdminNet == "" {
-		r.AppRouterPrefix.AdminNet = "admin"
+		r.AppRouterPrefix.AdminNet = RouteTypeDefaultAdminNet
 	}
+	if r.AppRouterPrefix.Page == "" {
+		r.AppRouterPrefix.AdminNet = RouteTypeDefaultPage
+	}
+
 }
