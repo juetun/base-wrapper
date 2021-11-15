@@ -1,3 +1,4 @@
+// Package utils
 // @Copyright (c) 2021.
 // @Author ${USER}
 // @Date ${DATE}
@@ -24,7 +25,7 @@ func RandAuthToken() string {
 	return fmt.Sprintf("%x", buf)
 }
 
-// 生成长度为length的随机字符串
+// RandString 生成长度为length的随机字符串
 func RandString(length int64) string {
 	sources := []byte("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	var result []byte
@@ -38,21 +39,21 @@ func RandString(length int64) string {
 	return string(result)
 }
 
-// 生成0-max之间随机数
+// RandNumber 生成0-max之间随机数
 func RandNumber(max int) int {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	return r.Intn(max)
 }
 
-// GBK编码转换为UTF8
+// GBK2UTF8 GBK编码转换为UTF8
 func GBK2UTF8(s string) (string, bool) {
 	dec := mahonia.NewDecoder("gbk")
 
 	return dec.ConvertStringOK(s)
 }
 
-// 批量替换字符串
+// ReplaceStrings 批量替换字符串
 func ReplaceStrings(s string, old []string, replace []string) string {
 	if s == "" {
 		return s
@@ -79,7 +80,7 @@ func InStringSlice(slice []string, element string) bool {
 	return false
 }
 
-// 转义json特殊字符
+// EscapeJson 转义json特殊字符
 func EscapeJson(s string) string {
 	specialChars := []string{"\\", "\b", "\f", "\n", "\r", "\t", "\""}
 	replaceChars := []string{"\\\\", "\\b", "\\f", "\\n", "\\r", "\\t", "\\\""}
@@ -87,7 +88,7 @@ func EscapeJson(s string) string {
 	return ReplaceStrings(s, specialChars, replaceChars)
 }
 
-// 判断文件是否存在及是否有权限访问
+// FileExist 判断文件是否存在及是否有权限访问
 func FileExist(file string) bool {
 	_, err := os.Stat(file)
 	if os.IsNotExist(err) {
