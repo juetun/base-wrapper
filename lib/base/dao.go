@@ -71,8 +71,10 @@ func (r *ServiceDao) formatValue(db *gorm.DB, valueStruct reflect.Value) (res in
 		res = valueStruct.Bool()
 	case reflect.String:
 		res = valueStruct.String()
-	case reflect.Int, reflect.Int32, reflect.Int64:
+	case reflect.Int8, reflect.Int, reflect.Int32, reflect.Int64:
 		res = valueStruct.Int()
+	case reflect.Uint8, reflect.Uint, reflect.Uint32, reflect.Uint64:
+		res = valueStruct.Uint()
 	case reflect.Float32, reflect.Float64:
 		res = valueStruct.Float()
 	default:
