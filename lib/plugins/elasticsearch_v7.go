@@ -21,7 +21,7 @@ import (
 
 // PluginElasticSearchV7 ElasticSearch检索初始化入口
 func PluginElasticSearchV7(arg *app_start.PluginsOperate) (err error) {
-
+	_ = arg
 	var syncLock sync.Mutex
 	syncLock.Lock()
 	defer syncLock.Unlock()
