@@ -108,7 +108,7 @@ func (r *Application) Default() {
 		r.AppRouterPrefix.AdminNet = RouteTypeDefaultAdminNet
 	}
 	if r.AppRouterPrefix.Page == "" {
-		r.AppRouterPrefix.AdminNet = RouteTypeDefaultPage
+		r.AppRouterPrefix.Page = RouteTypeDefaultPage
 	}
 
 }
