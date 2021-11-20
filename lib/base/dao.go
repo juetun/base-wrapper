@@ -444,3 +444,11 @@ func (r *ServiceDao) RecordLog(locKey string, logContent map[string]interface{},
 		r.Context.Info(logContent, locKey)
 	}
 }
+
+// RefreshCache 封装是否刷新缓存逻辑
+func (r *ServiceDao) RefreshCache(refreshCache ...bool) (res bool) {
+	if len(refreshCache) > 0 {
+		res = refreshCache[0]
+	}
+	return
+}
