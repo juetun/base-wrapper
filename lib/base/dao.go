@@ -23,10 +23,64 @@ import (
 	"gorm.io/gorm"
 )
 
-type ServiceDao struct {
-	Context *Context
-}
+type (
+	ServiceDao struct {
+		Context *Context
+	}
+	ModelBase interface {
+		TableName() string
+		GetTableComment() (res string)
+	}
+	DaoBatchAdd interface {
+		BatchAdd(data *BatchAddDataParameter) (err error)
+	}
+	AddOneDataParameter struct {
+		DbName        string    `json:"db_name"`
+		Db            *gorm.DB  `json:"-"`
+		Model         ModelBase `json:"model"`           // 添加的数据
+		TableName     string    `json:"table_name"`      // 添加数据对应的表名
+		IgnoreColumn  []string  `json:"ignore_column"`   // replace 忽略字段,添加到此字段中的字段不会出现在SQL执行中
+		RuleOutColumn []string  `json:"rule_out_column"` // nil时使用默认值，当数据表中存在唯一数据时，此字段的值不会被新的数据替换
+	}
 
+	BatchAddDataParameter struct {
+		DbName        string      `json:"db_name"`
+		Db            *gorm.DB    `json:"-"`
+		TableName     string      `json:"table_name"`      // 添加数据对应的表名
+		IgnoreColumn  []string    `json:"ignore_column"`   // replace 忽略字段,添加到此字段中的字段不会出现在SQL执行中
+		RuleOutColumn []string    `json:"rule_out_column"` // nil时使用默认值，当数据表中存在唯一数据时，此字段的值不会被新的数据替换
+		Data          []ModelBase `json:"data"`            // 添加的数据
+	}
+	ActErrorHandlerResult struct {
+		DbName    string    `json:"db_name"`
+		TableName string    `json:"table_name"`
+		Db        *gorm.DB  `json:"-"`
+		Err       error     `json:"err"`
+		Model     ModelBase `json:"model"`
+	}
+	TableSetOption map[string]string
+	ActHandlerDao  func() (actErrorHandlerResult *ActErrorHandlerResult)
+)
+
+// ActErrorHandler 操作(当前实现逻辑 如果报指定状态，则创建表)
+func (r *ServiceDao) ActErrorHandler(actHandler ActHandlerDao) (err error) {
+	var res *ActErrorHandlerResult
+	if res = actHandler(); res.Err != nil {
+		if res.TableName == "" {
+			res.TableName = res.Model.TableName()
+		}
+		if err = r.CreateTableWithError(res.Db, res.TableName, res.Err, res.Model, TableSetOption{
+			"COMMENT": res.Model.GetTableComment(),
+		}); err != nil {
+			return
+		}
+	}
+	if res = actHandler(); res.Err != nil {
+		err = res.Err
+		return
+	}
+	return
+}
 func (r *ServiceDao) SetContext(context ...*Context) (s *ServiceDao) {
 	for _, cont := range context {
 		cont.InitContext()
@@ -125,33 +179,6 @@ func ScopesDeletedAt(prefix ...string) func(db *gorm.DB) *gorm.DB {
 	}
 
 }
-
-type ModelBase interface {
-	TableName() string
-	GetTableComment() (res string)
-}
-type DaoBatchAdd interface {
-	BatchAdd(data *BatchAddDataParameter) (err error)
-}
-type AddOneDataParameter struct {
-	DbName        string    `json:"db_name"`
-	Db            *gorm.DB  `json:"-"`
-	Model         ModelBase `json:"model"`           // 添加的数据
-	TableName     string    `json:"table_name"`      // 添加数据对应的表名
-	IgnoreColumn  []string  `json:"ignore_column"`   // replace 忽略字段,添加到此字段中的字段不会出现在SQL执行中
-	RuleOutColumn []string  `json:"rule_out_column"` // nil时使用默认值，当数据表中存在唯一数据时，此字段的值不会被新的数据替换
-}
-
-type BatchAddDataParameter struct {
-	DbName        string      `json:"db_name"`
-	Db            *gorm.DB    `json:"-"`
-	TableName     string      `json:"table_name"`      // 添加数据对应的表名
-	IgnoreColumn  []string    `json:"ignore_column"`   // replace 忽略字段,添加到此字段中的字段不会出现在SQL执行中
-	RuleOutColumn []string    `json:"rule_out_column"` // nil时使用默认值，当数据表中存在唯一数据时，此字段的值不会被新的数据替换
-	Data          []ModelBase `json:"data"`            // 添加的数据
-}
-
-type TableSetOption map[string]string
 
 // CreateTableWithError 判断SQL err 如果表不存在，则创建表
 func (r *ServiceDao) CreateTableWithError(db *gorm.DB, tableName string, e, model interface{}, comment ...TableSetOption) (err error) {
