@@ -12,8 +12,29 @@ import (
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 )
 
-type ControllerBase struct {
-	Log *app_obj.AppLog
+type (
+	ControllerBase struct {
+		Log *app_obj.AppLog
+	}
+	ParameterInterface interface {
+		Default(c *gin.Context) (err error)
+	}
+)
+
+// ParametersAccept 当前参数接收
+func (r *ControllerBase) ParametersAccept(c *gin.Context, parameter ParameterInterface) (haveError bool) {
+	var err error
+	if err = c.ShouldBind(parameter); err != nil {
+		haveError = true
+		r.ResponseError(c, err, ErrorParameterCode)
+		return
+	}
+	if err = parameter.Default(c); err != nil {
+		haveError = true
+		r.ResponseError(c, err, ErrorParameterCode)
+		return
+	}
+	return
 }
 
 func (r *ControllerBase) Init() *ControllerBase {
