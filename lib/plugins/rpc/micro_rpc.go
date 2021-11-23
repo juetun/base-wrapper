@@ -25,22 +25,33 @@ import (
 	"github.com/juetun/base-wrapper/lib/utils"
 )
 
+const (
+	RetryTimesOne      = 1                      // 尝试请求次数
+	RetryTimesDuration = 500 * time.Millisecond // 尝试请求次数(500毫秒后尝试重新调用)
+)
+
 type CollectParam struct {
 	PathUrl string `json:"path_url"`
 }
 type RequestOptions struct {
-	Method         string        `json:"method"`   // http请求方法
-	AppName        string        `json:"app_name"` // 应用名
-	URI            string        `json:"uri"`
-	Header         http.Header   `json:"header"`
-	Value          url.Values    `json:"value"`
-	BodyJson       []byte        `json:"body_json"` // json数据传递
-	PathVersion    string        `json:"path_version"`
-	NotMicro       bool          `json:"not_micro"`        // 不是微服务应用
-	Context        *base.Context `json:"-"`                // 上下文传参 操作日志对象
+	Context  *base.Context `json:"-"`         // 上下文传参 操作日志对象
+	NotMicro bool          `json:"not_micro"` // 不是微服务应用 默认false
+
+	Method         string        `json:"method"`           // http请求方法
+	AppName        string        `json:"app_name"`         // 应用名
+	URI            string        `json:"uri"`              // 请求的地址
 	ConnectTimeOut time.Duration `json:"connect_time_out"` // 请求连接超时时长 默认300毫秒(建立HTTP请求的时长)
 	RequestTimeOut time.Duration `json:"request_time_out"` // 获取请求时长 默认5秒(获取数据的时长)
-	CollectParams  CollectParam  `json:"collect_params"`
+
+	Header      http.Header `json:"header"`    // 请求的header请求
+	Value       url.Values  `json:"value"`     // 请求参数
+	BodyJson    []byte      `json:"body_json"` // 请求的body信息
+	PathVersion string      `json:"path_version"`
+
+	RetryTimes         int           `json:"retry_times"`          // 失败重试次数,1不重试（只发送一次请求） 2尝试再请求一次
+	RetryTimesDuration time.Duration `json:"retry_times_duration"` // 重试时间间隔
+
+	CollectParams CollectParam `json:"collect_params"`
 }
 
 // 请求操作结构体
@@ -57,18 +68,17 @@ type httpRpc struct {
 // NewHttpRpc 请求入口
 func NewHttpRpc(params *RequestOptions) (r *httpRpc) {
 	r = &httpRpc{}
-	if r.Error = params.validateParams(); r.Error != nil {
-		return
-	}
-	params.initDefault()
 	r.Request = params
+	if r.Request.RetryTimesDuration == 0 {
+		r.Request.RetryTimesDuration = RetryTimesDuration
+	}
 	return
 }
 
 // 初始化默认参数
 func (r *RequestOptions) initDefault() {
 	if r.Method == "" {
-		r.Method = "GET"
+		r.Method = http.MethodGet
 	}
 	if r.ConnectTimeOut == 0 {
 		r.ConnectTimeOut = 1 * time.Second
@@ -76,23 +86,22 @@ func (r *RequestOptions) initDefault() {
 	if r.RequestTimeOut == 0 {
 		r.RequestTimeOut = 5 * time.Second
 	}
+	if r.RetryTimes == 0 {
+		r.RetryTimes = RetryTimesOne
+	}
+
 	// 不是访问内部服务
 	if r.NotMicro {
 		return
+	}
+	if r.Header == nil {
+		r.Header = http.Header{}
 	}
 	traceId := ""
 	if nil != r.Context {
 		traceId = r.Context.GinContext.GetHeader(app_obj.HttpTraceId)
 	}
-	if r.Header == nil {
-		r.Header = http.Header{}
-	}
 	r.Header.Add(app_obj.HttpTraceId, traceId)
-
-	// if !r.NotMicro && r.PathVersion == "" {
-	// 	r.PathVersion = "v1"
-	// }
-
 }
 
 // 校验参数
@@ -109,17 +118,41 @@ func (r *RequestOptions) validateParams() (err error) {
 	return
 }
 
+func (r *httpRpc) beforeSend() {
+	if r.Error = r.Request.validateParams(); r.Error != nil {
+		return
+	}
+	if r.Request.initDefault(); r.Error != nil {
+		return
+	}
+	if r.DefaultBaseUrl(); r.Error != nil {
+		return
+	}
+	r.Request.Method = strings.ToUpper(r.Request.Method)
+}
+
 // Send 发送请求
 func (r *httpRpc) Send() (res *httpRpc) {
 	res = r
-	if r.Error != nil {
+	if r.beforeSend(); r.Error != nil {
 		return
 	}
-	r.DefaultBaseUrl()
-	if r.Error != nil {
-		return
+
+	// 多次尝试发送请求(默认一次)
+	var needBreak bool
+	for i := 0; i < r.Request.RetryTimes; i++ {
+		if needBreak = r.sendAct(); needBreak {
+			break
+		}
+		if r.Request.RetryTimesDuration > 0 {
+			time.Sleep(r.Request.RetryTimesDuration)
+		}
 	}
-	switch strings.ToUpper(r.Request.Method) {
+	return
+}
+
+func (r *httpRpc) sendAct() (needBreak bool) {
+	switch r.Request.Method {
 	case "GET":
 		r.initClient().
 			get()
@@ -137,7 +170,15 @@ func (r *httpRpc) Send() (res *httpRpc) {
 			patch()
 	default:
 		r.Error = fmt.Errorf("当前不支您输入的请求方法(%s)", r.Request.Method)
+		needBreak = true
+		return
 	}
+	// 判断请求状态
+	if r.resp.StatusCode == 200 {
+		needBreak = true
+		return
+	}
+	r.Error = nil
 	return
 }
 func (r *httpRpc) initClient() (res *httpRpc) {
@@ -222,6 +263,7 @@ func (r *httpRpc) put() {
 	}
 	r.resp, r.Error = r.client.Do(request)
 }
+
 func (r *httpRpc) patch() {
 	var request *http.Request
 	r.Uri = r.getUrl()
@@ -256,6 +298,7 @@ func (r *httpRpc) sendDo(request *http.Request) {
 	request.Header = r.Request.Header
 	r.resp, r.Error = r.client.Do(request)
 }
+
 func (r *httpRpc) postGeneral() {
 	var request *http.Request
 	r.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -266,6 +309,7 @@ func (r *httpRpc) postGeneral() {
 	r.sendDo(request)
 	return
 }
+
 func (r *httpRpc) postJson() {
 	var request *http.Request
 	r.Request.Header.Add("Content-Type", "application/json")
@@ -333,13 +377,13 @@ func (r *httpRpc) GetBody() (res *httpRpc) {
 			_ = r.resp.Body.Close()
 		}
 	}()
+
 	// 判断请求状态
 	if r.resp.StatusCode != 200 {
 		r.Error = fmt.Errorf("请求失败(%d)", r.resp.StatusCode)
 		return
 	}
 	// 失败，返回状态
-
 	if r.Body, r.Error = ioutil.ReadAll(r.resp.Body); r.Error != nil {
 		// 读取错误,返回异常
 		r.Error = fmt.Errorf("读取请求返回失败(%s)", r.Error.Error())
