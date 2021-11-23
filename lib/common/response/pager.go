@@ -9,31 +9,62 @@
 package response
 
 import (
+	"encoding/json"
+	"fmt"
 	"strconv"
 )
 
 const (
-	DefaultPageTypeList = "list"
-	DefaultPageTypeNext = "next"
-	DefaultPageSize     = 15
-	DefaultPageNo       = 1
+	DefaultPageTypeList = "list" // 按照第一页 第二页分页
+	DefaultPageTypeNext = "next" // 按照是否有最后一页分页
+	DefaultPageSize     = 15     // 默认每页显示条数
+	DefaultPageNo       = 1      // 默认页码
 )
 
-// PermitPageTypeList 允许分页类型 list 按页码分页; next 按是否有下一页分页
-var PermitPageTypeList = []string{DefaultPageTypeList, DefaultPageTypeNext}
+var (
+	// PermitPageTypeList 允许分页类型 list 按页码分页; next 按是否有下一页分页
+	PermitPageTypeList = []string{DefaultPageTypeList, DefaultPageTypeNext}
+)
 
-type PagerParameter struct {
-	PageType  string `json:"page_type" form:"page_type"`
-	PageNo    int    `form:"page_no" json:"page_no,omitempty"`
-	PageSize  int    `form:"page_size" json:"page_size,omitempty"`
-	RequestId string `form:"request_id" json:"request_id,omitempty"`
-}
-type PageQuery struct {
-	Order  string `form:"order" json:"order,omitempty"`
-	Select string `form:"select" json:"select,omitempty"`
-	IsDel  int    `form:"is_del" json:"is_del,omitempty"`
-	PagerParameter
-}
+type (
+	Pager struct {
+		List       interface{} `json:"list"`
+		TotalCount int64       `json:"total_count,omitempty"`
+		IsNext     bool        `json:"is_next,omitempty"` // [bool] 是否有下一页，true=有下一页；false=无下页，可关闭列表
+		PagerParameter
+	}
+
+	PageHandler func(*Pager)
+
+	PageOption PageHandler
+
+	PagerParameter struct {
+		PageType  string `json:"page_type,omitempty" form:"page_type"` // 默认按照传统页码分页 DefaultPageTypeList
+		PageNo    int    `form:"page_no" json:"page_no,omitempty"`
+		PageSize  int    `form:"page_size" json:"page_size,omitempty"`
+		RequestId string `form:"request_id" json:"request_id,omitempty"`
+	}
+
+	PageQuery struct {
+		Order  string `form:"order" json:"order,omitempty"`
+		Select string `form:"select" json:"select,omitempty"`
+		IsDel  int    `form:"is_del" json:"is_del,omitempty"`
+		PagerParameter
+	}
+
+	PagerListShow struct {
+		List       interface{} `json:"list"`
+		TotalCount int64       `json:"total_count"`
+		PageNo     int         `form:"page_no" json:"page_no"`
+		PageSize   int         `form:"page_size" json:"page_size"`
+	}
+	PagerNextShow struct {
+		List      interface{} `json:"list"`
+		IsNext    bool        `json:"is_next"` // [bool] 是否有下一页，true=有下一页；false=无下页，可关闭列表
+		PageSize  int         `form:"page_size" json:"page_size"`
+		RequestId string      `form:"request_id" json:"request_id"`
+	}
+)
 
 func (r *PagerParameter) GetOffset() (offset int) {
 	if r.PageNo < 1 {
@@ -50,6 +81,7 @@ func (r *PageQuery) GetOffset() (offset int) {
 	offset = (r.PageNo - 1) * r.PageSize
 	return
 }
+
 func (r *PageQuery) DefaultPage() {
 	if r.PageNo < 1 {
 		r.PageNo = 1
@@ -58,15 +90,6 @@ func (r *PageQuery) DefaultPage() {
 		r.PageSize = DefaultPageSize
 	}
 }
-
-type Pager struct {
-	List       interface{} `json:"list"`
-	TotalCount int64       `json:"total_count,omitempty"`
-	IsNext     bool        `json:"is_next,omitempty"` // [bool] 是否有下一页，true=有下一页；false=无下页，可关闭列表
-	PagerParameter
-}
-type PageHandler func(*Pager)
-type PageOption PageHandler
 
 // PagerList 设置分页列表
 func PagerList(list interface{}) PageOption {
@@ -87,21 +110,25 @@ func PagerBaseQuery(baseQuery PageQuery) PageOption {
 		pager.PagerParameter = baseQuery.PagerParameter
 	}
 }
+
 func PagerTotalCount(totalCount int64) PageOption {
 	return func(pager *Pager) {
 		pager.TotalCount = totalCount
 	}
 }
+
 func PagerPageNo(pageNo int) PageOption {
 	return func(pager *Pager) {
 		pager.PageNo = pageNo
 	}
 }
+
 func PagerPageSize(pageSize int) PageOption {
 	return func(pager *Pager) {
 		pager.PageSize = pageSize
 	}
 }
+
 func PagerPageType(pageType string) PageOption {
 	return func(pager *Pager) {
 		if pager.PageType == "" {
@@ -109,6 +136,12 @@ func PagerPageType(pageType string) PageOption {
 			return
 		}
 	}
+}
+
+func NewPagerAndDefault(arg *PageQuery) (pager *Pager) {
+	pager = NewPager()
+	pager.InitPager(arg)
+	return
 }
 
 // NewPager 初始化分页对象
@@ -126,11 +159,6 @@ func NewPager(option ...PageOption) *Pager {
 	}
 	return r
 }
-func NewPagerAndDefault(arg *PageQuery) (pager *Pager) {
-	pager = NewPager()
-	pager.InitPager(arg)
-	return
-}
 
 func (p *Pager) InitPager(arg *PageQuery) *Pager {
 	if arg.PageNo == 0 {
@@ -144,31 +172,59 @@ func (p *Pager) InitPager(arg *PageQuery) *Pager {
 	return p
 }
 
+func (p *Pager) MarshalJSON() (res []byte, err error) {
+	switch p.PageType {
+	case DefaultPageTypeList: // 如果是按照页码分页
+		dt := PagerListShow{
+			List:       p.List,
+			TotalCount: p.TotalCount,
+			PageNo:     p.PageNo,
+			PageSize:   p.PageSize,
+		}
+		res, err = json.Marshal(dt)
+	case DefaultPageTypeNext: // 如果是按照是否有最后一页分页
+		dt := PagerNextShow{
+			List:      p.List,
+			IsNext:    p.IsNext,
+			PageSize:  p.PageSize,
+			RequestId: p.RequestId,
+		}
+		res, err = json.Marshal(dt)
+	default:
+		res, err = json.Marshal(p)
+	}
+	return
+}
+
 // InitPageNoAndPageSize 初始化PageNo 和PageSize
-func (p *Pager) InitPageNoAndPageSize(params *map[string]string) error {
-	var err error
+func (p *Pager) InitPageNoAndPageSize(params *map[string]string) (err error) {
+
 	var pageNo, pageSize string
+
 	if _, ok := (*params)["page_no"]; ok {
 		pageNo = (*params)["page_no"]
 	}
+
 	if pageNo == "" {
-		pageNo = "0"
+		pageNo = fmt.Sprintf("%d", DefaultPageNo)
 	}
-	err = p.SetPageNo(pageNo)
-	if err != nil {
+
+	if err = p.SetPageNo(pageNo); err != nil {
 		return err
 	}
+
 	if _, ok := (*params)["page_size"]; ok {
 		pageSize = (*params)["page_size"]
 	}
+
 	if pageSize == "" {
-		pageSize = "0"
+		pageSize = fmt.Sprintf("%d", DefaultPageSize)
 	}
-	err = p.SetPageSize(pageSize)
-	if err != nil {
-		return err
+
+	if err = p.SetPageSize(pageSize); err != nil {
+		return
 	}
-	return err
+	return
 }
 
 // FetchCount 获取数量的方法
@@ -227,7 +283,7 @@ func (p *Pager) SetPageSize(pageSize string) error {
 	}
 	p.PageSize = pageSizeNumber
 	if p.PageSize < 1 {
-		p.PageSize = 15
+		p.PageSize = DefaultPageSize
 	}
 	return nil
 }
