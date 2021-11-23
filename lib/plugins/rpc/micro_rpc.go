@@ -174,7 +174,7 @@ func (r *httpRpc) sendAct() (needBreak bool) {
 		return
 	}
 	// 判断请求状态
-	if r.resp.StatusCode == 200 {
+	if r.resp != nil && r.resp.StatusCode == http.StatusOK {
 		needBreak = true
 		return
 	}
