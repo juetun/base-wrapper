@@ -99,7 +99,7 @@ func PagerList(list interface{}) PageOption {
 }
 
 // PagerBaseQuery 初始化分页参数
-func PagerBaseQuery(baseQuery PageQuery) PageOption {
+func PagerBaseQuery(baseQuery *PageQuery) PageOption {
 	if baseQuery.PageSize == 0 {
 		baseQuery.PageSize = DefaultPageSize
 	}

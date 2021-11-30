@@ -1,4 +1,4 @@
-// @Copyright (c) 2021.
+// Package etcd @Copyright (c) 2021.
 // @Author ${USER}
 // @Date ${DATE}
 package etcd
@@ -20,6 +20,18 @@ import (
 	"github.com/juetun/base-wrapper/lib/utils"
 )
 
+const (
+
+	SchemaGeneral = "http"
+	SchemaHttps   = "https"
+)
+
+var (
+	// RegistryMicroLogShow 是否展示注册微服务的日志动态
+	RegistryMicroLogShow = false
+)
+
+// TraefikEtcd
 // 安装、学习文档:http://blueskykong.com/2020/06/06/etcd-3/
 // https://pkg.go.dev/go.etcd.io/etcd/clientv3#pkg-overview
 type TraefikEtcd struct {
@@ -146,16 +158,20 @@ func (r *TraefikEtcd) Action() (err error) {
 
 // 分布式锁
 func (r *TraefikEtcd) lockService(serviceName string) (res clientv3.LeaseID) {
+	_ = serviceName
 	return
 }
 
 // 分布式锁解锁
 func (r *TraefikEtcd) unLockService(serviceName string, leaseID clientv3.LeaseID) {
+	_ = serviceName
+	_ = leaseID
 
 	return
 }
 func (r *TraefikEtcd) mergeData(mapValue, nowData map[string]string) (res map[string]string) {
-
+	_ = mapValue
+	_ = nowData
 	return
 }
 
@@ -170,12 +186,15 @@ func (r *TraefikEtcd) getAllKey(prefixs []string) (res map[string]string, err er
 		for _, it := range dt.Kvs {
 			k := string(it.Key)
 			v := string(it.Value)
-			r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("etcd value:`%s = %v` [prefix:%s]\n", prefix, k, v)
+			if RegistryMicroLogShow{
+				r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("etcd value:`%s = %v` [prefix:%s]\n", prefix, k, v)
+			}
 			res[k] = v
 		}
 	}
 	return
 }
+
 func (r *TraefikEtcd) sliceToMap(data []string) (res map[string]string) {
 	res = make(map[string]string, len(data))
 	for i, name := range data {
@@ -204,19 +223,19 @@ func (r *TraefikEtcd) getServices() (res map[string]discovery.HttpTraefikService
 		LoadBalancer: &discovery.HttpLoadBalancer{
 			Servers: map[string]discovery.HttpLoadBalancerServer{
 				"0": {
-					Url: fmt.Sprintf("http://%s:%d", ip, app_obj.App.AppPort),
+					Url: fmt.Sprintf("%s://%s:%d", SchemaGeneral, ip, app_obj.App.AppPort),
 				},
 			},
 			PassHostHeader: true,
 			HealthCheck: &discovery.HttpHealthCheck{
-				Scheme:          "http",
+				Scheme:          SchemaGeneral,
 				Path:            "/health",
 				Port:            strconv.Itoa(app_obj.App.AppPort),
 				Hostname:        ip,
 				FollowRedirects: true,
 				Headers:         nil,
-				Interval: 5 * time.Second,
-				Timeout:  50 * time.Millisecond,
+				Interval:        5 * time.Second,
+				Timeout:         50 * time.Millisecond,
 			},
 		},
 	}
@@ -229,10 +248,8 @@ func (r *TraefikEtcd) getServersTransports() (res map[string]discovery.HttpTraef
 }
 func (r *TraefikEtcd) getMiddlewares() (res map[string]discovery.HttpTraefikMiddleware, middlewaresName []string) {
 
-	middlewaresName= make([]string,len(res))
-	res = map[string]discovery.HttpTraefikMiddleware{
-
-	}
+	middlewaresName = make([]string, len(res))
+	res = map[string]discovery.HttpTraefikMiddleware{}
 	return
 }
 
@@ -274,11 +291,19 @@ func (r *TraefikEtcd) getPrefixKeys(serviceName, routerName string, middlewaresN
 	return
 }
 
-// 将数据通过事务的方式提交到ETCD
+func (r *TraefikEtcd) Log(level string, format string, desc ...interface{}) {
+
+	if !RegistryMicroLogShow {
+		return
+	}
+	r.syslog.SetInfoType(level).SystemOutPrintf(format, desc...)
+}
+
+// PutByTxt 将数据通过事务的方式提交到ETCD
 func (r *TraefikEtcd) PutByTxt(mapValue map[string]string) (err error) {
-	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("开始将参数注册到ETCD【START】")
+	r.Log(base.LogLevelInfo, "开始将参数注册到ETCD【START】")
 	defer func() {
-		r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("将参数注册到ETCD【OVER】")
+		r.Log(base.LogLevelInfo, "将参数注册到ETCD【OVER】")
 	}()
 	var (
 		leaseGrantResp *clientv3.LeaseGrantResponse
@@ -296,7 +321,7 @@ func (r *TraefikEtcd) PutByTxt(mapValue map[string]string) (err error) {
 	var listOptions = make([]clientv3.Op, 0, len(mapValue))
 	var elseOptions = make([]clientv3.Op, 0, len(mapValue))
 	for k, v := range mapValue {
-		r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("%s = %s \n", k, v)
+		r.Log(base.LogLevelInfo, "%s = %s \n", k, v)
 		listOptions = append(listOptions, clientv3.OpPut(k, v, clientv3.WithLease(leaseGrantResp.ID)))
 		elseOptions = append(elseOptions, clientv3.OpGet(k))
 	}
@@ -318,12 +343,9 @@ func (r *TraefikEtcd) Put(Key, val string) (res bool, err error) {
 	r.cancel()
 
 	_ = resp
-	// if resp.OpResponse().Get().Count > 0 {
-	//	res = true
-	// }
 	return
 }
 
 func (r *TraefikEtcd) Close() {
-	r.Client.Close()
+	_ = r.Client.Close()
 }

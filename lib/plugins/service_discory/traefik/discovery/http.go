@@ -1,3 +1,4 @@
+// Package discovery
 // @Copyright (c) 2021.
 // @Author ${USER}
 // @Date ${DATE}
@@ -77,7 +78,7 @@ func (r *HttpTraefik) MergeServersTransports(serversTransportsMap map[string]Htt
 	}
 }
 
-//合并路由
+// 合并路由
 func (r *HttpTraefik) mergeRouter(src, new HttpTraefikRouters) (res HttpTraefikRouters) {
 	res = HttpTraefikRouters{
 		Service:  new.Service,
@@ -91,7 +92,7 @@ func (r *HttpTraefik) mergeRouter(src, new HttpTraefikRouters) (res HttpTraefikR
 	return
 }
 
-//合并服务
+// 合并服务
 func (r *HttpTraefik) mergeServices(src, new HttpTraefikServiceConfig) (res HttpTraefikServiceConfig) {
 	res = HttpTraefikServiceConfig{}
 	res.mergeHttpWeighted(src.Weighted, new.Weighted)
@@ -100,7 +101,7 @@ func (r *HttpTraefik) mergeServices(src, new HttpTraefikServiceConfig) (res Http
 	return
 }
 
-//TODO 合并serverTransports
+// TODO 合并serverTransports
 func (r *HttpTraefik) mergeServersTransport(src, new HttpTraefikServersTransports) (res HttpTraefikServersTransports) {
 	res = HttpTraefikServersTransports{
 		ServerName:          new.ServerName,
@@ -164,6 +165,7 @@ func (r *HttpTraefikServersTransports) mergeCertificates(src, new map[string]Htt
 }
 
 func (r *HttpTraefikServersTransports) mergeForwardingTimeouts(src, new *HttpTraefikServersTransportsForwardingTimeouts) {
+	_ = src
 	if new == nil {
 		return
 	}
@@ -198,7 +200,7 @@ func (r *HttpTraefikServersTransportsCertificates) ToString() (res string) {
 	return
 }
 
-type HttpTraefikMiddleware interface{} //`json:"plugin" yaml:"plugin,omitempty" key_value:"plugin,omitempty"`
+type HttpTraefikMiddleware interface{} // `json:"plugin" yaml:"plugin,omitempty" key_value:"plugin,omitempty"`
 
 type HttpTraefikRouters struct {
 	Service     string            `json:"service" yaml:"service,omitempty" key_value:"service,omitempty"`
@@ -453,8 +455,8 @@ func (r *HttpLoadBalancer) mergeHealthCheck(src, new *HttpHealthCheck) {
 		Port:            new.Port,
 		Hostname:        new.Hostname,
 		FollowRedirects: new.FollowRedirects,
-		Interval: new.Interval,
-		Timeout:  new.Timeout,
+		Interval:        new.Interval,
+		Timeout:         new.Timeout,
 	}
 	if src == nil {
 		src = &HttpHealthCheck{}
@@ -526,7 +528,7 @@ type HttpHealthCheck struct {
 	Timeout         time.Duration     `json:"timeout" yaml:"timeout,omitempty" key_value:"timeout,omitempty"`
 }
 
-//实现 HttpHealthCheck结构体 json反序列化方法
+// UnmarshalJSON 实现 HttpHealthCheck结构体 json反序列化方法
 func (r *HttpHealthCheck) UnmarshalJSON(data []byte) (err error) {
 	type httpHealthCheck struct {
 		Scheme          string            `json:"scheme" yaml:"scheme,omitempty" key_value:"scheme,omitempty"`
@@ -540,7 +542,7 @@ func (r *HttpHealthCheck) UnmarshalJSON(data []byte) (err error) {
 		Timeout  string `json:"timeout" yaml:"timeout,omitempty" key_value:"timeout,omitempty"`
 	}
 	var tmp httpHealthCheck
- 	if err = json.Unmarshal(data, &tmp); err != nil {
+	if err = json.Unmarshal(data, &tmp); err != nil {
 		return err
 	}
 	r.Scheme = tmp.Scheme

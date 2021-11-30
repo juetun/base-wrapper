@@ -164,11 +164,10 @@ func (r *WebApplication) Run() (err error) {
 		r.start()
 		return
 	}
-	r.syslog.SetInfoType(base.LogLevelInfo).
-		SystemOutPrintln("General start ")
-
+	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintln("General start ")
 	if !r.microRun(r.GinEngine) {
 		err = r.GinEngine.Run(r.GetListenPortString()) // listen and serve on 0.0.0.0:8080
+		r.syslog.SetInfoType(base.LogLevelError).SystemOutPrintf("start err :%s", err.Error())
 	}
 	return
 }
@@ -183,6 +182,7 @@ func (r *WebApplication) microRun(engine *gin.Engine) (res bool) {
 	res = true
 	return
 }
+
 func (r *WebApplication) start() {
 
 	r.syslog.SetInfoType(base.LogLevelInfo).
@@ -207,22 +207,23 @@ func (r *WebApplication) start() {
 	// Wait for interrupt signal to gracefully shutdown the server with
 	// a timeout of 5 seconds.
 	quit := make(chan os.Signal)
-
+	defer func() {
+		close(quit)
+	}()
 	signal.Notify(quit, os.Interrupt)
 
 	<-quit
-
 	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintln("Shutdown Server ...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-
-	defer cancel()
+	defer func() {
+		cancel()
+		r.syslog.SetInfoType(base.LogLevelError).SystemOutPrintln("Server exiting")
+	}()
 	if err := srv.Shutdown(ctx); err != nil {
 		r.syslog.SetInfoType(base.LogLevelError).SystemOutFatalf("Server Shutdown:", err)
 	}
-	r.syslog.SetInfoType(base.LogLevelError).SystemOutPrintln("Server exiting")
 
-	close(quit)
 }
 func (r *WebApplication) GetListenPortString() string {
 	return ":" + strconv.Itoa(common.GetAppConfig().AppPort)
