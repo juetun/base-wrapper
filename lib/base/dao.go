@@ -74,11 +74,12 @@ func (r *ServiceDao) ActErrorHandler(actHandler ActHandlerDao) (err error) {
 		}); err != nil {
 			return
 		}
+		if res = actHandler(); res.Err != nil {
+			err = res.Err
+			return
+		}
 	}
-	if res = actHandler(); res.Err != nil {
-		err = res.Err
-		return
-	}
+
 	return
 }
 func (r *ServiceDao) SetContext(context ...*Context) (s *ServiceDao) {
