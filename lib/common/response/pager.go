@@ -169,12 +169,17 @@ func (p *Pager) InitPager(arg *PageQuery) *Pager {
 		arg.PageSize = DefaultPageSize
 	}
 	p.PageSize = arg.PageSize
+	p.PageType = arg.PageType
+	if p.PageType == "" {
+		p.PageType = DefaultPageTypeList
+	}
 	return p
 }
 
 func (p *Pager) MarshalJSON() (res []byte, err error) {
+
 	switch p.PageType {
-	case DefaultPageTypeList: // 如果是按照页码分页
+	case DefaultPageTypeList, "": // 如果是按照页码分页
 		dt := PagerListShow{
 			List:       p.List,
 			TotalCount: p.TotalCount,
@@ -191,7 +196,7 @@ func (p *Pager) MarshalJSON() (res []byte, err error) {
 		}
 		res, err = json.Marshal(dt)
 	default:
-		res, err = json.Marshal(p)
+		err = fmt.Errorf("当前不支持你选择的分页类型")
 	}
 	return
 }
