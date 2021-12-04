@@ -140,13 +140,20 @@ func (r *httpRpc) Send() (res *httpRpc) {
 
 	// 多次尝试发送请求(默认一次)
 	var needBreak bool
-	for i := 0; i < r.Request.RetryTimes; i++ {
-		if needBreak = r.sendAct(); needBreak {
+	var i = 0
+	for {
+		if i < r.Request.RetryTimes {
+			r.Error = nil
+			if needBreak = r.sendAct(); needBreak {
+				break
+			}
+			if r.Request.RetryTimesDuration > 0 {
+				time.Sleep(r.Request.RetryTimesDuration)
+			}
+		} else {
 			break
 		}
-		if r.Request.RetryTimesDuration > 0 {
-			time.Sleep(r.Request.RetryTimesDuration)
-		}
+		i++
 	}
 	return
 }
@@ -178,7 +185,6 @@ func (r *httpRpc) sendAct() (needBreak bool) {
 		needBreak = true
 		return
 	}
-	r.Error = nil
 	return
 }
 func (r *httpRpc) initClient() (res *httpRpc) {
@@ -378,6 +384,10 @@ func (r *httpRpc) GetBody() (res *httpRpc) {
 		}
 	}()
 
+	if r.resp == nil {
+		r.Error = fmt.Errorf("请求发送失败")
+		return
+	}
 	// 判断请求状态
 	if r.resp.StatusCode != 200 {
 		r.Error = fmt.Errorf("请求失败(%d)", r.resp.StatusCode)

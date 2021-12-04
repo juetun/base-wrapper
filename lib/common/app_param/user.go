@@ -139,6 +139,18 @@ type (
 	}
 )
 
+// GetRealName 获取用户的真实姓名
+func (r *ResultUserItem) GetRealName(nilDefaultValue ...string) (res string) {
+	if r.RealName != "" {
+		res = r.RealName
+		return
+	}
+	if len(nilDefaultValue) > 0 {
+		res = nilDefaultValue[0]
+	}
+	return
+}
+
 func (r *ResultUserItem) InitData(item *User) {
 	r.UserHid = item.UserHid
 	if item.UserMain != nil {
