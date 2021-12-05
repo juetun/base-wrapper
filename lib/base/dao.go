@@ -427,6 +427,7 @@ func (r *ServiceDao) GetColumnName(s, fieldName string) (ignoreColumn bool, res 
 		if len(li1) > 1 && li1[0] == "column" {
 			if li1[1] != "-" { // "column:-"非格式的获取
 				res = li1[1]
+				return
 			} else { // 如果是忽略字段
 				ignoreColumn = true
 				return
