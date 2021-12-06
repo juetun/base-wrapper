@@ -154,7 +154,7 @@ func (r *SubTreasuryBase) GetHashDbAndTableById(id int64) (db *gorm.DB, dbName, 
 
 // GetDataByIntegerIds mapNumString 有值表示Id为字符串格式的数据调用
 func (r *SubTreasuryBase) GetDataByIntegerIds(ids []int64, fetchDataHandler FetchDataHandlerBatch, mapNumString ...map[int64]string) (err error) {
-	l := len(ids)
+ 	l := len(ids)
 	if l == 0 {
 		return
 	}
@@ -261,7 +261,7 @@ func (r *SubTreasuryBase) GetDbByDbName(dbNameString string) (db *gorm.DB, dbNam
 		if tp, ok := r.Context.GinContext.Get(app_obj.TraceId); ok {
 			s = fmt.Sprintf("%v", tp)
 		}
-		ctx = r.Context.GinContext.Request.Context()
+		// ctx = r.Context.GinContext.Request.Context()
 	}
 	db, dbName, err = base.GetDbClient(&base.GetDbClientData{
 		Context:     r.Context,

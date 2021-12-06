@@ -11,6 +11,66 @@ import (
 
 // DistributedOkHandler redis 分布式锁实现结构体
 type DistributedOkHandler func(ctx context.Context) (err error)
+type RedisDistributedLockOption func(redisDistributedLock *RedisDistributedLock)
+
+func NewRedisDistributedLock(options ...RedisDistributedLockOption) (res *RedisDistributedLock) {
+	res = &RedisDistributedLock{}
+	for _, option := range options {
+		option(res)
+	}
+	if res.Ctx == nil {
+		res.Ctx = context.TODO()
+	}
+	return
+}
+
+func RedisDistributedLockAttemptsTime(attemptsTime int) RedisDistributedLockOption {
+	return func(redisDistributedLock *RedisDistributedLock) {
+		redisDistributedLock.AttemptsTime = attemptsTime
+	}
+}
+
+func RedisDistributedLockAttemptsInterval(attemptsInterval time.Duration) RedisDistributedLockOption {
+	return func(redisDistributedLock *RedisDistributedLock) {
+		redisDistributedLock.AttemptsInterval = attemptsInterval
+	}
+}
+
+func RedisDistributedLockLockKey(LockKey string) RedisDistributedLockOption {
+	return func(redisDistributedLock *RedisDistributedLock) {
+		redisDistributedLock.LockKey = LockKey
+	}
+}
+
+func RedisDistributedLockUniqueKey(UniqueKey string) RedisDistributedLockOption {
+	return func(redisDistributedLock *RedisDistributedLock) {
+		redisDistributedLock.UniqueKey = UniqueKey
+	}
+}
+
+func RedisDistributedLockOkHandler(OkHandler DistributedOkHandler) RedisDistributedLockOption {
+	return func(redisDistributedLock *RedisDistributedLock) {
+		redisDistributedLock.OkHandler = OkHandler
+	}
+}
+
+func RedisDistributedLockContext(Context *base.Context) RedisDistributedLockOption {
+	return func(redisDistributedLock *RedisDistributedLock) {
+		redisDistributedLock.Context = Context
+	}
+}
+
+func RedisDistributedLockCtx(Ctx context.Context) RedisDistributedLockOption {
+	return func(redisDistributedLock *RedisDistributedLock) {
+		redisDistributedLock.Ctx = Ctx
+	}
+}
+
+func RedisDistributedLockDuration(Duration time.Duration) RedisDistributedLockOption {
+	return func(redisDistributedLock *RedisDistributedLock) {
+		redisDistributedLock.Duration = Duration
+	}
+}
 
 // RedisDistributedLock Redis 分布式锁
 type RedisDistributedLock struct {
@@ -47,7 +107,7 @@ func (r *RedisDistributedLock) Lock() (ok bool, err error) {
 	}
 
 	if ok, err = r.Context.CacheClient.
-		SetNX(r.Context.GinContext.Request.Context(),
+		SetNX(r.Ctx,
 			r.LockKey,
 			r.UniqueKey,
 			r.Duration).
@@ -65,14 +125,13 @@ func (r *RedisDistributedLock) Lock() (ok bool, err error) {
 }
 func (r *RedisDistributedLock) UnLock() (ok bool, err error) {
 
-	ctx := r.Context.GinContext.Request.Context()
-	uniqueKey := r.Context.CacheClient.Get(ctx, r.LockKey).String()
+	uniqueKey := r.Context.CacheClient.Get(r.Ctx, r.LockKey).String()
 	// 当前数据才能释放对应的锁
 	if uniqueKey != r.UniqueKey {
 		err = fmt.Errorf("不是当前操作锁定数据(lock:%s,now:%s),没权限解锁", uniqueKey, r.UniqueKey)
 		return
 	}
-	if err = r.Context.CacheClient.Del(ctx, r.LockKey).Err(); err != nil {
+	if err = r.Context.CacheClient.Del(r.Ctx, r.LockKey).Err(); err != nil {
 		r.Context.Error(map[string]interface{}{
 			"err":            err.Error(),
 			"LockKey":        r.LockKey,
@@ -176,7 +235,6 @@ func (r *RedisDistributedLock) Run() (getLock bool, err error) {
 // addTimeout 延期,应该判断value后再延期
 func (r *RedisDistributedLock) addTimeout() (ok bool, err error) {
 
-	ctx := r.Context.GinContext.Request.Context()
 	logContent := map[string]interface{}{
 		"LockKey": r.LockKey,
 	}
@@ -190,7 +248,7 @@ func (r *RedisDistributedLock) addTimeout() (ok bool, err error) {
 	}()
 	// 获取key的剩余有效时间 当key不存在时返回-2 当未设置过期时间的返回-1
 	var ttlTime int64
-	if ttlTime, err = r.Context.CacheClient.Do(ctx, "TTL", r.LockKey).Int64(); err != nil {
+	if ttlTime, err = r.Context.CacheClient.Do(r.Ctx, "TTL", r.LockKey).Int64(); err != nil {
 		logContent["desc"] = "CacheClientDo"
 		return
 	}
@@ -204,7 +262,7 @@ func (r *RedisDistributedLock) addTimeout() (ok bool, err error) {
 	logContent["Duration"] = r.Duration
 
 	if _, err = r.Context.
-		CacheClient.SetEX(ctx, r.LockKey, r.UniqueKey, r.Duration).
+		CacheClient.SetEX(r.Ctx, r.LockKey, r.UniqueKey, r.Duration).
 		Result(); err != nil && err != redis.Nil {
 		return
 	}

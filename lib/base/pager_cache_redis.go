@@ -1,6 +1,7 @@
 package base
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/go-redis/redis/v8"
@@ -13,6 +14,7 @@ type PageCacheRedis struct {
 	ActHandler   PageCacheRedisGetData `json:"-"`
 	CacheClient  *redis.Client         `json:"-"`
 	Context      *Context              `json:"-"`
+	Ctx          context.Context       `json:"-"`
 	Pager        *response.Pager       `json:"pager"` // 分页对象,上下文传参使用
 }
 
@@ -21,6 +23,9 @@ func NewPageCacheRedis(arg ...PageCacheRedisOption) (res *PageCacheRedis) {
 	res = &PageCacheRedis{}
 	for _, option := range arg {
 		option(res)
+	}
+	if res.Ctx == nil {
+		res.Ctx = context.TODO()
 	}
 	return
 }
@@ -62,7 +67,7 @@ func (r *PageCacheRedis) Run(key string, data interface{}) (err error) {
 }
 
 func (r *PageCacheRedis) ClearCache() (err error) {
-	if err = r.CacheClient.Del(r.Context.GinContext.Request.Context(), r.CacheKeyName).Err(); err != nil {
+	if err = r.CacheClient.Del(r.Ctx, r.CacheKeyName).Err(); err != nil {
 		r.Context.Error(map[string]interface{}{
 			"err":          err.Error(),
 			"CacheKeyName": r.CacheKeyName,
@@ -98,7 +103,7 @@ func (r *PageCacheRedis) preValidate(key string) (err error) {
 
 func (r *PageCacheRedis) set(key string, data interface{}) (err error) {
 	if err = r.CacheClient.
-		HSet(r.Context.GinContext.Request.Context(), r.CacheKeyName, key, data).
+		HSet(r.Ctx, r.CacheKeyName, key, data).
 		Err(); err != nil {
 		r.Context.Error(map[string]interface{}{
 			"err":          err.Error(),
@@ -110,7 +115,7 @@ func (r *PageCacheRedis) set(key string, data interface{}) (err error) {
 }
 
 func (r *PageCacheRedis) get(key string, data interface{}) (err error) {
-	dt := r.CacheClient.HGet(r.Context.GinContext.Request.Context(), r.CacheKeyName, key)
+	dt := r.CacheClient.HGet(r.Ctx, r.CacheKeyName, key)
 	if err = dt.Err(); err != nil {
 		r.Context.Error(map[string]interface{}{
 			"err":          err.Error(),

@@ -244,7 +244,7 @@ func (r *SubTreasuryTime) GetDbByDbName(dbNameString string) (db *gorm.DB, dbNam
 		if tp, ok := r.Context.GinContext.Get(app_obj.TraceId); ok {
 			s = fmt.Sprintf("%v", tp)
 		}
-		ctx = r.Context.GinContext.Request.Context()
+		// ctx = r.Context.GinContext.Request.Context()
 	}
 	db, dbName, err = GetDbClient(&GetDbClientData{
 		Context:     r.Context,
