@@ -189,10 +189,13 @@ func (r *ServiceDao) CreateTableWithError(db *gorm.DB, tableName string, e, mode
 	if _, codePath, codeLine, ok := runtime.Caller(1); ok {
 		file = fmt.Sprintf("%s(l:%d)", codePath, codeLine) // runtime.FuncForPC(pc).Name(),
 	}
-	r.Context.Error(map[string]interface{}{
-		"err": e,
-		"src": file,
-	}, "DaoUserImplCreateUserTable")
+	logContent := map[string]interface{}{"src": file, "e": fmt.Sprintf("%+v", e)}
+	defer func() {
+		if err != nil {
+			logContent["err"] = err.Error()
+		}
+		r.Context.Error(logContent, "ServiceDaoCreateTableWithError")
+	}()
 	// 延迟处理的函数
 	switch e.(type) {
 	case *mysql.MySQLError: // 运行时错误
@@ -211,6 +214,7 @@ func (r *ServiceDao) CreateTableWithError(db *gorm.DB, tableName string, e, mode
 		}
 		err = fmt.Errorf(me.Error())
 	default:
+
 		err = fmt.Errorf("数据异常,请重试(102)")
 		return
 	}
