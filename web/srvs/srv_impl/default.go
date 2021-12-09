@@ -67,12 +67,14 @@ func (r *ServiceDefaultImpl) AuthRes(arg *wrapper.ArgumentDefault) (result inter
 
 	return
 }
+
 func (r *ServiceDefaultImpl) Index(arg *wrapper.ArgumentDefault) (res *wrapper.ResultDefault, err error) {
 	res = &wrapper.ResultDefault{}
 	res.Users, err = dao_impl.NewDaoUserImpl(r.Context).
 		GetUser(arg)
 	return
 }
+
 func (r *ServiceDefaultImpl) TestEs(arg *wrapper.ArgumentDefault) (result interface{}, err error) {
 	log.SetFlags(0)
 

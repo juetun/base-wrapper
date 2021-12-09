@@ -22,9 +22,9 @@ type DaoUserImpl struct {
 	base.ServiceDao
 }
 
-func NewDaoUserImpl(context ...*base.Context) (res daos.DaoUser) {
+func NewDaoUserImpl(ctx ...*base.Context) (res daos.DaoUser) {
 	p := &DaoUserImpl{}
-	p.SetContext(context...)
+	p.SetContext(ctx...)
 	return p
 }
 
