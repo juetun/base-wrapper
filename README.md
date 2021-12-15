@@ -4,8 +4,8 @@
 
 ### 序言
 
-   互联网技术的发展，go语言作为新兴的编程语言在实际应用开发中有着自身的一些优势。随着在市面上应用范围广度增加，市面上的一些主流的开发框架虽然能够完成大部分的开发需求。但是在日志的整合度、系统的集成度和规范性方面有一定的缺失。
-   本框架的的目的整合市面上常用的go语言开发框架(gin gorm logrus redis elasticsearch kafka clickhouse等)定制适合WEB微服务系统场景。
+​        互联网技术的发展，go语言作为新兴的编程语言在实际应用开发中有着自身的一些优势。随着在市面上应用范围广度增加，市面上的一些主流的开发框架虽然能够完成大部分的开发需求。但是在日志的整合度、系统的集成度和规范性方面有一定的缺失。
+​       本框架的的目的整合市面上常用的go语言开发框架(gin gorm logrus redis elasticsearch kafka clickhouse等)定制适合WEB微服务系统场景。
 
 ### 基础使用框架 
 
@@ -22,7 +22,7 @@
 ...       
 
 ## 帮助文档
-本框架使用go mod管理依赖包(详见[go mod](docs/help/other/go_mod.md)简单帮助文档)。
+​        本框架使用go mod管理依赖包(详见[go mod](docs/help/other/go_mod.md)简单帮助文档)。
 ### 一、框架使用实例
 #### 1.1、[框架启动](./docs/help/framework/init.md)
 ##### 1.1.1、 [配置文件](./docs/help/framework/config.md)
@@ -41,7 +41,6 @@
 
 #### 2.2、[swagger](docs/help/other/swagger.md)
 
-#### 2.3、[swagger](docs/help/other/swagger.md)
 
 
 
