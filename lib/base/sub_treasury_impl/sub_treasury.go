@@ -7,7 +7,6 @@ package sub_treasury_impl
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"sync"
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
@@ -153,8 +152,8 @@ func (r *SubTreasuryBase) GetHashDbAndTableById(id int64) (db *gorm.DB, dbName, 
 }
 
 // GetDataByIntegerIds mapNumString 有值表示Id为字符串格式的数据调用
-func (r *SubTreasuryBase) GetDataByIntegerIds(ids []int64, fetchDataHandler FetchDataHandlerBatch, mapNumString ...map[int64]string) (err error) {
- 	l := len(ids)
+func (r *SubTreasuryBase) GetDataByIntegerIds(ids []int64, fetchDataHandler FetchDataHandlerBatch, mapNumString ...map[int64][]string) (err error) {
+	l := len(ids)
 	if l == 0 {
 		return
 	}
@@ -166,7 +165,7 @@ func (r *SubTreasuryBase) GetDataByIntegerIds(ids []int64, fetchDataHandler Fetc
 		dta               FetchDataParameterBatch
 		mapDb             = make(map[string]FetchDataParameterBatch, l)
 		f                 bool
-		v                 string
+		v                 []string
 	)
 
 	if len(mapNumString) > 0 {
@@ -189,9 +188,9 @@ func (r *SubTreasuryBase) GetDataByIntegerIds(ids []int64, fetchDataHandler Fetc
 		if f {
 			v = mapNumString[0][id]
 		} else {
-			v = strconv.FormatInt(id, 64)
+			v = []string{fmt.Sprintf("%d", id)}
 		}
-		dta.Ids = append(dta.Ids, v)
+		dta.Ids = append(dta.Ids, v...)
 		mapDb[uk] = dta
 	}
 
@@ -209,13 +208,19 @@ func (r *SubTreasuryBase) GetDataByIntegerIds(ids []int64, fetchDataHandler Fetc
 	return
 }
 func (r *SubTreasuryBase) GetDataByStringIds(ids []string, fetchDataHandler FetchDataHandlerBatch) (err error) {
-	var l = len(ids)
+	var (
+		ok bool
+		l  = len(ids)
+	)
 	idInt := make([]int64, 0, l)
-	var mapId = make(map[int64]string, l)
+	var mapId = make(map[int64][]string, l)
 	for _, id := range ids {
 		idNum := r.GetASCII(id)
 		idInt = append(idInt, idNum)
-		mapId[idNum] = id
+		if _, ok = mapId[idNum]; !ok {
+			mapId[idNum] = make([]string, 0, l)
+		}
+		mapId[idNum] = append(mapId[idNum], id)
 	}
 	err = r.GetDataByIntegerIds(idInt, fetchDataHandler, mapId)
 	return
