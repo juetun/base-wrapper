@@ -12,7 +12,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"sync"
 
 	redis "github.com/go-redis/redis/v8"
 
@@ -57,7 +56,7 @@ type Context struct {
 	ClickHouse     *app_obj.ClickHouseClient `json:"click_house"`
 	ClickHouseName string                    `json:"click_house_name"`
 	GinContext     *gin.Context
-	syncLog        sync.Mutex
+	// syncLog        sync.Mutex
 }
 type ContextOption func(context *Context)
 
@@ -98,8 +97,8 @@ func GinContext(opt *gin.Context) ContextOption {
 	}
 }
 func (r *Context) InitContext() (c *Context) {
-	r.syncLog.Lock()
-	defer r.syncLog.Unlock()
+	// r.syncLog.Lock()
+	// defer r.syncLog.Unlock()
 	if r.log == nil {
 		r.log = app_obj.GetLog()
 	}
