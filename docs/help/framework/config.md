@@ -104,7 +104,7 @@ etcdendpoints:
   - api-domain-websecure
 dir: traefik
 lockkey: etcdserver
-host: api.test.com
+host: api.xxx.com
 ```
 ### 四、阿里云OSS使用配置
 ```yaml
@@ -167,16 +167,16 @@ video:
 ```conf
 server {
         listen 80 default;
-        server_name juetun.com 47.99.219.36;
-        return 301 http://www.test.com$request_uri;
+        server_name xxx.com 47.99.219.36;
+        return 301 http://www.xxx.com$request_uri;
 }
 server {
 
 	listen       80;
-	server_name  www.test.com;
+	server_name  www.xxx.com;
 	root /var/www/html/;
-	if ($host = 'test.com') {
-		rewrite	^/(.*)$	http://www.test.com/$1	permanent;
+	if ($host = 'xxx.com') {
+		rewrite	^/(.*)$	http://www.xxx.com/$1	permanent;
 	}
 
 	# nginx 1.11.1版本以后有效

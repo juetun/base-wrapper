@@ -4,7 +4,8 @@
 1、redis与mysql使用的组件默认已注册到启动中，无需单独配置
 2、框架采用插件的方式使用第三方组件(按需加载可根据需求定制自身需求组件)
 
-```
+```go
+
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_start"
