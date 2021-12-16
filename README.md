@@ -22,7 +22,7 @@
 ...       
 
 ## 帮助文档
-​        本框架使用go mod管理依赖包(详见[go mod](docs/help/other/go_mod.md)简单帮助文档)。
+​        本框架使用go mod管理依赖包(详见[go mod](docs/help/other/go_mod.md)帮助文档)。
 ### 一、框架使用实例
 #### 1.1、[框架启动](./docs/help/framework/init.md)
 ##### 1.1.1、 [配置文件](./docs/help/framework/config.md)
