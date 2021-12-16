@@ -12,6 +12,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"sync"
 
 	redis "github.com/go-redis/redis/v8"
 
@@ -96,9 +97,13 @@ func GinContext(opt *gin.Context) ContextOption {
 		context.GinContext = opt
 	}
 }
-func (r *Context) InitContext() (c *Context) {
-	// r.syncLog.Lock()
-	// defer r.syncLog.Unlock()
+func (r *Context) InitContext(needLock ...bool) (c *Context) {
+	if len(needLock) > 0 && needLock[0] {
+		var syncLog sync.Mutex
+		syncLog.Lock()
+		defer syncLog.Unlock()
+	}
+
 	if r.log == nil {
 		r.log = app_obj.GetLog()
 	}
