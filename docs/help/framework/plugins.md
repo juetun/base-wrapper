@@ -9,10 +9,11 @@
 | PluginLocation | 否 |  |
 | PluginClickHouse | 否 |  |
 | PluginElasticSearchV7 | 否 |  |
-| PluginsHashId | 否 |  |
+| PluginsHashId | 是 |  |
 | PluginJwt | 否 |  |
 | PluginMysql | 是 | 加载mysql配置信息 |
 | PluginRedis | 是 | 加载redis配置信息 |
 | PluginRegistry | 否 |  |
 
 
+  
