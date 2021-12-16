@@ -2,9 +2,10 @@ package plugins
 
 import (
 	"fmt"
-	"github.com/juetun/base-wrapper/lib/app/app_start"
 	"io/ioutil"
 	"sync"
+
+	"github.com/juetun/base-wrapper/lib/app/app_start"
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
@@ -13,8 +14,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// 短信插件初始化
-func PluginShortMessage(arg  *app_start.PluginsOperate) (err error) {
+// PluginShortMessage 短信插件初始化
+func PluginShortMessage(arg *app_start.PluginsOperate) (err error) {
 
 	io.SystemOutPrintln("Load short message start")
 	var syncLock sync.Mutex
