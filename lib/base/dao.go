@@ -59,7 +59,7 @@ type (
 		Model     ModelBase `json:"model"`
 	}
 	TableSetOption map[string]string
-	ActHandlerDao  func() (actErrorHandlerResult *ActErrorHandlerResult)
+	ActHandlerDao  func() (actRes *ActErrorHandlerResult)
 )
 
 // ActErrorHandler 操作(当前实现逻辑 如果报指定状态，则创建表)
