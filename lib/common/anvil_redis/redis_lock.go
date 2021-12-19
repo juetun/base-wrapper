@@ -87,7 +87,7 @@ type RedisDistributedLock struct {
 func (r *RedisDistributedLock) Lock() (ok bool, err error) {
 	if r.LockKey == "" || r.UniqueKey == "" {
 		err = fmt.Errorf("lockKey or UniqueKey must be not null")
-		r.Context.Error(map[string]interface{}{
+		r.Context.Debug(map[string]interface{}{
 			"err":       err.Error(),
 			"LockKey":   r.LockKey,
 			"UniqueKey": r.UniqueKey,
@@ -97,7 +97,7 @@ func (r *RedisDistributedLock) Lock() (ok bool, err error) {
 	}
 	if r.Duration == 0 {
 		err = fmt.Errorf("duration is zero")
-		r.Context.Error(map[string]interface{}{
+		r.Context.Debug(map[string]interface{}{
 			"err":       err.Error(),
 			"LockKey":   r.LockKey,
 			"UniqueKey": r.UniqueKey,
@@ -112,7 +112,7 @@ func (r *RedisDistributedLock) Lock() (ok bool, err error) {
 			r.UniqueKey,
 			r.Duration).
 		Result(); err != nil {
-		r.Context.Error(map[string]interface{}{
+		r.Context.Debug(map[string]interface{}{
 			"err":       err.Error(),
 			"LockKey":   r.LockKey,
 			"UniqueKey": r.UniqueKey,
@@ -132,7 +132,7 @@ func (r *RedisDistributedLock) UnLock() (ok bool, err error) {
 		return
 	}
 	if err = r.Context.CacheClient.Del(r.Ctx, r.LockKey).Err(); err != nil {
-		r.Context.Error(map[string]interface{}{
+		r.Context.Debug(map[string]interface{}{
 			"err":            err.Error(),
 			"LockKey":        r.LockKey,
 			"redisUniqueKey": uniqueKey,
@@ -150,7 +150,7 @@ func (r *RedisDistributedLock) RunWithGetLock() (err error) {
 
 	for {
 		if i >= r.AttemptsTime {
-			r.Context.Info(map[string]interface{}{
+			r.Context.Debug(map[string]interface{}{
 				"msg": fmt.Errorf("%d次尝试获取锁失败", r.AttemptsTime),
 			}, "RedisDistributedLockRunWithGetLock")
 			break
@@ -167,7 +167,7 @@ func (r *RedisDistributedLock) RunWithGetLock() (err error) {
 	return
 }
 
-type unLockAct func()
+type unLockAct func() (err error)
 
 func (r *RedisDistributedLock) tTlTime(ctx context.Context, unLockAct unLockAct) (err error) {
 	// 如果加锁成功
@@ -176,12 +176,12 @@ func (r *RedisDistributedLock) tTlTime(ctx context.Context, unLockAct unLockAct)
 		select {
 		case <-ctx.Done():
 			// log.Printf("结束")
-			unLockAct()
+			_ = unLockAct()
 			goto BreakLogic
 		case <-time.After(r.Duration / 2):
 			// log.Printf("续租数据\n")
 			if _, err = r.addTimeout(); err != nil {
-				r.Context.Error(map[string]interface{}{
+				r.Context.Debug(map[string]interface{}{
 					"LockKey": "续租数据",
 					"err":     err.Error(),
 				}, "RedisDistributedLockRun0")
@@ -191,12 +191,12 @@ func (r *RedisDistributedLock) tTlTime(ctx context.Context, unLockAct unLockAct)
 BreakLogic:
 	return
 }
-func (r *RedisDistributedLock) unLockAct() {
-	var e1 error
+func (r *RedisDistributedLock) unLockAct() (e1 error) {
 	if _, e1 = r.UnLock(); e1 != nil {
-		r.Context.Error(map[string]interface{}{
-			"err": e1.Error(),
-		}, "RedisDistributedLockRun1")
+		r.Context.Debug(map[string]interface{}{
+			"e1": e1.Error(),
+		}, "RedisDistributedLockUnLockAct")
+		return
 	}
 	return
 }
