@@ -52,7 +52,7 @@ type (
 		GetDefaultAddOneDataParameter(modelBase ModelBase) (res *AddOneDataParameter)
 
 		// GetDefaultBatchAddDataParameter 获取批量插入数据操作的类型
-		GetDefaultBatchAddDataParameter(modelBase ...ModelBase) (res *AddOneDataParameter)
+		GetDefaultBatchAddDataParameter(modelBase ...ModelBase) (res *AddOneDataParameter, err error)
 
 		// GetDefaultActErrorHandlerResult 获取默认对象
 		GetDefaultActErrorHandlerResult(model ModelBase) (res *ActErrorHandlerResult)
