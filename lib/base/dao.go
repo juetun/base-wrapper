@@ -24,6 +24,11 @@ import (
 )
 
 type (
+	CommonDb struct {
+		Db        *gorm.DB `json:"-"`
+		DbName    string   `json:"db_name"`
+		TableName string   `json:"table_name"` // 添加数据对应的表名
+	}
 	Dao interface {
 
 		// BatchAdd 批量添加数据
@@ -39,6 +44,12 @@ type (
 		ScopesDeletedAt(prefix ...string) func(db *gorm.DB) *gorm.DB
 
 		ScopesPager(pager *response.Pager) func(db *gorm.DB) *gorm.DB
+
+		// GetDefaultDb 获取默认的DB操作
+		GetDefaultDb(modelBase ModelBase) (res CommonDb)
+
+		// GetDefaultActErrorHandlerResult 获取默认对象
+		GetDefaultActErrorHandlerResult(model ModelBase) (res *ActErrorHandlerResult)
 
 		// CreateTableWithError 创建表
 		CreateTableWithError(db *gorm.DB, tableName string, e, model interface{}, comment ...TableSetOption) (err error)
@@ -65,28 +76,23 @@ type (
 	}
 
 	AddOneDataParameter struct {
-		DbName        string    `json:"db_name"`
-		Db            *gorm.DB  `json:"-"`
-		Model         ModelBase `json:"model"`           // 添加的数据
+		CommonDb
+		Model         ModelBase `json:"model"`
 		TableName     string    `json:"table_name"`      // 添加数据对应的表名
 		IgnoreColumn  []string  `json:"ignore_column"`   // replace 忽略字段,添加到此字段中的字段不会出现在SQL执行中
 		RuleOutColumn []string  `json:"rule_out_column"` // nil时使用默认值，当数据表中存在唯一数据时，此字段的值不会被新的数据替换
 	}
 
 	BatchAddDataParameter struct {
-		DbName        string      `json:"db_name"`
-		Db            *gorm.DB    `json:"-"`
-		TableName     string      `json:"table_name"`      // 添加数据对应的表名
+		CommonDb
 		IgnoreColumn  []string    `json:"ignore_column"`   // replace 忽略字段,添加到此字段中的字段不会出现在SQL执行中
 		RuleOutColumn []string    `json:"rule_out_column"` // nil时使用默认值，当数据表中存在唯一数据时，此字段的值不会被新的数据替换
 		Data          []ModelBase `json:"data"`            // 添加的数据
 	}
 	ActErrorHandlerResult struct {
-		DbName    string    `json:"db_name"`
-		TableName string    `json:"table_name"`
-		Db        *gorm.DB  `json:"-"`
-		Err       error     `json:"err"`
-		Model     ModelBase `json:"model"`
+		CommonDb
+		Err   error     `json:"err"`
+		Model ModelBase `json:"model"`
 	}
 	TableSetOption map[string]string
 	ActHandlerDao  func() (actRes *ActErrorHandlerResult)
@@ -128,6 +134,21 @@ func (r *ServiceDao) SetContext(context ...*Context) (s *ServiceDao) {
 	}
 
 	return r
+}
+
+func (r *ServiceDao) GetDefaultActErrorHandlerResult(model ModelBase) (res *ActErrorHandlerResult) {
+	res = &ActErrorHandlerResult{
+		CommonDb: r.GetDefaultDb(model),
+	}
+	return
+}
+func (r *ServiceDao) GetDefaultDb(modelBase ModelBase) (res CommonDb) {
+	res = CommonDb{
+		Db:        r.Context.Db,
+		DbName:    r.Context.DbName,
+		TableName: modelBase.TableName(),
+	}
+	return
 }
 
 // InitFetchParameters 初始化FetchDataParameter
