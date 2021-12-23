@@ -48,6 +48,12 @@ type (
 		// GetDefaultDb 获取默认的DB操作
 		GetDefaultDb(modelBase ModelBase) (res CommonDb)
 
+		// GetDefaultAddOneDataParameter 获取插入数据的对象
+		GetDefaultAddOneDataParameter(modelBase ModelBase) (res *AddOneDataParameter)
+
+		// GetDefaultBatchAddDataParameter 获取批量插入数据操作的类型
+		GetDefaultBatchAddDataParameter(modelBase ...ModelBase) (res *AddOneDataParameter)
+
 		// GetDefaultActErrorHandlerResult 获取默认对象
 		GetDefaultActErrorHandlerResult(model ModelBase) (res *ActErrorHandlerResult)
 
@@ -78,7 +84,6 @@ type (
 	AddOneDataParameter struct {
 		CommonDb
 		Model         ModelBase `json:"model"`
-		TableName     string    `json:"table_name"`      // 添加数据对应的表名
 		IgnoreColumn  []string  `json:"ignore_column"`   // replace 忽略字段,添加到此字段中的字段不会出现在SQL执行中
 		RuleOutColumn []string  `json:"rule_out_column"` // nil时使用默认值，当数据表中存在唯一数据时，此字段的值不会被新的数据替换
 	}
@@ -97,6 +102,24 @@ type (
 	TableSetOption map[string]string
 	ActHandlerDao  func() (actRes *ActErrorHandlerResult)
 )
+
+func (r *ServiceDao) GetDefaultAddOneDataParameter(modelBase ModelBase) (res *AddOneDataParameter) {
+	res = &AddOneDataParameter{Model: modelBase}
+	res.CommonDb = r.GetDefaultDb(modelBase)
+	return
+}
+
+func (r *ServiceDao) GetDefaultBatchAddDataParameter(modelBase ...ModelBase) (res *BatchAddDataParameter, err error) {
+	if len(modelBase) == 0 {
+		err = fmt.Errorf("您没有选择要添加的数据")
+		return
+	}
+	res = &BatchAddDataParameter{
+		CommonDb: r.GetDefaultDb(modelBase[0]),
+		Data:     modelBase,
+	}
+	return
+}
 
 // ActErrorHandler 操作(当前实现逻辑 如果报指定状态，则创建表)
 func (r *ServiceDao) ActErrorHandler(actHandler ActHandlerDao) (err error) {
@@ -271,6 +294,7 @@ func (r *ServiceDao) CreateTableWithError(db *gorm.DB, tableName string, e, mode
 	}
 	return
 }
+
 func (r *ServiceDao) BatchAdd(data *BatchAddDataParameter) (err error) {
 	if len(data.Data) == 0 {
 		return
@@ -327,6 +351,7 @@ func (r *ServiceDao) InStringSlice(s string, slice []string) (res bool) {
 	}
 	return
 }
+
 func (r *ServiceDao) getItemColumns(ignoreColumn, ruleOutColumn []string, db *gorm.DB, item ModelBase, val *[]interface{}, vv *[]string) (columns, replaceKeys []string) {
 	types := reflect.TypeOf(item)
 	values := reflect.ValueOf(item)
