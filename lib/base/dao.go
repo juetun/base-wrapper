@@ -24,6 +24,30 @@ import (
 )
 
 type (
+	Dao interface {
+
+		// BatchAdd 批量添加数据
+		BatchAdd(data *BatchAddDataParameter) (err error)
+
+		// AddOneData 单条添加数据
+		AddOneData(parameter *AddOneDataParameter) (err error)
+
+		// ActErrorHandler 操作逻辑 如果表不存在，创建表
+		ActErrorHandler(actHandler ActHandlerDao) (err error)
+
+		// ScopesDeletedAt 添加deleted_at字段WHERE条件拼接
+		ScopesDeletedAt(prefix ...string) func(db *gorm.DB) *gorm.DB
+
+		ScopesPager(pager *response.Pager) func(db *gorm.DB) *gorm.DB
+
+		// CreateTableWithError 创建表
+		CreateTableWithError(db *gorm.DB, tableName string, e, model interface{}, comment ...TableSetOption) (err error)
+
+		RefreshCache(refreshCache ...bool) (res bool)
+
+		// RecordLog 记录日志逻辑实现
+		RecordLog(message string, logContent map[string]interface{}, err error, needRecordInfo ...bool)
+	}
 	ServiceDao struct {
 		Context *Context
 	}
@@ -31,9 +55,15 @@ type (
 		TableName() string
 		GetTableComment() (res string)
 	}
+
 	DaoBatchAdd interface {
 		BatchAdd(data *BatchAddDataParameter) (err error)
 	}
+
+	DaoOneAdd interface {
+		AddOneData(parameter *AddOneDataParameter) (err error)
+	}
+
 	AddOneDataParameter struct {
 		DbName        string    `json:"db_name"`
 		Db            *gorm.DB  `json:"-"`
@@ -436,8 +466,8 @@ func (r *ServiceDao) GetColumnName(s, fieldName string) (ignoreColumn bool, res 
 				ignoreColumn = true
 				return
 			}
-			res = r.getDefaultColumnValue(fieldName)
-			return
+			// res = r.getDefaultColumnValue(fieldName)
+			// return
 		}
 	}
 	if res == "" {
@@ -468,15 +498,14 @@ func (r *ServiceDao) getDefaultColumnValue(name string) (res string) {
 }
 
 // RecordLog 记录日志使用
-func (r *ServiceDao) RecordLog(locKey string, logContent map[string]interface{}, err error, needRecordInfo ...bool) {
+func (r *ServiceDao) RecordLog(message string, logContent map[string]interface{}, err error, needRecordInfo ...bool) {
 	if err != nil {
 		logContent["err"] = err.Error()
-		r.Context.Error(logContent, locKey)
-
+		r.Context.Error(logContent, message)
 		return
 	}
 	if len(needRecordInfo) > 0 {
-		r.Context.Info(logContent, locKey)
+		r.Context.Info(logContent, message)
 	}
 }
 
