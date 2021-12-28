@@ -8,7 +8,7 @@ import (
 	"net"
 )
 
-// 获取本机网卡IP
+// GetLocalIP 获取本机网卡IP
 func GetLocalIP() (ipv4 string, err error) {
 	var (
 		addrs   []net.Addr

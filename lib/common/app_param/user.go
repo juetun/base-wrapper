@@ -1,6 +1,7 @@
 package app_param
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -22,7 +23,7 @@ type (
 		List map[string]ResultUserItem `json:"list"`
 	}
 	ResultUserItem struct {
-		UserHid          string     `json:"user_hid,omitempty"`  // 用户ID
+		UserHid          int64      `json:"user_hid,omitempty"`  // 用户ID
 		Portrait         string     `json:"portrait,omitempty"`  // 头像
 		NickName         string     `json:"nick_name,omitempty"` // 昵称
 		UserName         string     `json:"user_name,omitempty"` // 用户名
@@ -43,7 +44,7 @@ type (
 		ShopId           string     `json:"shop_id"`
 	}
 	RequestUser struct {
-		UserHid           string          `json:"user_hid" form:"user_hid"`
+		UserHid           int64           `json:"user_hid" form:"user_hid"`
 		UserMobileIndex   string          `json:"user_mobile_index" form:"user_mobile_index"`
 		UserEmailIndex    string          `json:"user_email_index" form:"user_email_index"`
 		Portrait          string          `json:"portrait" form:"portrait"`
@@ -58,7 +59,7 @@ type (
 	}
 
 	User struct {
-		UserHid    string      `json:"user_hid"`
+		UserHid    int64       `json:"user_hid"`
 		UserIndex  *UserIndex  `json:"user_index,omitempty"`
 		UserMain   *UserMain   `json:"user_main,omitempty"`
 		UserEmail  *UserEmail  `json:"user_email,omitempty"`
@@ -67,7 +68,6 @@ type (
 	}
 	UserIndex struct {
 		ID         int              `gorm:"column:id;primary_key" json:"-"`
-		UserHid    string           `gorm:"column:user_hid;not null;type:varchar(32) COLLATE utf8mb4_bin;uniqueIndex;comment:用户ID" json:"user_hid"`
 		UserName   string           `gorm:"column:user_name;not null;type:varchar(50) COLLATE utf8mb4_bin;uniqueIndex;comment:用户名" json:"user_name" `
 		TmpAccount string           `gorm:"column:tmp_account;not null;type:varchar(200) COLLATE utf8mb4_bin;comment:注册时临时账号" json:"tmp_account" `
 		IsUse      int              `json:"is_use" gorm:"column:is_use;type:tinyint(1);default:0;comment:是否启用 0-启用 大于0-已启用"`
@@ -79,7 +79,7 @@ type (
 		ID                int             `gorm:"column:id;primary_key" json:"id"`
 		RealName          string          `gorm:"column:real_name;type:varchar(60);not null;comment:真实姓名"  json:"real_name"`
 		UserIndexHid      string          `gorm:"column:user_index_hid;type:varchar(60);not null;comment:user_main表位置" json:"user_index_hid"`
-		UserHid           string          `gorm:"column:user_hid;not null;uniqueIndex:idx_userhid;type:varchar(32) COLLATE utf8mb4_bin" json:"user_hid"`
+		UserHid           int64           `gorm:"column:user_hid;not null;uniqueIndex:idx_userhid;default:0;type:bigint(20) COLLATE utf8mb4_bin" json:"user_hid"`
 		RememberToken     string          `gorm:"column:remember_token;not null;default:'';size:500;comment:登录的token" json:"remember_token"`
 		MsgReadTimeCursor base.TimeNormal `gorm:"column:msg_read_time_cursor;not null;default:CURRENT_TIMESTAMP;comment:最近一次读取系统公告时间" json:"msg_read_time_cursor"`
 		Level             string          `gorm:"column:level;not null;type:tinyint(2);default:0;comment:用户等级0-普通用户" json:"level"`
@@ -97,7 +97,7 @@ type (
 	}
 	UserMain struct {
 		ID              int              `gorm:"column:id;primary_key" json:"id"`
-		UserHid         string           `gorm:"uniqueIndex:idx_user_hid;column:user_hid;not null;type:varchar(60) COLLATE utf8mb4_bin" json:"user_hid"` // sql:"unique_index" 创建表时生成唯一索引
+		UserHid         int64            `gorm:"uniqueIndex:idx_user_hid;column:user_hid;not null;default:0;type:bigint(20) COLLATE utf8mb4_bin" json:"user_hid"` // sql:"unique_index" 创建表时生成唯一索引
 		AuthDesc        string           `json:"auth_desc" gorm:"column:auth_desc;not null;type:varchar(30);default:'';comment:认证描述"`                    // 认证描述
 		UserMobileIndex string           `gorm:"column:user_mobile_index;not null;type:varchar(60) COLLATE utf8mb4_bin;default:'';comment:手机号索引" json:"-" `
 		UserEmailIndex  string           `gorm:"column:user_email_index;not null;type:varchar(60) COLLATE utf8mb4_bin;default:'';comment:邮箱索引" json:"-" `
@@ -122,7 +122,7 @@ type (
 
 	UserEmail struct {
 		ID              int        `gorm:"column:id;primary_key" json:"-"`
-		UserHid         string     `json:"user_hid" gorm:"column:user_hid;uniqueIndex:idx_userhid,priority:1;type:varchar(60);not null;"`
+		UserHid         int64      `json:"user_hid" gorm:"column:user_hid;uniqueIndex:idx_userhid,priority:1;type:bigint(20);default:0;not null;"`
 		UserIndexHid    string     `json:"user_index_hid" gorm:"column:user_index_hid;type:varchar(60);not null;comment:user_main表位置"`
 		Email           string     `gorm:"column:email;uniqueIndex:idx_email,priority:1;not null;type:varchar(100);default:0;comment:邮箱" json:"-"`
 		EmailVerifiedAt *time.Time `gorm:"column:email_verified_at;not null;uniqueIndex:idx_email,priority:3;type:datetime;default:'2000-01-01 00:00:00';comment:认证时间;" json:"-"`
@@ -130,7 +130,7 @@ type (
 	}
 	UserMobile struct {
 		ID               int        `gorm:"column:id;primary_key" json:"-"`
-		UserHid          string     `json:"user_hid" gorm:"column:user_hid;uniqueIndex:inx_userhid,priority:1;not null;default:'';type:varchar(60) COLLATE utf8mb4_bin;"`
+		UserHid          int64      `json:"user_hid" gorm:"column:user_hid;uniqueIndex:inx_userhid,priority:1;not null;default:0;type:bigint(20) COLLATE utf8mb4_bin;"`
 		UserIndexHid     string     `json:"user_index_hid" gorm:"column:user_index_hid;not null;default:'';type:varchar(60) COLLATE utf8mb4_bin;comment:user_main表位置"`
 		CountryCode      string     `gorm:"column:country_code;uniqueIndex:idx_mobile,priority:2;type:varchar(15) COLLATE utf8mb4_bin;not null;comment:手机国别默认86" json:"country_code"`
 		Mobile           string     `gorm:"column:mobile;not null;default:'';uniqueIndex:idx_mobile,priority:1;type:varchar(20) COLLATE utf8mb4_bin;comment:手机号" json:"-"`
@@ -180,8 +180,9 @@ func (r *ResultUserItem) InitData(item *User) {
 }
 
 func (r *RequestUser) InitRequestUser(c *gin.Context) (err error) {
-	if r.UserHid == "" {
-		r.UserHid = c.GetHeader(app_obj.HttpUserHid)
+	if r.UserHid == 0 {
+		uidString := c.GetHeader(app_obj.HttpUserHid)
+		r.UserHid, err = strconv.ParseInt(uidString, 10, 64)
 	}
 	return
 }

@@ -9,6 +9,7 @@ require (
 	github.com/asim/go-micro/plugins/server/http/v3 v3.0.0-20210623064501-212df8e6c359
 	github.com/asim/go-micro/v3 v3.5.1
 	github.com/astaxie/beego v1.12.3
+	github.com/bwmarrin/snowflake v0.3.0
 	github.com/coreos/bbolt v1.3.6 // indirect
 	github.com/coreos/etcd v3.3.25+incompatible // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
@@ -37,6 +38,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/soheilhy/cmux v0.1.5 // indirect
+	github.com/sony/sonyflake v1.0.0
 	github.com/speps/go-hashids/v2 v2.0.1
 	github.com/stretchr/testify v1.7.0
 	github.com/swaggo/gin-swagger v1.3.0

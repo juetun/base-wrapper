@@ -36,7 +36,7 @@ func main() {
         // plugins.PluginOss,
     ).LoadPlugins() // 加载插件动作
     
-    //金泰文件需要注册的文件目录
+    //静态文件需要注册的文件目录
     loadRouter := func(r *gin.Engine) (err error) {
         r.LoadHTMLGlob("web/views/**/*.htm")
         r.Static("/static/home", "./static/home")
