@@ -40,7 +40,7 @@ type JwtParam struct {
 	RedisCache      *redis.Client
 }
 type JwtUser struct {
-	UserId string `json:"user_hid"` // 用户ID
+	UserId int64 `json:"user_hid"` // 用户ID
 	Name   string `json:"name"`     // 用户昵称
 	// Portrait string `json:"portrait"` // 头像
 	Status int `json:"status"` // '用户状态 0创建,1正常',

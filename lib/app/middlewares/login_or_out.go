@@ -3,6 +3,7 @@ package middlewares
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
@@ -76,8 +77,11 @@ func Authentication(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 // return bool 					true:用户信息获取失败，false:正常操作
 func tokenValidate(c *gin.Context, notStrictValue bool) (jwtUser app_obj.JwtUser, exit bool) {
 	jwtUser = app_obj.JwtUser{}
-	var token, userHid string
-	var err error
+	var (
+		token   string
+		userHid int64
+		err     error
+	)
 	c.Set(app_obj.TraceId, c.GetHeader(app_obj.HttpTraceId))
 	if token = c.Request.Header.Get(app_obj.HttpUserToken); token == "" { // 如果token为空
 
@@ -95,8 +99,10 @@ func tokenValidate(c *gin.Context, notStrictValue bool) (jwtUser app_obj.JwtUser
 		return
 	}
 
-	userHid = c.Request.Header.Get(app_obj.HttpUserHid)
-
+	userHidString := c.Request.Header.Get(app_obj.HttpUserHid)
+	if userHid, err = strconv.ParseInt(userHidString, 10, 64); err != nil {
+		return
+	}
 	if jwtUser, err = common.ParseToken(token, c); err != nil { // 如果解析token失败
 
 		app_obj.GetLog().Error(c, map[string]interface{}{
