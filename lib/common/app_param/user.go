@@ -67,7 +67,7 @@ type (
 		UserMobile *UserMobile `json:"user_mobile,omitempty"`
 	}
 	UserIndex struct {
-		ID         int              `gorm:"column:id;primary_key" json:"-"`
+		ID         int64            `gorm:"column:id;primary_key" json:"-"`
 		UserName   string           `gorm:"column:user_name;not null;type:varchar(50) COLLATE utf8mb4_bin;uniqueIndex;comment:用户名" json:"user_name" `
 		TmpAccount string           `gorm:"column:tmp_account;not null;type:varchar(200) COLLATE utf8mb4_bin;comment:注册时临时账号" json:"tmp_account" `
 		IsUse      int              `json:"is_use" gorm:"column:is_use;type:tinyint(1);default:0;comment:是否启用 0-启用 大于0-已启用"`
@@ -98,7 +98,7 @@ type (
 	UserMain struct {
 		ID              int              `gorm:"column:id;primary_key" json:"id"`
 		UserHid         int64            `gorm:"uniqueIndex:idx_user_hid;column:user_hid;not null;default:0;type:bigint(20) COLLATE utf8mb4_bin" json:"user_hid"` // sql:"unique_index" 创建表时生成唯一索引
-		AuthDesc        string           `json:"auth_desc" gorm:"column:auth_desc;not null;type:varchar(30);default:'';comment:认证描述"`                    // 认证描述
+		AuthDesc        string           `json:"auth_desc" gorm:"column:auth_desc;not null;type:varchar(30);default:'';comment:认证描述"`                             // 认证描述
 		UserMobileIndex string           `gorm:"column:user_mobile_index;not null;type:varchar(60) COLLATE utf8mb4_bin;default:'';comment:手机号索引" json:"-" `
 		UserEmailIndex  string           `gorm:"column:user_email_index;not null;type:varchar(60) COLLATE utf8mb4_bin;default:'';comment:邮箱索引" json:"-" `
 		Portrait        string           `gorm:"column:portrait;not null;type:varchar(1000);default:'';comment:头图地址;" json:"portrait"`
