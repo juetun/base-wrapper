@@ -20,7 +20,7 @@ const (
 // 获取用户信息的响应参数结构
 type (
 	ResultUser struct {
-		List map[string]ResultUserItem `json:"list"`
+		List map[int64]ResultUserItem `json:"list"`
 	}
 	ResultUserItem struct {
 		UserHid          int64      `json:"user_hid,omitempty"`  // 用户ID
