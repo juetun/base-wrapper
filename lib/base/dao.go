@@ -162,6 +162,7 @@ func (r *ServiceDao) SetContext(context ...*Context) (s *ServiceDao) {
 func (r *ServiceDao) GetDefaultActErrorHandlerResult(model ModelBase) (res *ActErrorHandlerResult) {
 	res = &ActErrorHandlerResult{
 		CommonDb: r.GetDefaultDb(model),
+		Model:    model,
 	}
 	return
 }
