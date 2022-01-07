@@ -1,4 +1,4 @@
-package anvil_redis
+package redis_mq
 
 import (
 	"context"
