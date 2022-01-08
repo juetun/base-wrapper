@@ -6,3 +6,4 @@ main.go
 /log/
 /config
 /static/
+.idea

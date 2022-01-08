@@ -149,7 +149,7 @@ func (r *RedisDistributedLock) RunWithGetLock() (err error) {
 	var getLock bool
 
 	for {
-		if i >= r.AttemptsTime {
+		if r.AttemptsTime > 0 && i >= r.AttemptsTime {
 			r.Context.Debug(map[string]interface{}{
 				"msg": fmt.Errorf("%d次尝试获取锁失败", r.AttemptsTime),
 			}, "RedisDistributedLockRunWithGetLock")
