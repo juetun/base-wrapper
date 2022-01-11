@@ -1,6 +1,7 @@
 package app_param
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -182,7 +183,15 @@ func (r *ResultUserItem) InitData(item *User) {
 func (r *RequestUser) InitRequestUser(c *gin.Context) (err error) {
 	if r.UserHid == 0 {
 		uidString := c.GetHeader(app_obj.HttpUserHid)
+		if uidString == "" {
+			err = fmt.Errorf("请先登录系统")
+			return
+		}
 		r.UserHid, err = strconv.ParseInt(uidString, 10, 64)
+		if err != nil {
+			err = fmt.Errorf("用户信息参数格式不正确(uid:%s)", uidString)
+			return
+		}
 	}
 	return
 }

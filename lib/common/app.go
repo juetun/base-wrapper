@@ -11,6 +11,8 @@ import (
 	"github.com/juetun/base-wrapper/lib/utils"
 )
 
+var ExecPath = ""
+
 func GetEnv() string {
 	return os.Getenv("GO_ENV")
 }
@@ -35,19 +37,22 @@ func DefaultAppTemplateDirectory(io *base.SystemOut) (res string) {
 func GetConfigFileDirectory(notEnv ...bool) (res string) {
 
 	var env = ""
-	if app_obj.App.AppEnv != "" {
+	if app_obj.App != nil && app_obj.App.AppEnv != "" {
 		env = app_obj.App.AppEnv + "/"
 	}
 	var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
 
 	if app_obj.BaseDirect == "" {
 		var (
-			dir string
+			dir = ExecPath
 			err error
 		)
-		if dir, err = os.Getwd(); err != nil {
-			io.SystemOutPrintf("Template GetConfigFileDirectory is :'%s'", res)
+		if ExecPath == "" {
+			if dir, err = os.Getwd(); err != nil {
+				io.SystemOutPrintf("Template GetConfigFileDirectory is :'%s'", res)
+			}
 		}
+
 		if len(notEnv) > 0 && notEnv[0] {
 			return fmt.Sprintf("%s/config/", dir)
 		} else {
