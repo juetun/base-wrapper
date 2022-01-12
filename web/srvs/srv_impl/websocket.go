@@ -2,10 +2,10 @@ package srv_impl
 
 import (
 	"encoding/json"
+	"github.com/juetun/base-wrapper/lib/common/redis_pkg/redis_mq"
 
 	"github.com/gorilla/websocket"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/base-wrapper/lib/common/anvil_redis"
 	"github.com/juetun/base-wrapper/lib/common/anvil_websocket/ext"
 	"github.com/juetun/base-wrapper/web/models"
 	"github.com/juetun/base-wrapper/web/srvs"
@@ -43,9 +43,9 @@ func (r *SrvWebSocketImpl) getCurrentUserByUid(userHid string) (res *models.User
 // 消息接收处理
 func (r *SrvWebSocketImpl) messageLogicHandler(userHid string, data interface{}) (res interface{}, err error) {
 
-	redisMq := anvil_redis.NewRedisMQ(
-		anvil_redis.RedisOptionClient(r.Context.CacheClient),
-		anvil_redis.RedisOptionContext(r.Context),
+	redisMq := redis_mq.NewRedisMQ(
+		redis_mq.RedisOptionClient(r.Context.CacheClient),
+		redis_mq.RedisOptionContext(r.Context),
 	)
 
 	var bt []byte
