@@ -22,25 +22,7 @@ func newTestBaseController() (res *TestBaseController) {
 	return &TestBaseController{}
 }
 func TestNewRedisDelayMq(t *testing.T) {
-	dir, _ := os.Getwd()
-	common.ExecPath = fmt.Sprintf("%s/../../../..", dir)
-	app_start.NewPlugins().Use(
-		PluginRegistry,
-		PluginClickHouse,
-		PluginOss,
-		PluginJwt, // 加载用户验证插件,必须放在Redis插件后
-		// PluginElasticSearchV7,
-		PluginShortMessage,
-		PluginAppMap,
-		//PluginAuthorization,
-		// func(arg *app_start.PluginsOperate) (err error) {
-		// 	// 启动websocket
-		// 	go anvil_websocket.WebsocketStart()
-		// 	return
-		// },
-		// plugins.PluginOss,
-	).LoadPlugins() // 加载插件动作
-
+	initReady()
 	con := newTestBaseController()
 	ctxp, _ := base.CreateCrontabContext(con.ControllerBase)
 
@@ -78,8 +60,7 @@ func TestNewRedisDelayMq(t *testing.T) {
 		})
 	}
 }
-
-func TestNewRedisDelayMqConsumer(t *testing.T) {
+func initReady() {
 	dir, _ := os.Getwd()
 	common.ExecPath = fmt.Sprintf("%s/../../../..", dir)
 	app_start.NewPlugins().Use(
@@ -99,6 +80,9 @@ func TestNewRedisDelayMqConsumer(t *testing.T) {
 		// plugins.PluginOss,
 	).LoadPlugins() // 加载插件动作
 
+}
+func TestNewRedisDelayMqConsumer(t *testing.T) {
+	initReady()
 	con := newTestBaseController()
 	ctxp, _ := base.CreateCrontabContext(con.ControllerBase)
 
@@ -127,10 +111,22 @@ func TestNewRedisDelayMqConsumer(t *testing.T) {
 				return
 			})
 
+			masterRuntime()
 			//gotRes.Consumer("", "", consumerData)
 			//if gotRes := NewRedisDelayMq(tt.args.options...); !reflect.DeepEqual(gotRes, tt.wantRes) {
 			//	t.Errorf("NewRedisDelayMq() = %v, want %v", gotRes, tt.wantRes)
 			//}
 		})
+	}
+}
+func masterRuntime() {
+	var i int
+	for {
+		if i > 1000 {
+			break
+		}
+		log.Printf("延迟处理 \n")
+		time.Sleep(1 * time.Second)
+		i++
 	}
 }
