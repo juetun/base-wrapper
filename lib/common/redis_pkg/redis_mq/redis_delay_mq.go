@@ -30,9 +30,8 @@ func NewRedisDelayMq(options ...RedisDelayMqOption) (res *RedisDelayMq) {
 
 type (
 	MqConsumerItem struct {
-		Topic   string      `json:"topic"`
-		GroupId string      `json:"group_id"`
-		Ticker  *time.Timer `json:"-"`
+		Topic string      `json:"topic"`
+		Timer *time.Timer `json:"-"`
 	}
 	RedisDelayMq struct {
 		Ctx              context.Context     `json:"-"` // 上下文参数 用于停止监听动作
@@ -86,17 +85,16 @@ func (r *RedisDelayMq) initConsumerMapGroupIdMessageHandler() {
 }
 
 //启动数据MQ消费逻辑
-func (r *RedisDelayMq) Consumer(topic, groupId string, handler ConsumerHandler) {
+func (r *RedisDelayMq) Consumer(topic string, handler ConsumerHandler) {
 	r.initConsumerMapGroupIdMessageHandler()
 	var RedisDelayMqTopic = []MqConsumerItem{
 		{
-			Topic:   topic,
-			GroupId: groupId,
+			Topic: topic,
 		},
 	}
 	for _, item := range RedisDelayMqTopic {
-		item.Ticker = time.NewTimer(r.Config.Delayer.TimerInterval)
-		go r.waitTicker(item, handler)
+		item.Timer = time.NewTimer(r.Config.Delayer.TimerInterval)
+		go r.waitTimer(item, handler)
 	}
 
 }
@@ -107,29 +105,28 @@ func (r *RedisDelayMq) deferWaitTicker(t time.Time, mqConsumerItem MqConsumerIte
 	var lock *anvil_redis.RedisLock
 
 	defer func() {
-		mqConsumerItem.Ticker.Reset(r.Config.Delayer.TimerInterval)
-		lock.UnLock()
+		mqConsumerItem.Timer.Reset(r.Config.Delayer.TimerInterval)
+		_, _ = lock.UnLock()
 	}()
-	uk := fmt.Sprintf("lock_%s", mqConsumerItem.Topic)
+	uk := fmt.Sprintf("lock:%s", mqConsumerItem.Topic)
 	lock = anvil_redis.NewRedisLock(
 		anvil_redis.RedisLockContext(r.Context),
 		anvil_redis.RedisLockCtx(r.Ctx),
-		anvil_redis.RedisLockUniqueKey(uk),
+		anvil_redis.RedisLockUniqueKey(utils.Guid(uk)),
 		anvil_redis.RedisLockLockKey(uk),
 		anvil_redis.RedisLockDuration(10*time.Second),
 		anvil_redis.RedisLockOkHandler(func(ctx context.Context) (err error) {
-			r.tickHandler(t, mqConsumerItem.Topic, mqConsumerItem.GroupId, tickHandler)
+			r.tickHandler(t, mqConsumerItem.Topic, tickHandler)
 			return
 		}),
 	)
-	lock.RunWithGetLock()
-
+	_ = lock.RunWithGetLock()
 }
 
-func (r *RedisDelayMq) waitTicker(mqConsumerItem MqConsumerItem, tickHandler ConsumerHandler) {
+func (r *RedisDelayMq) waitTimer(mqConsumerItem MqConsumerItem, tickHandler ConsumerHandler) {
 	for {
 		select {
-		case t := <-mqConsumerItem.Ticker.C:
+		case t := <-mqConsumerItem.Timer.C:
 			r.deferWaitTicker(t, mqConsumerItem, tickHandler)
 		default:
 		}
@@ -137,7 +134,7 @@ func (r *RedisDelayMq) waitTicker(mqConsumerItem MqConsumerItem, tickHandler Con
 	//r.Ticker = ticker
 }
 
-func (r *RedisDelayMq) getFromTopic(topic, groupId string) (bucketItem []string, err error) {
+func (r *RedisDelayMq) getFromTopic(topic string) (bucketItem []string, err error) {
 	err = r.client.ZRangeByScore(r.Ctx, topic, &redis.ZRangeBy{
 		Min:    "0",
 		Max:    fmt.Sprintf("%d", time.Now().UnixNano()),
@@ -159,7 +156,7 @@ func (r *RedisDelayMq) getDataWithKeys(topic string, bucketItem []string) (err e
 }
 
 //处理数据
-func (r *RedisDelayMq) dealData(tickHandler ConsumerHandler, topic, groupId string, bucketItem ...string) (err error) {
+func (r *RedisDelayMq) dealData(tickHandler ConsumerHandler, topic string, bucketItem ...string) (err error) {
 
 	for _, data := range bucketItem {
 		if err = r.getCacheListByKey(data); err != nil {
@@ -174,18 +171,17 @@ func (r *RedisDelayMq) getCacheListByKey(key string) (err error) {
 	return
 }
 
-func (r *RedisDelayMq) readData(topic, groupId string, tickHandler ConsumerHandler) (exitFlag bool) {
+func (r *RedisDelayMq) readData(topic string, tickHandler ConsumerHandler) (exitFlag bool) {
 	var (
 		err        error
 		bucketItem []string
 	)
 	//从Redis中读取指定条数数据
-	if bucketItem, err = r.getFromTopic(topic, groupId); err != nil {
+	if bucketItem, err = r.getFromTopic(topic); err != nil {
 		r.Context.Error(map[string]interface{}{
-			"err":     err.Error(),
-			"topic":   topic,
-			"groupId": groupId,
-			"desc":    "扫描bucket错误#bucket",
+			"err":   err.Error(),
+			"topic": topic,
+			"desc":  "扫描bucket错误#bucket",
 		}, "RedisDelayMqTickHandler")
 		exitFlag = true
 		return
@@ -197,30 +193,30 @@ func (r *RedisDelayMq) readData(topic, groupId string, tickHandler ConsumerHandl
 		return
 	}
 
-	if err = r.dealData(tickHandler, topic, groupId, bucketItem...); err != nil {
+	if err = r.dealData(tickHandler, topic, bucketItem...); err != nil {
 		exitFlag = true
 		return
 	}
 
 	// 从Redis和数据库中删除数据
-	if err = r.removeFromBucket(topic, groupId, bucketItem...); err != nil {
+	if err = r.removeFromBucket(topic, bucketItem...); err != nil {
 		exitFlag = true
 	}
 	return
 }
 
 // 扫描bucket, 取出延迟时间小于当前时间的Job
-func (r *RedisDelayMq) tickHandler(t time.Time, topic, groupId string, tickHandler ConsumerHandler) {
+func (r *RedisDelayMq) tickHandler(t time.Time, topic string, tickHandler ConsumerHandler) {
 	var exitF bool
 	for {
-		if exitF = r.readData(topic, groupId, tickHandler); exitF {
+		if exitF = r.readData(topic, tickHandler); exitF {
 			break
 		}
 	}
 	return
 }
 
-func (r *RedisDelayMq) removeFromBucket(topic, groupId string, bucketItem ...string) (err error) {
+func (r *RedisDelayMq) removeFromBucket(topic string, bucketItem ...string) (err error) {
 	var msg = make([]string, 0, len(bucketItem))
 	desc := ""
 	defer func() {
@@ -232,7 +228,6 @@ func (r *RedisDelayMq) removeFromBucket(topic, groupId string, bucketItem ...str
 			"topic":      topic,
 			"desc":       desc,
 			"msg":        msg,
-			"groupId":    groupId,
 			"bucketItem": bucketItem,
 		}, "RedisDelayMqRemoveFromBucket")
 	}()
