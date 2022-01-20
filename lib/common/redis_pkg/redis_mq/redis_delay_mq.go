@@ -108,7 +108,7 @@ func (r *RedisDelayMq) deferWaitTicker(t time.Time, mqConsumerItem MqConsumerIte
 		mqConsumerItem.Timer.Reset(r.Config.Delayer.TimerInterval)
 		_, _ = lock.UnLock()
 	}()
-	uk := fmt.Sprintf("lock:%s", mqConsumerItem.Topic)
+	uk := fmt.Sprintf("rdslk:%s", mqConsumerItem.Topic)
 	lock = anvil_redis.NewRedisLock(
 		anvil_redis.RedisLockContext(r.Context),
 		anvil_redis.RedisLockCtx(r.Ctx),
