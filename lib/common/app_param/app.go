@@ -1,7 +1,6 @@
 package app_param
 
 const (
-
 	AppNameAdmin   = "admin-main"
 	AppNameUpload  = "api-upload"
 	AppNameExport  = "api-export"
@@ -12,7 +11,8 @@ const (
 
 	AppNameCart = "api-car"
 
-	AppNameMall         = "api-mall"
-	AppNameMallActivity = "api-activity"
-	AppNameMallOrder    = "api-order"
+	AppNameMall             = "api-mall"
+	AppNameMallOrder        = "api-order"
+	AppNameMallOrderComment = "api-ordercomment"
+	AppNameMallActivity     = "api-activity"
 )
