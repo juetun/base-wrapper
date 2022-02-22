@@ -25,7 +25,6 @@ func NewSystemOut() *SystemOut {
 		logObj = &SystemOut{
 			InfoType: LogLevelInfo,
 		}
-
 	})
 	return logObj
 }

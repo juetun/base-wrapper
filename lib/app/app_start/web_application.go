@@ -222,7 +222,7 @@ func (r *WebApplication) start() {
 	<-quit
 	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintln("Shutdown Server ...")
 	if r.MicroOperate != nil { //如果开启了微服务,
-
+		r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintln("将服务信息从注册中心移除")
 		//则先将服务从注册中心拿掉
 		r.UnRegisterMicro()
 	}
