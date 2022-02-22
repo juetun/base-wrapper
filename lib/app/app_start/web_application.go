@@ -36,7 +36,8 @@ var HandleFuncPage = make([]HandleRouter, 0)     // 外网路由函数切片
 type WebApplication struct {
 	GinEngine *gin.Engine
 	syslog    *base.SystemOut
-	FlagMicro bool // 如果是支持微服务
+	//FlagMicro bool // 如果是支持微服务
+	MicroOperate MicroOperateInterface
 }
 
 // NewWebApplication privateMiddleWares 项目自定义的GIN中间件
@@ -69,9 +70,9 @@ func NewWebApplication(privateMiddleWares ...gin.HandlerFunc) *WebApplication {
 
 type RouterHandler func(r *gin.Engine) (err error)
 
-func (r *WebApplication) SetFlagMicro(flagMicro bool) (res *WebApplication) {
+func (r *WebApplication) SetFlagMicro(micro MicroOperateInterface) (res *WebApplication) {
 	res = r
-	r.FlagMicro = flagMicro
+	r.MicroOperate = micro
 	return
 }
 
@@ -165,21 +166,20 @@ func (r *WebApplication) Run() (err error) {
 		return
 	}
 	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintln("General start ")
-	if !r.microRun(r.GinEngine) {
-		err = r.GinEngine.Run(r.GetListenPortString()) // listen and serve on 0.0.0.0:8080
-		r.syslog.SetInfoType(base.LogLevelError).SystemOutPrintf("start err :%s", err.Error())
+	if r.MicroOperate != nil { //如果实现了微服务注册与发现
+		r.MicroOperate.RegisterMicro(r.GinEngine)
 	}
+
 	return
 }
 
-func (r *WebApplication) microRun(engine *gin.Engine) (res bool) {
-	if r.FlagMicro { // 如果支持微服务
-		r.syslog.SetInfoType(base.LogLevelInfo).
-			SystemOutPrintln("Run as micro!")
-		r.RunAsMicro(engine)
-		return
+
+
+//将服务从注册中心拿掉
+func (r *WebApplication) UnRegisterMicro() {
+	if r.MicroOperate != nil {
+		r.MicroOperate.UnRegisterMicro()
 	}
-	res = true
 	return
 }
 
@@ -188,17 +188,23 @@ func (r *WebApplication) start() {
 	r.syslog.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintln("Support grace reload")
 
-	srv := &http.Server{
+	httpServer := &http.Server{
 		Addr:    r.GetListenPortString(),
 		Handler: r.GinEngine,
 	}
-	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("Listen Addr  %s", srv.Addr)
+	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("Listen Addr  %s", httpServer.Addr)
 
 	go func() { // 启动GIN服务动作
-
-		if r.microRun(r.GinEngine) {
+		var err error
+		var ok bool
+		ok, err = r.MicroOperate.RegisterMicro(r.GinEngine)
+		if err != nil {
+			r.syslog.SetInfoType(base.LogLevelError).SystemOutFatalf("listen: %s\n", err.Error())
+			return
+		}
+		if ok {
 			// service connections
-			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 				r.syslog.SetInfoType(base.LogLevelInfo).SystemOutFatalf("listen: %s\n", err)
 			}
 		}
@@ -214,13 +220,18 @@ func (r *WebApplication) start() {
 
 	<-quit
 	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintln("Shutdown Server ...")
+	if r.MicroOperate != nil { //如果开启了微服务,
+
+		//则先将服务从注册中心拿掉
+		r.UnRegisterMicro()
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer func() {
 		cancel()
 		r.syslog.SetInfoType(base.LogLevelError).SystemOutPrintln("Server exiting")
 	}()
-	if err := srv.Shutdown(ctx); err != nil {
+	if err := httpServer.Shutdown(ctx); err != nil {
 		r.syslog.SetInfoType(base.LogLevelError).SystemOutFatalf("Server Shutdown:", err)
 	}
 
@@ -242,6 +253,7 @@ func (r *WebApplication) toolRouteRegister(appConfig *app_obj.Application, UrlPr
 	r.registerSwagger(appConfig)
 
 }
+
 func (r *WebApplication) registerDefaultRoute(UrlPrefix string) {
 	r.syslog.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintln("#注册健康检查路由...")

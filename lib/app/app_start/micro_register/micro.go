@@ -2,7 +2,7 @@
 // @Copyright (c) 2021.
 // @Author ${USER}
 // @Date ${DATE}
-package app_start
+package micro_register
 
 import (
 	"context"
@@ -15,55 +15,13 @@ import (
 	"sync"
 	"time"
 
-	httpServer "github.com/asim/go-micro/plugins/server/http/v3"
-	"github.com/asim/go-micro/v3"
 	"github.com/asim/go-micro/v3/util/addr"
-	"github.com/google/uuid"
 	"github.com/juetun/base-wrapper/lib/app/micro_service"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/juetun/base-wrapper/lib/plugins/service_discory/traefik/etcd"
 
 	"github.com/asim/go-micro/v3/registry"
-	"github.com/asim/go-micro/v3/server"
-	"github.com/gin-gonic/gin"
 )
-
-var (
-	DefaultId = uuid.New().String()
-)
-
-// RunAsMicro 使用go-micro实现服务注册与发现
-func (r *WebApplication) RunAsMicro(gin *gin.Engine) {
-	var err error
-	address := r.GetListenPortString()
-
-	srv := httpServer.NewServer(
-		server.Name(common.GetAppConfig().AppName),
-		server.Address(address),
-		server.RegisterTTL(time.Second*10),
-		server.RegisterInterval(time.Second*5),
-	)
-	if err = srv.Handle(srv.NewHandler(gin)); err != nil {
-		r.syslog.SetInfoType(base.LogLevelFatal).
-			SystemOutFatalf("Register micro router failure!")
-		return
-	}
-	service := micro.NewService(micro.Server(srv),
-		micro.Registry(
-			newEtcdRegistry(
-				r.syslog,
-				registry.Addrs(micro_service.ServiceConfig.Endpoints...),
-				registry.Timeout(20*time.Second),
-				registry.Secure(true),
-			),
-		))
-	service.Init()
-	r.syslog.SetInfoType(base.LogLevelInfo).
-		SystemOutPrintf("Server(address:`%s`) init finished", address)
-	err = service.Run()
-
-}
 
 type EtcdRegistry struct {
 	AppName    string `json:"app_name"`
@@ -87,18 +45,6 @@ type EtcdRegistry struct {
 	etcdTraefik *etcd.TraefikEtcd
 }
 
-func newEtcdRegistry(syslog *base.SystemOut, opts ...registry.Option) registry.Registry {
-	options := NewOptions(opts...)
-	res := &EtcdRegistry{
-		ServerId: DefaultId,
-		opts:     options,
-		mux:      http.NewServeMux(),
-		static:   true,
-		syslog:   syslog,
-	}
-	res.GenSrv()
-	return res
-}
 
 func NewOptions(opts ...registry.Option) registry.Options {
 	opt := registry.Options{
@@ -181,7 +127,7 @@ func (r *EtcdRegistry) Register(service *registry.Service, option ...registry.Re
 	if r.etcdTraefik == nil {
 		r.etcdTraefik = etcd.NewTraefikEtcd(&micro_service.ServiceConfig, r.syslog)
 	}
- 	if err = r.etcdTraefik.Action(); err != nil {
+	if err = r.etcdTraefik.Action(); err != nil {
 		r.syslog.SetInfoType(base.LogLevelFatal).SystemOutFatalf("registry server err(%#v) \n", err)
 	}
 	return

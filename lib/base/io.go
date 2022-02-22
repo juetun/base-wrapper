@@ -3,6 +3,7 @@ package base
 import (
 	"fmt"
 	systemLog "log"
+	"sync"
 )
 
 type SystemOut struct {
@@ -16,10 +17,17 @@ const (
 	LogLevelFatal = "FATAL"
 )
 
+var systemLogInit sync.Once
+var logObj *SystemOut
+
 func NewSystemOut() *SystemOut {
-	return &SystemOut{
-		InfoType: LogLevelInfo,
-	}
+	systemLogInit.Do(func() {
+		logObj = &SystemOut{
+			InfoType: LogLevelInfo,
+		}
+
+	})
+	return logObj
 }
 func (r *SystemOut) SetInfoType(infoType string) *SystemOut {
 	r.InfoType = fmt.Sprintf("【%s】", infoType)
