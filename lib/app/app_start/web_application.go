@@ -173,8 +173,6 @@ func (r *WebApplication) Run() (err error) {
 	return
 }
 
-
-
 //将服务从注册中心拿掉
 func (r *WebApplication) UnRegisterMicro() {
 	if r.MicroOperate != nil {
@@ -195,19 +193,22 @@ func (r *WebApplication) start() {
 	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("Listen Addr  %s", httpServer.Addr)
 
 	go func() { // 启动GIN服务动作
-		var err error
-		var ok bool
-		ok, err = r.MicroOperate.RegisterMicro(r.GinEngine)
-		if err != nil {
-			r.syslog.SetInfoType(base.LogLevelError).SystemOutFatalf("listen: %s\n", err.Error())
+
+		if r.MicroOperate != nil {
+			var err error
+			_, err = r.MicroOperate.RegisterMicro(r.GinEngine)
+			if err != nil {
+				r.syslog.SetInfoType(base.LogLevelError).SystemOutFatalf("listen: %s\n", err.Error())
+				return
+			}
 			return
 		}
-		if ok {
-			// service connections
-			if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-				r.syslog.SetInfoType(base.LogLevelInfo).SystemOutFatalf("listen: %s\n", err)
-			}
+
+		// service connections
+		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			r.syslog.SetInfoType(base.LogLevelInfo).SystemOutFatalf("listen: %s\n", err)
 		}
+
 	}()
 
 	// Wait for interrupt signal to gracefully shutdown the server with

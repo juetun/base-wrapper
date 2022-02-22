@@ -15,7 +15,6 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_start"
-	"github.com/juetun/base-wrapper/lib/app/app_start/micro_register"
 	_ "github.com/juetun/base-wrapper/lib/app/init" // 加载公共插件项
 	"github.com/juetun/base-wrapper/lib/authorization/model"
 	. "github.com/juetun/base-wrapper/lib/plugins" // 组件目录
@@ -64,7 +63,7 @@ func main() {
 
 	// 启动GIN服务
 	_ = app_start.NewWebApplication().
-		SetFlagMicro(micro_register.NewETCDRegister()).
+		//SetFlagMicro(micro_register.NewETCDRegister()).
 		LoadRouter(loadRouter). // 记载gin 路由配置
 		Run()
 
