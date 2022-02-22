@@ -78,7 +78,6 @@ func (r *ETCDRegister) RegisterMicro(c *gin.Engine) (ok bool, err error) {
 	}
 	// listen and serve on 0.0.0.0:8080
 	if err = c.Run(r.GetListenPortString()); err != nil {
-
 		r.syslog.SetInfoType(base.LogLevelError).SystemOutPrintf("start err :%s", err.Error())
 	}
 
@@ -93,6 +92,7 @@ func (r *ETCDRegister) microRun(engine *gin.Engine) (res bool) {
 	r.syslog.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintln("Run as micro!")
 	r.runAsMicro(engine)
+	res = true
 	return
 }
 

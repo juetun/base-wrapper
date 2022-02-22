@@ -21,7 +21,6 @@ import (
 )
 
 const (
-
 	SchemaGeneral = "http"
 	SchemaHttps   = "https"
 )
@@ -104,15 +103,15 @@ func (r *TraefikEtcd) getChildString(slice []KeyStruct) (res string) {
 func (r *TraefikEtcd) parseMapToJsonByte(prefix string, mapv map[string]string) (res discovery.HttpTraefik, err error) {
 	res = discovery.HttpTraefik{}
 	var slice = make([]KeyStruct, 0, len(mapv))
-
+	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("**注册到注册中心参数start**")
 	for key, v := range mapv {
+		r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("%s = %s", key, v)
 		curString := strings.TrimPrefix(key, prefix)
 		keySlice := strings.Split(curString, "/")
-		slice = append(slice, KeyStruct{
-			Key:   keySlice,
-			Value: v,
-		})
+		slice = append(slice, KeyStruct{Key: keySlice, Value: v,})
 	}
+	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("**注册到注册中心参数over**")
+
 	stringJson := r.getChildString(slice)
 	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("从etcd中获取json为: %s", stringJson)
 	if err = json.Unmarshal([]byte(stringJson), &res); err != nil {
@@ -141,14 +140,13 @@ func (r *TraefikEtcd) Action() (err error) {
 	defer r.unLockService(serverConfig.ServiceName, lid)
 
 	var etcdMapValue map[string]string
-	var etcdObject *discovery.TraefikConfig
+	var etcdObject = &discovery.TraefikConfig{}
 
 	if etcdMapValue, err = r.getAllKey(serverConfig.KeyPrefixs); err != nil {
 		return
 	}
-	etcdObject = &discovery.TraefikConfig{}
-	etcdObject.Http, err = r.parseMapToJsonByte(discovery.HttpPrefix, etcdMapValue)
-	if err != nil {
+
+ 	if etcdObject.Http, err = r.parseMapToJsonByte(discovery.HttpPrefix, etcdMapValue);err != nil {
 		return
 	}
 	mapValue := r.getTraefikConfigToKeyValue(etcdObject, serverConfig.CurrentServer)
@@ -166,9 +164,9 @@ func (r *TraefikEtcd) lockService(serviceName string) (res clientv3.LeaseID) {
 func (r *TraefikEtcd) unLockService(serviceName string, leaseID clientv3.LeaseID) {
 	_ = serviceName
 	_ = leaseID
-
 	return
 }
+
 func (r *TraefikEtcd) mergeData(mapValue, nowData map[string]string) (res map[string]string) {
 	_ = mapValue
 	_ = nowData
@@ -186,7 +184,7 @@ func (r *TraefikEtcd) getAllKey(prefixs []string) (res map[string]string, err er
 		for _, it := range dt.Kvs {
 			k := string(it.Key)
 			v := string(it.Value)
-			if RegistryMicroLogShow{
+			if RegistryMicroLogShow {
 				r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("etcd value:`%s = %v` [prefix:%s]\n", prefix, k, v)
 			}
 			res[k] = v
