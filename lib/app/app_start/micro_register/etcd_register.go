@@ -42,7 +42,8 @@ func newETCDRegistry(syslog *base.SystemOut, opts ...registry.Option) registry.R
 
 type (
 	ETCDRegister struct {
-		syslog *base.SystemOut
+		syslog      *base.SystemOut
+		microServer server.Server
 	}
 	EtcdRegistry struct {
 		AppName    string `json:"app_name"`
@@ -73,59 +74,54 @@ func NewETCDRegister() (res *ETCDRegister) {
 }
 
 func (r *ETCDRegister) RegisterMicro(c *gin.Engine) (ok bool, err error) {
-	if r.microRun(c) {
-		return
-	}
+	r.syslog.SetInfoType(base.LogLevelInfo).
+		SystemOutPrintln("Run as micro!")
+	r.microServer = r.runAsMicro(c)
 	// listen and serve on 0.0.0.0:8080
-	if err = c.Run(r.GetListenPortString()); err != nil {
-		r.syslog.SetInfoType(base.LogLevelError).SystemOutPrintf("start err :%s", err.Error())
-	}
+	//if err = c.Run(r.GetListenPortString()); err != nil {
+	//	r.syslog.SetInfoType(base.LogLevelError).SystemOutPrintf("start err :%s", err.Error())
+	//}
 
 	return
+}
+
+func (r *ETCDRegister) UnRegisterMicro() {
+	//停止微服务注册
+	r.microServer.Stop()
+	r.syslog.SetInfoType(base.LogLevelInfo).
+		SystemOutPrintln("停止微服务注册!")
 }
 
 func (r *ETCDRegister) GetListenPortString() string {
 	return ":" + strconv.Itoa(common.GetAppConfig().AppPort)
 }
 
-func (r *ETCDRegister) microRun(engine *gin.Engine) (res bool) {
-	r.syslog.SetInfoType(base.LogLevelInfo).
-		SystemOutPrintln("Run as micro!")
-	r.runAsMicro(engine)
-	res = true
-	return
-}
-
-func (r *ETCDRegister) UnRegisterMicro() {
-
-}
-
 // RunAsMicro 使用go-micro实现服务注册与发现
-func (r *ETCDRegister) runAsMicro(gin *gin.Engine) {
+func (r *ETCDRegister) runAsMicro(gin *gin.Engine) (microServer server.Server) {
 	var err error
 	address := r.GetListenPortString()
-
-	microServer := httpServer.NewServer(
+	etcdRegistry := newETCDRegistry(
+		r.syslog,
+		registry.Addrs(micro_service.ServiceConfig.Endpoints...),
+		registry.Timeout(20*time.Second),
+		registry.Secure(true),
+	)
+	microServer = httpServer.NewServer(
 		server.Name(common.GetAppConfig().AppName),
 		server.Address(address),
 		server.RegisterTTL(time.Second*10),
 		server.RegisterInterval(time.Second*5),
 	)
+
 	if err = microServer.Handle(microServer.NewHandler(gin)); err != nil {
 		r.syslog.SetInfoType(base.LogLevelFatal).
 			SystemOutFatalf("Register micro router failure!")
 		return
 	}
+
 	service := micro.NewService(
 		micro.Server(microServer),
-		micro.Registry(
-			newETCDRegistry(
-				r.syslog,
-				registry.Addrs(micro_service.ServiceConfig.Endpoints...),
-				registry.Timeout(20*time.Second),
-				registry.Secure(true),
-			),
-		))
+		micro.Registry(etcdRegistry))
 	service.Init()
 	r.syslog.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintf("Server(address:`%s`) init finished", address)

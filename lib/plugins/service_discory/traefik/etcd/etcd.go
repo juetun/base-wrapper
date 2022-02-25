@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/etcd-io/etcd/clientv3"
@@ -100,17 +101,18 @@ func (r *TraefikEtcd) getChildString(slice []KeyStruct) (res string) {
 	res = fmt.Sprintf(`{%s}`, strings.Join(sSlice, ","))
 	return
 }
+
 func (r *TraefikEtcd) parseMapToJsonByte(prefix string, mapv map[string]string) (res discovery.HttpTraefik, err error) {
 	res = discovery.HttpTraefik{}
 	var slice = make([]KeyStruct, 0, len(mapv))
-	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("**注册到注册中心参数start**")
+	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("从注册中心读取到参数start........")
 	for key, v := range mapv {
 		r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("%s = %s", key, v)
 		curString := strings.TrimPrefix(key, prefix)
 		keySlice := strings.Split(curString, "/")
 		slice = append(slice, KeyStruct{Key: keySlice, Value: v,})
 	}
-	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("**注册到注册中心参数over**")
+	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("结束从注册中心读取到参数........")
 
 	stringJson := r.getChildString(slice)
 	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("从etcd中获取json为: %s", stringJson)
@@ -127,15 +129,23 @@ type MicroServerSingleton struct {
 }
 
 var serverConfig *MicroServerSingleton
+var syncOnce sync.Once
 
+func (r *TraefikEtcd) initServerConfig() {
+	syncOnce.Do(func() {
+		if serverConfig == nil { // 只执行一次动作
+			serverConfig = &MicroServerSingleton{}
+			serverConfig.CurrentServer, serverConfig.ServiceName, serverConfig.KeyPrefixs = r.readyServerData()
+		}
+	})
+
+}
 func (r *TraefikEtcd) Action() (err error) {
 
-	if serverConfig == nil { // 只执行一次动作
-		serverConfig = &MicroServerSingleton{}
-		serverConfig.CurrentServer, serverConfig.ServiceName, serverConfig.KeyPrefixs = r.readyServerData()
-	}
+	//初始化当前服务的信息
+	r.initServerConfig()
 
-	// 实现悲观锁锁定数据
+	// 实现锁定数据
 	lid := r.lockService(serverConfig.ServiceName)
 	defer r.unLockService(serverConfig.ServiceName, lid)
 
@@ -146,9 +156,10 @@ func (r *TraefikEtcd) Action() (err error) {
 		return
 	}
 
- 	if etcdObject.Http, err = r.parseMapToJsonByte(discovery.HttpPrefix, etcdMapValue);err != nil {
+	if etcdObject.Http, err = r.parseMapToJsonByte(discovery.HttpPrefix, etcdMapValue); err != nil {
 		return
 	}
+	//合并参数
 	mapValue := r.getTraefikConfigToKeyValue(etcdObject, serverConfig.CurrentServer)
 	err = r.PutByTxt(mapValue)
 	return
@@ -244,7 +255,7 @@ func (r *TraefikEtcd) getServersTransports() (res map[string]discovery.HttpTraef
 	res = map[string]discovery.HttpTraefikServersTransports{}
 	return
 }
-func (r *TraefikEtcd) getMiddlewares() (res map[string]discovery.HttpTraefikMiddleware, middlewaresName []string) {
+func (r *TraefikEtcd) getMiddleWares() (res map[string]discovery.HttpTraefikMiddleware, middlewaresName []string) {
 
 	middlewaresName = make([]string, len(res))
 	res = map[string]discovery.HttpTraefikMiddleware{}
@@ -257,7 +268,7 @@ func (r *TraefikEtcd) readyServerData() (res *discovery.HttpTraefik, serviceName
 	var middlewaresName, serversTransportsName []string
 
 	res.Services, serviceName = r.getServices()
-	res.Middlewares, middlewaresName = r.getMiddlewares()
+	res.Middlewares, middlewaresName = r.getMiddleWares()
 	res.Routers, routerName = r.getRouter(serviceName, middlewaresName...)
 	res.ServersTransports, serversTransportsName = r.getServersTransports()
 
@@ -268,10 +279,19 @@ func (r *TraefikEtcd) readyServerData() (res *discovery.HttpTraefik, serviceName
 
 // 获取需要设置的参数
 func (r *TraefikEtcd) getTraefikConfigToKeyValue(etcdTraefikConfig *discovery.TraefikConfig, currentServer *discovery.HttpTraefik) (res map[string]string) {
+
+	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("当前系统的路由参数为:%s", currentServer.ToRouterString())
 	etcdTraefikConfig.Http.MergeRouters(currentServer.Routers)
+
+	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("当前系统的服务参数(Services)参数为:%s", currentServer.ToServicesString())
 	etcdTraefikConfig.Http.MergeServices(currentServer.Services)
+
+	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("当前系统的中间件参数(MiddleWares)参数为:%s", currentServer.ToMiddleWaresString())
 	etcdTraefikConfig.Http.MergeMiddlewares(currentServer.Middlewares)
+
+	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("当前系统的参数(ServersTransports)参数为:%s", currentServer.ToServersTransportsString())
 	etcdTraefikConfig.Http.MergeServersTransports(currentServer.ServersTransports)
+
 	res = etcdTraefikConfig.ToKV()
 	return
 }

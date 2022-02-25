@@ -114,6 +114,38 @@ func (r *HttpTraefik) mergeServersTransport(src, new HttpTraefikServersTransport
 	return
 }
 
+func (r *HttpTraefik) ToRouterString() (res string) {
+	if r.Routers != nil {
+		bt, _ := json.Marshal(r.Routers)
+		res = string(bt)
+	}
+	return
+}
+
+func (r *HttpTraefik) ToServicesString() (res string) {
+	if r.Services != nil {
+		bt, _ := json.Marshal(r.Services)
+		res = string(bt)
+	}
+	return
+}
+
+func (r *HttpTraefik) ToMiddleWaresString() (res string) {
+	if r.Middlewares != nil {
+		bt, _ := json.Marshal(r.Middlewares)
+		res = string(bt)
+	}
+	return
+}
+
+func (r *HttpTraefik) ToServersTransportsString() (res string) {
+	if r.ServersTransports != nil {
+		bt, _ := json.Marshal(r.ServersTransports)
+		res = string(bt)
+	}
+	return
+}
+
 func (r *HttpTraefikServersTransports) mergeRootCAs(src, new map[string]string) {
 	if len(new) == 0 {
 		return
@@ -276,9 +308,9 @@ func (r *HttpTraefikRouters) mergeEntryPoints(src, new map[string]string) {
 }
 
 type HttpTraefikServiceConfig struct {
-	LoadBalancer *HttpLoadBalancer `json:"loadBalancer" yaml:"loadBalancer,omitempty" key_value:"loadBalancer,omitempty"`
-	Mirroring    *HttpMirroring    `json:"mirroring" yaml:"mirroring,omitempty" key_value:"mirroring,omitempty"`
-	Weighted     *HttpWeighted     `json:"weighted" yaml:"weighted,omitempty" key_value:"weighted,omitempty"`
+	LoadBalancer *HttpLoadBalancer `json:"loadBalancer,omitempty" yaml:"loadBalancer,omitempty" key_value:"loadBalancer,omitempty"`
+	Mirroring    *HttpMirroring    `json:"mirroring,omitempty" yaml:"mirroring,omitempty" key_value:"mirroring,omitempty"`
+	Weighted     *HttpWeighted     `json:"weighted,omitempty" yaml:"weighted,omitempty" key_value:"weighted,omitempty"`
 }
 
 func (r *HttpTraefikServiceConfig) mergeLoadBalancer(src, new *HttpLoadBalancer) {
