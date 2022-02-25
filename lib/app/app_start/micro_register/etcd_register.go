@@ -87,7 +87,9 @@ func (r *ETCDRegister) RegisterMicro(c *gin.Engine) (ok bool, err error) {
 
 func (r *ETCDRegister) UnRegisterMicro() {
 	//停止微服务注册
-	r.microServer.Stop()
+	if r.microServer != nil {
+		r.microServer.Stop()
+	}
 	r.syslog.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintln("停止微服务注册!")
 }
