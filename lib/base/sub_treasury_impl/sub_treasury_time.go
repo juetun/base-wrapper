@@ -20,7 +20,6 @@ import (
 // 可通过自定义 GetDbFunc  GetTableFunc 数据数据库和表的算法实现
 // 如果不传递方法，则默认使用数值(字符串取每个字符的assi码值之和)取余数作为数据库和表的定位
 type SubTreasuryTime struct {
-
 	// TablePrefix 表统一前缀
 	TablePrefix string `json:"table_prefix"`
 
@@ -106,9 +105,11 @@ func (r *SubTreasuryTime) GetDataByStringId(timeNormal TimeNormal, fetchDataHand
 
 	db, dbName, tableName, err = r.GetHashDbAndTableById(timeNormal)
 	fetchDataParameter := FetchDataParameter{
-		SourceDb:  db,
-		DbName:    dbName,
-		TableName: tableName,
+		CommonDb: CommonDb{
+			Db:        db,
+			DbName:    dbName,
+			TableName: tableName,
+		},
 	}
 	err = fetchDataHandler(&fetchDataParameter)
 	return

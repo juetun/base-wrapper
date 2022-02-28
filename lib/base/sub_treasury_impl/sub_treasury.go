@@ -109,9 +109,11 @@ func (r *SubTreasuryBase) GetDataByIntegerId(id int64, fetchDataHandler FetchDat
 
 	db, dbName, tableName, err = r.GetHashDbAndTableById(id)
 	fetchDataParameter := FetchDataParameter{
-		SourceDb:  db,
-		DbName:    dbName,
-		TableName: tableName,
+		CommonDb:CommonDb{
+			Db:  db,
+			DbName:    dbName,
+			TableName: tableName,
+		},
 	}
 	err = fetchDataHandler(&fetchDataParameter)
 	return
@@ -178,9 +180,11 @@ func (r *SubTreasuryBase) GetDataByIntegerIds(ids []int64, fetchDataHandler Fetc
 		uk := dbName + tableName
 		if dta, ok = mapDb[uk]; !ok {
 			dta = FetchDataParameterBatch{
-				DbName:    dbName,
-				TableName: tableName,
-				SourceDb:  db,
+				CommonDb:CommonDb{
+					Db:  db,
+					DbName:    dbName,
+					TableName: tableName,
+				},
 				Ids:       make([]string, 0, l),
 			}
 		}
