@@ -30,7 +30,6 @@ type (
 		TableName string   `json:"table_name"` // 添加数据对应的表名
 	}
 	Dao interface {
-
 		// BatchAdd 批量添加数据
 		BatchAdd(data *BatchAddDataParameter) (err error)
 
@@ -166,6 +165,7 @@ func (r *ServiceDao) GetDefaultActErrorHandlerResult(model ModelBase) (res *ActE
 	}
 	return
 }
+
 func (r *ServiceDao) GetDefaultDb(modelBase ModelBase) (res CommonDb) {
 	res = CommonDb{
 		Db:        r.Context.Db,
@@ -178,9 +178,11 @@ func (r *ServiceDao) GetDefaultDb(modelBase ModelBase) (res CommonDb) {
 // InitFetchParameters 初始化FetchDataParameter
 func (r *ServiceDao) InitFetchParameters(model ModelBase) (fetchData *FetchDataParameter) {
 	fetchData = &FetchDataParameter{
-		SourceDb:  r.Context.Db,
-		DbName:    r.Context.DbName,
-		TableName: model.TableName(),
+		CommonDb: CommonDb{
+			Db:        r.Context.Db,
+			DbName:    r.Context.DbName,
+			TableName: model.TableName(),
+		},
 	}
 	return
 }
