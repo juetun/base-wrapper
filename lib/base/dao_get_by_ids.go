@@ -1,4 +1,4 @@
-package parameters
+package base
 
 // 获取数据的常用类型定义
 const (
