@@ -24,11 +24,7 @@ import (
 )
 
 type (
-	CommonDb struct {
-		Db        *gorm.DB `json:"-"`
-		DbName    string   `json:"db_name"`
-		TableName string   `json:"table_name"` // 添加数据对应的表名
-	}
+
 	Dao interface {
 		// BatchAdd 批量添加数据
 		BatchAdd(data *BatchAddDataParameter) (err error)
@@ -67,39 +63,7 @@ type (
 	ServiceDao struct {
 		Context *Context
 	}
-	ModelBase interface {
-		TableName() string
-		GetTableComment() (res string)
-	}
 
-	DaoBatchAdd interface {
-		BatchAdd(data *BatchAddDataParameter) (err error)
-	}
-
-	DaoOneAdd interface {
-		AddOneData(parameter *AddOneDataParameter) (err error)
-	}
-
-	AddOneDataParameter struct {
-		CommonDb
-		Model         ModelBase `json:"model"`
-		IgnoreColumn  []string  `json:"ignore_column"`   // replace 忽略字段,添加到此字段中的字段不会出现在SQL执行中
-		RuleOutColumn []string  `json:"rule_out_column"` // nil时使用默认值，当数据表中存在唯一数据时，此字段的值不会被新的数据替换
-	}
-
-	BatchAddDataParameter struct {
-		CommonDb
-		IgnoreColumn  []string    `json:"ignore_column"`   // replace 忽略字段,添加到此字段中的字段不会出现在SQL执行中
-		RuleOutColumn []string    `json:"rule_out_column"` // nil时使用默认值，当数据表中存在唯一数据时，此字段的值不会被新的数据替换
-		Data          []ModelBase `json:"data"`            // 添加的数据
-	}
-	ActErrorHandlerResult struct {
-		CommonDb
-		Err   error     `json:"err"`
-		Model ModelBase `json:"model"`
-	}
-	TableSetOption map[string]string
-	ActHandlerDao  func() (actRes *ActErrorHandlerResult)
 )
 
 func (r *ServiceDao) GetDefaultAddOneDataParameter(modelBase ModelBase) (res *AddOneDataParameter) {
@@ -156,6 +120,14 @@ func (r *ServiceDao) SetContext(context ...*Context) (s *ServiceDao) {
 	}
 
 	return r
+}
+
+func (r *ActErrorHandlerResult) ParseAddOneDataParameter(options ...AddOneDataParameterOption) (res *AddOneDataParameter) {
+	res = &AddOneDataParameter{CommonDb: r.CommonDb, Model: r.Model,}
+	for _, handler := range options {
+		handler(res)
+	}
+	return
 }
 
 func (r *ServiceDao) GetDefaultActErrorHandlerResult(model ModelBase) (res *ActErrorHandlerResult) {
