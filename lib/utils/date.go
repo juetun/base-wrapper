@@ -15,10 +15,11 @@ import (
 )
 
 const (
-	DateTimeGeneral = "2006-01-02 15:04:05"
-	DateGeneral     = "2006-01-02"
-	TimeDay         = 86400 * time.Second
-	TimeWeek        = 7 * 86400 * time.Second
+	DateTimeGeneral   = "2006-01-02 15:04:05"
+	DateTimeDashboard = "2006.01.02 15:04"
+	DateGeneral       = "2006-01-02"
+	TimeDay           = 86400 * time.Second
+	TimeWeek          = 7 * 86400 * time.Second
 )
 
 // DateTime 时间格式转换
