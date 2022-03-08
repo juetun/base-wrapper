@@ -24,7 +24,6 @@ import (
 )
 
 type (
-
 	Dao interface {
 		// BatchAdd 批量添加数据
 		BatchAdd(data *BatchAddDataParameter) (err error)
@@ -63,7 +62,6 @@ type (
 	ServiceDao struct {
 		Context *Context
 	}
-
 )
 
 func (r *ServiceDao) GetDefaultAddOneDataParameter(modelBase ModelBase) (res *AddOneDataParameter) {
