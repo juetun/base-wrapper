@@ -10,6 +10,12 @@ const (
 
 )
 
+//是否刷新缓存
+const (
+	RefreshCacheNo = iota
+	RefreshCacheYes
+)
+
 type (
 	ArgGetByStringIds struct {
 		//parameters.GetDataTypeCommon
@@ -48,7 +54,8 @@ func (r *GetDataTypeCommon) Default() (err error) {
 	if r.GetType == "" { // 默认是从缓存拿，如果拿不到，则从数据库拿
 		r.GetType = GetDataTypeFromAll
 	}
-	RefreshCacheValue := []uint8{0, 1}
+
+	RefreshCacheValue := []uint8{RefreshCacheNo, RefreshCacheYes}
 	var f bool
 	for _, value := range RefreshCacheValue {
 		if value == r.RefreshCache {
