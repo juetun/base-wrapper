@@ -58,6 +58,11 @@ func AddOneDataParameterRuleOutColumn(ruleOutColumn []string) AddOneDataParamete
 	}
 }
 
+func (r *ActErrorHandlerResult) GetDbWithTableName() (db *gorm.DB) {
+	db = r.Db.Table(r.TableName)
+	return
+}
+
 func (r *ActErrorHandlerResult) ParseBatchAddDataParameter(options ...BatchAddDataParameterOption) (res *BatchAddDataParameter) {
 	res = &BatchAddDataParameter{CommonDb: r.CommonDb,}
 	for _, handler := range options {
