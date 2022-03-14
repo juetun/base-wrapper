@@ -1,6 +1,9 @@
 package base
 
-import "gorm.io/gorm"
+import (
+	"fmt"
+	"gorm.io/gorm"
+)
 
 type (
 	CommonDb struct {
@@ -58,8 +61,12 @@ func AddOneDataParameterRuleOutColumn(ruleOutColumn []string) AddOneDataParamete
 	}
 }
 
-func (r *ActErrorHandlerResult) GetDbWithTableName() (db *gorm.DB) {
-	db = r.Db.Table(r.TableName)
+func (r *ActErrorHandlerResult) GetDbWithTableName(tableAsName ...string) (db *gorm.DB) {
+	var tableAsNames = r.TableName
+	if len(tableAsName) > 0 {
+		tableAsNames = fmt.Sprintf("%s AS %s", r.TableName, tableAsName[0])
+	}
+	db = r.Db.Table(tableAsNames)
 	return
 }
 
