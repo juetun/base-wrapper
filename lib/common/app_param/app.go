@@ -16,3 +16,15 @@ const (
 	AppNameMallOrderComment = "api-ordercomment"
 	AppNameMallActivity     = "api-activity"
 )
+
+
+//标签类型定义
+const (
+	DataPapersGroupCategoryTag          = "user_tag"      // 用户标签
+	DataPapersGroupCategoryMallCategory = "mall_category" // 电商类目
+)
+
+var MapDataPapersGroupCategory = map[string]string{
+	DataPapersGroupCategoryTag:          "用户标签",
+	DataPapersGroupCategoryMallCategory: "电商类目",
+}
