@@ -42,7 +42,7 @@ type (
 		MobileVerifiedAt *time.Time `json:"mobile_verified_at,omitempty"`
 		Email            string     `json:"email,omitempty"`
 		EmailVerifiedAt  *time.Time `json:"email_verified_at,omitempty"`
-		ShopId           string     `json:"shop_id"`
+		ShopId           int64      `json:"shop_id"`
 	}
 	RequestUser struct {
 		UserHid           int64           `json:"user_hid" form:"user_hid"`
@@ -56,7 +56,7 @@ type (
 		Score             int             `json:"score" form:"score"`
 		RememberToken     string          `json:"remember_token" form:"remember_token"`
 		MsgReadTimeCursor base.TimeNormal `json:"msg_read_time_cursor" form:"msg_read_time_cursor"`
-		ShopId            string          `json:"shop_id"`
+		ShopId            int64           `json:"shop_id"`
 	}
 
 	User struct {
