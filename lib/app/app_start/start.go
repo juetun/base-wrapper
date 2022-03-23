@@ -10,23 +10,32 @@ import (
 	"github.com/juetun/base-wrapper/lib/base"
 )
 
-type PluginHandleFunction func(arg *PluginsOperate) (err error)
+var (
+	// PluginsHandleStruct 插件结构体装载对象 ,采用指针共享数据
+	PluginsHandleStruct = make([]PluginHandleStruct, 0, 15)
 
-// PluginHandleStruct 加载插件结构体
-type PluginHandleStruct struct {
-	FuncHandler PluginHandleFunction
-	Name        string
-}
+	//定时任务
+	TimerTaskHandler []PluginHandleFunction
+)
 
-// PluginsHandleStruct 插件结构体装载对象 ,采用指针共享数据
-var PluginsHandleStruct = &[]PluginHandleStruct{}
+type (
+	PluginHandleFunction func(arg *PluginsOperate) (err error)
 
-type AuthorizationStruct interface {
-	Load() (map[string][]model.AdminAuthorization, error)
-}
-type PluginsOperate struct {
-	Author AuthorizationStruct
-}
+	// PluginHandleStruct 加载插件结构体
+	PluginHandleStruct struct {
+		FuncHandler PluginHandleFunction
+		Name        string
+	}
+
+	AuthorizationStruct interface {
+		Load() (map[string][]model.AdminAuthorization, error)
+	}
+
+	PluginsOperate struct {
+		Author AuthorizationStruct
+	}
+	PluginsOperateOptionHandler func(arg *PluginsOperate)
+)
 
 func NewPlugins(option ...PluginsOperateOptionHandler) (res *PluginsOperate) {
 	res = &PluginsOperate{}
@@ -42,12 +51,10 @@ func Authorization(authorization AuthorizationStruct) (handler PluginsOperateOpt
 	}
 }
 
-type PluginsOperateOptionHandler func(arg *PluginsOperate)
-
 // LoadPlugins 执行加载插件过程
 func (r *PluginsOperate) LoadPlugins() (res *PluginsOperate) {
 	res = r
-	if len(*PluginsHandleStruct) == 0 {
+	if len(PluginsHandleStruct) == 0 {
 		return
 	}
 	var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
@@ -55,7 +62,7 @@ func (r *PluginsOperate) LoadPlugins() (res *PluginsOperate) {
 	stytemLog.Printf("----开始加载插件 ----")
 	stytemLog.Printf("")
 	var err error
-	for _, handle := range *PluginsHandleStruct {
+	for _, handle := range PluginsHandleStruct {
 		io.SystemOutPrintf(strings.Repeat("-", 30) + "\n")
 
 		if err = handle.FuncHandler(r); err != nil {
@@ -68,16 +75,25 @@ func (r *PluginsOperate) LoadPlugins() (res *PluginsOperate) {
 	stytemLog.Printf("")
 	return
 }
+
+//加载普通插件动作
 func (r *PluginsOperate) Use(pluginFunc ...PluginHandleFunction) (res *PluginsOperate) {
 	res = r
 	Use(pluginFunc...)
 	return
 }
 
+//加载定时任务操作
+func (r *PluginsOperate) UseTimerTask(pluginFunc ...PluginHandleFunction) (res *PluginsOperate) {
+	res = r
+	TimerTaskHandler = append(TimerTaskHandler, pluginFunc...)
+	return
+}
+
 // Use 注册系统插件
 func Use(pluginFunc ...PluginHandleFunction) {
 	for _, value := range pluginFunc {
-		*PluginsHandleStruct = append(*PluginsHandleStruct, PluginHandleStruct{
+		PluginsHandleStruct = append(PluginsHandleStruct, PluginHandleStruct{
 			FuncHandler: value,
 		})
 	}
