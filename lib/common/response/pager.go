@@ -73,12 +73,22 @@ func (r *PagerParameter) GetOffset() (offset int) {
 	offset = (r.PageNo - 1) * r.PageSize
 	return
 }
-func (r *PageQuery) GetOffset() (offset int) {
-	if r.PageNo < 1 {
-		r.PageNo = DefaultPageNo
-	}
 
-	offset = (r.PageNo - 1) * r.PageSize
+func (r *PagerParameter) GetRequestIdAsInt64() (requestId int64, err error) {
+	if r.RequestId == "" {
+		return
+	}
+	requestId, err = strconv.ParseInt(r.RequestId, 10, 64)
+	return
+}
+
+func (r *PageQuery) GetRequestIdAsInt64() (requestId int64, err error) {
+	requestId, err = r.PagerParameter.GetRequestIdAsInt64()
+	return
+}
+
+func (r *PageQuery) GetOffset() (offset int) {
+	offset = r.PagerParameter.GetOffset()
 	return
 }
 
