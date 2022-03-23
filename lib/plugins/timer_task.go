@@ -16,7 +16,7 @@ func PluginTimerTask(arg *app_start.PluginsOperate) (err error) {
 	defer func() {
 		io.SystemOutPrintln("Start timer task running")
 	}()
-	for _, handler := range TimerTaskHandler {
+	for _, handler := range app_start.TimerTaskHandler {
 		handler(arg)
 	}
 	io.SystemOutPrintln("Load timer task")
