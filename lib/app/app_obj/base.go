@@ -72,7 +72,8 @@ type Application struct {
 	AppTemplateDirectory string          `json:"app_template_directory" yaml:"template_directory"` // temp模板默认目录
 	AppRouterPrefix      AppRouterPrefix `json:"app_router_prefix" yaml:"app_router_prefix"`       // 路由前缀
 	AppAdminToken        string          `json:"app_admin_token" yaml:"app_admin_token"`           // 客服后台接口多的token值
-	Administrator        string          `json:"administrator" yaml:"administrator"`
+	Administrator        string          `json:"administrator" yaml:"administrator"`               //代码管理员信息
+	AppRunTimerTask      bool            `json:"app_run_timer_task" yaml:"app_run_timer_task"`     //是否支持定时任务
 }
 
 type AppRouterPrefix struct {
