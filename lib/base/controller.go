@@ -132,7 +132,11 @@ func NewResult() *Result {
 
 func (r *ControllerBase) Response(c *gin.Context, code int, data interface{}, msg ...string) {
 	r.setCommonHeader(c)
-	c.JSON(http.StatusOK, Result{Code: code, Data: data, Msg: strings.Join(msg, ",")})
+	message := strings.Join(msg, ",")
+	if message == "" {
+		message = "success"
+	}
+	c.JSON(http.StatusOK, Result{Code: code, Data: data, Msg: message})
 }
 
 // ResponseResult 处理正常结果集
