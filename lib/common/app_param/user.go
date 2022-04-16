@@ -181,17 +181,28 @@ func (r *ResultUserItem) InitData(item *User) {
 }
 
 func (r *RequestUser) InitRequestUser(c *gin.Context) (err error) {
-	if r.UserHid == 0 {
-		uidString := c.GetHeader(app_obj.HttpUserHid)
-		if uidString == "" {
-			err = fmt.Errorf("请先登录系统")
+
+	defer func() {
+		if r.ShopId > 0 {
 			return
 		}
-		r.UserHid, err = strconv.ParseInt(uidString, 10, 64)
-		if err != nil {
-			err = fmt.Errorf("用户信息参数格式不正确(uid:%s)", uidString)
-			return
+		if app_obj.App.UseDefaultShopId { //店铺ID默认值，调试数据使用（测试环境）
+			shopId := c.GetHeader(app_obj.HttpShopId)
+			r.ShopId, _ = strconv.ParseInt(shopId, 10, 64)
 		}
+	}()
+	if r.UserHid > 0 {
+		return
 	}
+	var uidString string
+	if uidString = c.GetHeader(app_obj.HttpUserHid); uidString == "" {
+		err = fmt.Errorf("请先登录系统")
+		return
+	}
+	if r.UserHid, err = strconv.ParseInt(uidString, 10, 64); err != nil {
+		err = fmt.Errorf("用户信息参数格式不正确(uid:%s)", uidString)
+		return
+	}
+
 	return
 }

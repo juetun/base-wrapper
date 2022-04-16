@@ -35,6 +35,7 @@ type (
 	GetDataTypeCommon struct {
 		GetType      string `json:"get_type" form:"get_type"`
 		RefreshCache uint8  `json:"refresh_cache" form:"refresh_cache"`
+		MaxLimit     int64  `json:"max_limit" form:"max_limit"` //本次请求最多查询数据数量
 	}
 	ArgGetByStringIdsOption func(arg *ArgGetByStringIds)
 	ArgGetByNumberIdsOption func(arg *ArgGetByNumberIds)

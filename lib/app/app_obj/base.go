@@ -19,6 +19,7 @@ const (
 	AppLogLoc   = "src"        // 代码所在位置
 	HttpTraceId = "X-Trace-Id" // 页面请求时的 传参或者nginx生成的trace_id的key
 	HttpUserHid = "X-User-Hid" // 页面请求时的 用户ID
+	HttpShopId  = "X-Shop-Id"  // 店铺ID
 
 	HttpUserToken             = "X-Auth-Token"  // 页面请求时用户token
 	HttpHeaderApp             = "X-App"         // 接口请求头信息
@@ -74,6 +75,7 @@ type Application struct {
 	AppAdminToken        string          `json:"app_admin_token" yaml:"app_admin_token"`           // 客服后台接口多的token值
 	Administrator        string          `json:"administrator" yaml:"administrator"`               //代码管理员信息
 	AppRunTimerTask      bool            `json:"app_run_timer_task" yaml:"app_run_timer_task"`     //是否支持定时任务
+	UseDefaultShopId     bool            `json:"use_default_shop_id" yaml:"use_default_shop_id"`   //测试环境调试数据使用的默认店铺ID
 }
 
 type AppRouterPrefix struct {
