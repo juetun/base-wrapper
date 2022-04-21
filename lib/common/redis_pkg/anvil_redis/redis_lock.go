@@ -150,8 +150,9 @@ func (r *RedisLock) RunWithGetLock() (err error) {
 
 	for {
 		if r.AttemptsTime > 0 && i >= r.AttemptsTime {
-			r.Context.Debug(map[string]interface{}{
-				"msg": fmt.Errorf("%d次尝试获取锁失败", r.AttemptsTime),
+			err = fmt.Errorf("%d次尝试获取锁失败", r.AttemptsTime)
+			r.Context.Warn(map[string]interface{}{
+				"msg": err.Error(),
 			}, "RedisLockRunWithGetLock")
 			break
 		}
