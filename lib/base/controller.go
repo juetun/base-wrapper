@@ -12,6 +12,23 @@ import (
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 )
 
+const (
+	ControllerGetParamTypeBind             = "Bind"
+	ControllerGetParamTypeBindJSON         = "BindJSON"
+	ControllerGetParamTypeBindXML          = "BindXML"
+	ControllerGetParamTypeBindQuery        = "BindQuery"
+	ControllerGetParamTypeBindYAML         = "BindYAML"
+	ControllerGetParamTypeBindHeader       = "BindHeader"
+	ControllerGetParamTypeBindUri          = "BindUri"
+	ControllerGetParamTypeShouldBind       = "ShouldBind"
+	ControllerGetParamTypeShouldBindJSON   = "ShouldBindJSON"
+	ControllerGetParamTypeShouldBindXML    = "ShouldBindXML"
+	ControllerGetParamTypeShouldBindQuery  = "ShouldBindQuery"
+	ControllerGetParamTypeShouldBindYAML   = "ShouldBindYAML"
+	ControllerGetParamTypeShouldBindHeader = "ShouldBindHeader"
+	ControllerGetParamTypeShouldBindUri    = "ShouldBindUri"
+)
+
 type (
 	ControllerBase struct {
 		Log *app_obj.AppLog
@@ -22,9 +39,46 @@ type (
 )
 
 // ParametersAccept 当前参数接收
-func (r *ControllerBase) ParametersAccept(c *gin.Context, parameter ParameterInterface) (haveError bool) {
+func (r *ControllerBase) ParametersAccept(c *gin.Context, parameter ParameterInterface, getParamsTypes ...string) (haveError bool) {
 	var err error
-	if err = c.ShouldBind(parameter); err != nil {
+	var getParamsType = ControllerGetParamTypeShouldBind
+	if len(getParamsTypes) > 0 {
+		getParamsType = getParamsTypes[0]
+	}
+	switch getParamsType {
+	case ControllerGetParamTypeShouldBind:
+		err = c.ShouldBind(parameter)
+	case ControllerGetParamTypeBind:
+		err = c.Bind(parameter)
+	case ControllerGetParamTypeBindJSON:
+		err = c.BindJSON(parameter)
+	case ControllerGetParamTypeBindXML:
+		err = c.BindXML(parameter)
+	case ControllerGetParamTypeBindQuery:
+		err = c.BindQuery(parameter)
+	case ControllerGetParamTypeBindYAML:
+		err = c.BindYAML(parameter)
+	case ControllerGetParamTypeBindHeader:
+		err = c.BindHeader(parameter)
+	case ControllerGetParamTypeBindUri:
+		err = c.BindUri(parameter)
+	case ControllerGetParamTypeShouldBindJSON:
+		err = c.ShouldBindJSON(parameter)
+	case ControllerGetParamTypeShouldBindXML:
+		err = c.ShouldBindXML(parameter)
+	case ControllerGetParamTypeShouldBindQuery:
+		err = c.ShouldBindQuery(parameter)
+	case ControllerGetParamTypeShouldBindYAML:
+		err = c.ShouldBindYAML(parameter)
+	case ControllerGetParamTypeShouldBindHeader:
+		err = c.ShouldBindHeader(parameter)
+	case ControllerGetParamTypeShouldBindUri:
+		err = c.ShouldBindUri(parameter)
+	default:
+		err = fmt.Errorf("当前不支持你选择的获取参数类型(%s)", getParamsType)
+		return
+	}
+	if err != nil {
 		haveError = true
 		r.ResponseError(c, err, ErrorParameterCode)
 		return
