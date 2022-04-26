@@ -18,6 +18,13 @@ const (
 	UserDataTypeMobile = "user_mobile"
 )
 
+//用户资质是否需要填写类型
+const (
+	PaperMustDateNotNeed = iota //不需要时间
+	PaperMustDateYes            //必须填写时间
+	PaperMustDateNo             //可不填时间
+)
+
 // 获取用户信息的响应参数结构
 type (
 	ResultUser struct {
