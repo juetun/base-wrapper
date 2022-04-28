@@ -33,9 +33,10 @@ type (
 	}
 
 	GetDataTypeCommon struct {
-		GetType      string `json:"get_type" form:"get_type"`
-		RefreshCache uint8  `json:"refresh_cache" form:"refresh_cache"`
-		MaxLimit     int64  `json:"max_limit" form:"max_limit"` //本次请求最多查询数据数量
+		GetType        string `json:"get_type" form:"get_type"`                 // 本次读取数据从数据库 ，缓存，或使用优先从缓存(缓存没有,则从数据库读取 同时写入缓存)
+		IncludeDelData bool   `json:"include_del_data" form:"include_del_data"` // 查询数据包括已删除(软删)的数据默认查询不包括软删数据
+		RefreshCache   uint8  `json:"refresh_cache" form:"refresh_cache"`       // 是否刷新缓存数据
+		MaxLimit       int64  `json:"max_limit" form:"max_limit"`               // 本次请求最多查询数据数量
 	}
 	ArgGetByStringIdsOption func(arg *ArgGetByStringIds)
 	ArgGetByNumberIdsOption func(arg *ArgGetByNumberIds)
