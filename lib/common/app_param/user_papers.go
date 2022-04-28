@@ -30,7 +30,6 @@ var MapDataPapersGroupShopProperty = map[string]string{
 	DataPapersGroupShopPropertySelect:   "下拉菜单",
 }
 
-
 type (
 	DataPapersGroupShopProperty struct {
 		ShowType     string `json:"show_type"` //DataPapersGroupShopPropertyRadio DataPapersGroupShopPropertyCheckbox  DataPapersGroupShopPropertySelect
@@ -39,6 +38,9 @@ type (
 )
 
 func (r *DataPapersGroupShopProperty) ParseShowType() (res string) {
+	if r.ShowType == "" { //默认类型
+		r.ShowType = DataPapersGroupShopPropertyRadio
+	}
 	var ok bool
 	if res, ok = MapDataPapersGroupShopProperty[r.ShowType]; ok {
 		return
