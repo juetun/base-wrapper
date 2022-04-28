@@ -45,7 +45,9 @@ func (r *DataPapersGroupShopProperty) ParseShowType() (res string) {
 	if res, ok = MapDataPapersGroupShopProperty[r.ShowType]; ok {
 		return
 	}
+
 	res = fmt.Sprintf("未知类型(%s)", r.ShowType)
+	r.ShowTypeName = res
 	return
 }
 
