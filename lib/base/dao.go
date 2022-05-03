@@ -157,7 +157,7 @@ func (r *ServiceDao) InitFetchParameters(model ModelBase) (fetchData *FetchDataP
 	return
 }
 
-func (r *ServiceDao) formatValue(db *gorm.DB, valueStruct reflect.Value) (res interface{}) {
+func (r *ServiceDao) formatValue(valueStruct reflect.Value) (res interface{}) {
 
 	switch valueStruct.Kind() {
 
@@ -168,7 +168,7 @@ func (r *ServiceDao) formatValue(db *gorm.DB, valueStruct reflect.Value) (res in
 			res = nil
 			return
 		}
-		return r.formatValue(db, valueStruct.Elem())
+		return r.formatValue(valueStruct.Elem())
 	case reflect.Bool:
 		res = valueStruct.Bool()
 	case reflect.String:
@@ -201,6 +201,7 @@ func (r *ServiceDao) formatValue(db *gorm.DB, valueStruct reflect.Value) (res in
 func (r *ServiceDao) ScopesPager(pager *response.Pager) func(db *gorm.DB) *gorm.DB {
 	return ScopesPager(pager)
 }
+
 func ScopesPager(pager *response.Pager) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Offset(pager.PagerParameter.GetOffset()).Limit(pager.PageSize)
@@ -211,6 +212,7 @@ func ScopesPager(pager *response.Pager) func(db *gorm.DB) *gorm.DB {
 func (r *ServiceDao) ScopesDeletedAt(prefix ...string) func(db *gorm.DB) *gorm.DB {
 	return ScopesDeletedAt(prefix...)
 }
+
 func ScopesDeletedAt(prefix ...string) func(db *gorm.DB) *gorm.DB {
 	pre := ""
 	if len(prefix) > 0 {
@@ -268,45 +270,110 @@ func (r *ServiceDao) CreateTableWithError(db *gorm.DB, tableName string, e, mode
 	return
 }
 
+func newDataModal(data *BatchAddDataParameter) (res *dataModal) {
+	defaultMaxColumn := 20
+	l := len(data.Data) * defaultMaxColumn
+	res = &dataModal{
+		val: make([]interface{}, 0, l),
+
+		columns:     make([]string, 0, defaultMaxColumn),
+		replaceKeys: make([]string, 0, defaultMaxColumn),
+	}
+	return
+}
+
+func (r *ServiceDao) getItemColumns(dataModal *dataModal) (err error) {
+	//types := reflect.TypeOf(dataModal.modal)
+	//values := reflect.ValueOf(dataModal.modal)
+	//fieldNum := types.Elem().NumField()
+	//columns = make([]string, 0, fieldNum)
+	//replaceKeys = make([]string, 0, fieldNum)
+
+	dataModalReflect := &dataModalReflect{
+		Types:  reflect.TypeOf(dataModal.modal),
+		Values: reflect.ValueOf(dataModal.modal),
+	}
+
+	if err = r.getKind(dataModal, dataModalReflect); err != nil {
+		return
+	}
+	//fmt.Println(dataModal)
+	//
+	//var tag string
+	//var tagValue = "gorm"
+	//var ignoreColumnFlag bool
+	//
+	//for i := 0; i < fieldNum; i++ {
+	//
+	//	ignoreColumnFlag, tag = r.GetColumnName(types.Elem().Field(i).Tag.Get(tagValue), types.Elem().Field(i).Name)
+	//
+	//	if ignoreColumnFlag { // 如果是tag标记忽略字段
+	//		continue
+	//	}
+	//
+	//	if tag == "" {
+	//		continue
+	//	}
+	//	if r.InStringSlice(tag, dataModal.ignoreColumn) {
+	//		continue
+	//	}
+	//
+	//	columns = append(columns, tag)
+	//	dataModal.val = append(dataModal.val, r.formatValue(values.Elem().Field(i)))
+	//	dataModal.vv = append(dataModal.vv, "?")
+	//	if r.InStringSlice(tag, dataModal.ruleOutColumn) {
+	//		continue
+	//	}
+	//	replaceKeys = append(replaceKeys, fmt.Sprintf("`%s`=VALUES(`%s`)", tag, tag))
+	//
+	//}
+	return
+}
+
 func (r *ServiceDao) BatchAdd(data *BatchAddDataParameter) (err error) {
+	logContent := map[string]interface{}{"data": data,}
+	defer func() {
+		if err == nil || r.Context == nil {
+			return
+		}
+		logContent["err"] = err.Error()
+		r.Context.Error(logContent, "ServiceDaoBatchAdd")
+	}()
 	if len(data.Data) == 0 {
 		return
 	}
 	r.defaultBatchAddDataParameter(data)
-	var (
-		columns, replaceKeys []string
-		l                    = len(data.Data) * 20
-		vl                   = make([]string, 0, l)
-		val                  = make([]interface{}, 0, l)
-	)
 
+	var (
+		l         = len(data.Data) * 20
+		vl        = make([]string, 0, len(data.Data))
+		dataModal *dataModal
+	)
+	dataModal = newDataModal(data)
+	dataModal.ignoreColumn = data.IgnoreColumn
+	dataModal.ruleOutColumn = data.RuleOutColumn
 	for k, item := range data.Data {
-		var vv = make([]string, 0, l)
-		if k == 0 {
-			if data.TableName == "" {
-				data.TableName = item.TableName()
-			}
-			columns, replaceKeys = r.getItemColumns(data.IgnoreColumn, data.RuleOutColumn, data.Db, item, &val, &vv)
-		} else {
-			_, _ = r.getItemColumns(data.IgnoreColumn, data.RuleOutColumn, data.Db, item, &val, &vv)
+		if k == 0 && data.TableName == "" {
+			data.TableName = item.TableName()
 		}
-		vvs := fmt.Sprintf("(%s)", strings.Join(vv, ","))
+		dataModal.vv = make([]string, 0, l)
+		dataModal.modal = item
+		dataModal.ind = k
+		if err = r.getItemColumns(dataModal); err != nil {
+			return
+		}
+		vvs := fmt.Sprintf("(%s)", strings.Join(dataModal.vv, ","))
 		vl = append(vl, vvs)
 	}
-	sql := fmt.Sprintf("INSERT INTO `%s`(`"+strings.Join(columns, "`,`")+"`) VALUES "+strings.Join(vl, ",")+
-		" ON DUPLICATE KEY UPDATE "+strings.Join(replaceKeys, ","), data.TableName)
 
-	if err = data.Db.Exec(sql, val...).Error; err != nil {
-		logContent := map[string]interface{}{
-			"sql":  sql,
-			"data": data,
-			"val":  val,
-			"err":  err,
-		}
+	sql := fmt.Sprintf("INSERT INTO `%s`(`"+strings.Join(dataModal.columns, "`,`")+"`) VALUES "+strings.Join(vl, ",")+
+		" ON DUPLICATE KEY UPDATE "+strings.Join(dataModal.replaceKeys, ","), data.TableName)
+	logContent["sql"] = sql
+	logContent["val"] = dataModal.val
+	if err = data.Db.Exec(sql, dataModal.val...).Error; err != nil {
 		if data.DbName != "" {
 			logContent[app_obj.DbNameKey] = data.DbName
 		}
-		r.Context.Error(logContent, "ServiceDaoBatchAdd")
 		return
 	}
 	return
@@ -325,39 +392,72 @@ func (r *ServiceDao) InStringSlice(s string, slice []string) (res bool) {
 	return
 }
 
-func (r *ServiceDao) getItemColumns(ignoreColumn, ruleOutColumn []string, db *gorm.DB, item ModelBase, val *[]interface{}, vv *[]string) (columns, replaceKeys []string) {
-	types := reflect.TypeOf(item)
-	values := reflect.ValueOf(item)
-	fieldNum := types.Elem().NumField()
-	columns = make([]string, 0, fieldNum)
-	replaceKeys = make([]string, 0, fieldNum)
-	var tag string
-	var tagValue = "gorm"
-	var ignoreColumnFlag bool
+const GORMTAG = "gorm"
 
-	for i := 0; i < fieldNum; i++ {
+type (
+	dataModal struct {
+		val           []interface{}
+		vv            []string //？占位符
+		ignoreColumn  []string
+		ruleOutColumn []string
+		columns       []string
+		replaceKeys   []string
+		fieldNum      int
+		ind           int
+		modal         ModelBase
+	}
+	dataModalReflect struct {
+		Types  reflect.Type
+		Values reflect.Value
+	}
+)
 
-		ignoreColumnFlag, tag = r.GetColumnName(types.Elem().Field(i).Tag.Get(tagValue), types.Elem().Field(i).Name)
+func (r *ServiceDao) getKind(dataModal *dataModal, dataModalReflectObj *dataModalReflect) (err error) {
+	//if dataModalReflectObj.Types.IsVariadic() {
+	//	err = fmt.Errorf("参数格式错误")
+	//	return
+	//}
+	kind := dataModalReflectObj.Types.Kind()
 
-		if ignoreColumnFlag { // 如果是tag标记忽略字段
-			continue
+	switch kind {
+	case reflect.Struct: //如果是结构体
+		for i := 0; i < dataModalReflectObj.Types.NumField(); i++ {
+			field := dataModalReflectObj.Types.Field(i)
+			value := dataModalReflectObj.Values.Field(i)
+			ignoreColumnFlag, tag := r.GetColumnName(field.Tag.Get(GORMTAG), field.Name)
+			if ignoreColumnFlag { // 如果是tag标记忽略字段
+				return
+			}
+			dataModalReflectTmp := &dataModalReflect{
+				Types:  field.Type,
+				Values: value,
+			}
+			if tag == "" {
+				err = r.getKind(dataModal, dataModalReflectTmp)
+				continue
+			}
+
+			if r.InStringSlice(tag, dataModal.ignoreColumn) {
+				continue
+			}
+
+			dataModal.val = append(dataModal.val, r.formatValue(dataModalReflectTmp.Values))
+			dataModal.vv = append(dataModal.vv, "?")
+			if dataModal.ind == 0 { //如果是第一条数据获取字段信息
+				dataModal.columns = append(dataModal.columns, tag)
+				if !r.InStringSlice(tag, dataModal.ruleOutColumn) {
+					dataModal.replaceKeys = append(dataModal.replaceKeys, fmt.Sprintf("`%s`=VALUES(`%s`)", tag, tag))
+				}
+			}
 		}
-
-		if tag == "" {
-			continue
+	case reflect.Ptr: //如果是指针
+		dataModalReflectTmp := &dataModalReflect{
+			Types:  dataModalReflectObj.Types.Elem(),
+			Values: dataModalReflectObj.Values.Elem(),
 		}
-		if r.InStringSlice(tag, ignoreColumn) {
-			continue
-		}
-
-		columns = append(columns, tag)
-		*val = append(*val, r.formatValue(db, values.Elem().Field(i)))
-		*vv = append(*vv, "?")
-		if r.InStringSlice(tag, ruleOutColumn) {
-			continue
-		}
-		replaceKeys = append(replaceKeys, fmt.Sprintf("`%s`=VALUES(`%s`)", tag, tag))
-
+		err = r.getKind(dataModal, dataModalReflectTmp)
+	default:
+		dataModal.val = append(dataModal.val, r.formatValue(dataModalReflectObj.Values))
 	}
 	return
 }
@@ -376,7 +476,7 @@ func (r *ServiceDao) defaultBatchAddDataParameter(parameter *BatchAddDataParamet
 			parameter.TableName = parameter.Data[0].TableName()
 		}
 	}
-	if parameter.Db == nil {
+	if parameter.Db == nil && r.Context != nil {
 		parameter.Db = r.Context.Db
 		parameter.DbName = r.Context.DbName
 	}
@@ -389,75 +489,34 @@ func (r *ServiceDao) defaultBatchAddDataParameter(parameter *BatchAddDataParamet
 	}
 }
 
-func (r *ServiceDao) defaultAddOneDataParameter(parameter *AddOneDataParameter) {
-	if parameter.TableName == "" {
-		parameter.TableName = parameter.Model.TableName()
-	}
-	if parameter.Db == nil {
-		parameter.Db = r.Context.Db
-		parameter.DbName = r.Context.DbName
-	}
-	if parameter.RuleOutColumn == nil {
-		parameter.RuleOutColumn = r.defaultRuleOutColumn()
-	}
-	if parameter.IgnoreColumn == nil {
-		parameter.IgnoreColumn = r.defaultIgnoreColumn()
-	}
-}
+//func (r *ServiceDao) defaultAddOneDataParameter(parameter *AddOneDataParameter) {
+//	if parameter.TableName == "" {
+//		parameter.TableName = parameter.Model.TableName()
+//	}
+//	if parameter.Db == nil {
+//		parameter.Db = r.Context.Db
+//		parameter.DbName = r.Context.DbName
+//	}
+//	if parameter.RuleOutColumn == nil {
+//		parameter.RuleOutColumn = r.defaultRuleOutColumn()
+//	}
+//	if parameter.IgnoreColumn == nil {
+//		parameter.IgnoreColumn = r.defaultIgnoreColumn()
+//	}
+//}
 
 func (r *ServiceDao) AddOneData(parameter *AddOneDataParameter) (err error) {
-	r.defaultAddOneDataParameter(parameter)
-	values := reflect.ValueOf(parameter.Model)
-	tagValue := "gorm"
-	types := reflect.TypeOf(parameter.Model)
-	fieldNum := types.Elem().NumField()
-	var valueStruct reflect.Value
-
-	keys := make([]string, 0, fieldNum)
-	columns := make([]string, 0, fieldNum)
-	val := make([]interface{}, 0, fieldNum)
-	vv := make([]string, 0, fieldNum)
-	var tag string
-	var ignoreColumnFlag bool
-	for i := 0; i < fieldNum; i++ {
-
-		ignoreColumnFlag, tag = r.GetColumnName(types.Elem().Field(i).Tag.Get(tagValue), types.Elem().Field(i).Name)
-		if ignoreColumnFlag { // 如果是tag标记忽略字段
-			continue
-		}
-
-		if tag == "" {
-			continue
-		}
-		if r.InStringSlice(tag, parameter.IgnoreColumn) {
-			continue
-		}
-
-		keys = append(keys, tag)
-		valueStruct = values.Elem().Field(i)
-		val = append(val, r.formatValue(parameter.Db, valueStruct))
-		vv = append(vv, "?")
-		if r.InStringSlice(tag, parameter.RuleOutColumn) {
-			continue
-		}
-		columns = append(columns, fmt.Sprintf("`%s`=VALUES(`%s`)", tag, tag))
-	}
-	sql := fmt.Sprintf("INSERT INTO `%s`(`"+strings.Join(keys, "`,`")+"`) VALUES ("+strings.Join(vv, ",")+
-		") ON DUPLICATE KEY UPDATE "+strings.Join(columns, ","), parameter.TableName)
-
-	if err = parameter.Db.Exec(sql, val...).Error; err != nil {
-		logContent := map[string]interface{}{
-			"sql":  sql,
-			"data": parameter,
-			"val":  val,
-			"err":  err,
-		}
-		if parameter.DbName != "" {
-			logContent[app_obj.DbNameKey] = parameter.DbName
-		}
-		r.Context.Error(logContent, "DaoUserEmailImplAdd")
+	if parameter.Model == nil {
+		err = fmt.Errorf("您要添加的数据为空")
 		return
 	}
+	batchAddDataParameter := &BatchAddDataParameter{
+		CommonDb:      parameter.CommonDb,
+		IgnoreColumn:  parameter.IgnoreColumn,
+		RuleOutColumn: parameter.RuleOutColumn,
+		Data:          []ModelBase{parameter.Model},
+	}
+	err = r.BatchAdd(batchAddDataParameter)
 	return
 }
 
@@ -465,7 +524,9 @@ func (r *ServiceDao) AddOneData(parameter *AddOneDataParameter) (err error) {
 // param s string 			对象的tag值
 // param fieldName string  	对象的字段名
 func (r *ServiceDao) GetColumnName(s, fieldName string) (ignoreColumn bool, res string) {
-
+	if s == "" {
+		return
+	}
 	li := strings.Split(s, ";")
 	for _, s2 := range li {
 		if s2 == "" {

@@ -28,8 +28,20 @@ func NewDaoUserImpl(ctx ...*base.Context) (res daos.DaoUser) {
 	return p
 }
 
+func (r *DaoUserImpl) BatchData() (err error) {
+	data := []base.ModelBase{}
+	dt := &models.DataChildren{}
+	dt.UserId = "1"
+	dt.UserHid = "user_id"
+	data = append(data, dt)
+	param := &base.BatchAddDataParameter{}
+	param.Data = data
+	err = r.BatchAdd(param)
+	return
+}
+
 func (r *DaoUserImpl) GetUser(arg *wrapper.ArgumentDefault) (res []models.User, err error) {
- 	err = r.Context.Db.
+	err = r.Context.Db.
 		Where("id=?", 1).
 		Find(&res).
 		Error

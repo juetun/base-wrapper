@@ -15,4 +15,6 @@ import (
 type DaoUser interface {
 	GetUser(arg *wrapper.ArgumentDefault) (res []models.User, err error)
 	TestOrm(arg *wrapper.ArgumentDefault) (res []models.User, err error)
+
+	BatchData() (err error)
 }
