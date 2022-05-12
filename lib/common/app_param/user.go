@@ -18,7 +18,6 @@ const (
 	UserDataTypeMobile = "user_mobile"
 )
 
-
 // 获取用户信息的响应参数结构
 type (
 	ResultUser struct {
@@ -46,18 +45,19 @@ type (
 		ShopId           int64      `json:"shop_id"`
 	}
 	RequestUser struct {
-		UserHid           int64           `json:"user_hid" form:"user_hid"`
-		UserMobileIndex   string          `json:"user_mobile_index" form:"user_mobile_index"`
-		UserEmailIndex    string          `json:"user_email_index" form:"user_email_index"`
-		Portrait          string          `json:"portrait" form:"portrait"`
-		NickName          string          `json:"nick_name" form:"nick_name"`
-		UserName          string          `json:"user_name" form:"user_name"`
-		Gender            int             `json:"gender" form:"gender"`
-		Status            int             `json:"status" form:"status"`
-		Score             int             `json:"score" form:"score"`
-		RememberToken     string          `json:"remember_token" form:"remember_token"`
-		MsgReadTimeCursor base.TimeNormal `json:"msg_read_time_cursor" form:"msg_read_time_cursor"`
-		ShopId            int64           `json:"shop_id"`
+		UserHid           int64           `json:"user_hid" form:"user_hid"`                         //用户
+		UserMobileIndex   string          `json:"user_mobile_index" form:"user_mobile_index"`       //手机数据存储位置
+		UserEmailIndex    string          `json:"user_email_index" form:"user_email_index"`         //email存储位置
+		Portrait          string          `json:"portrait" form:"portrait"`                         //头像
+		NickName          string          `json:"nick_name" form:"nick_name"`                       //昵称
+		UserName          string          `json:"user_name" form:"user_name"`                       //账号
+		Gender            int             `json:"gender" form:"gender"`                             //性别
+		Status            int             `json:"status" form:"status"`                             //状态
+		Score             int             `json:"score" form:"score"`                               //积分
+		RememberToken     string          `json:"remember_token" form:"remember_token"`             //是否记住密码
+		MsgReadTimeCursor base.TimeNormal `json:"msg_read_time_cursor" form:"msg_read_time_cursor"` //消息未读时刻节点
+		ShopId            int64           `json:"shop_id" form:"shop_id"`                           //店铺ID
+		HaveDashboard     bool            `json:"have_dashboard" form:"have_dashboard"`             //是否有客服后台权限
 	}
 
 	User struct {
@@ -179,6 +179,15 @@ func (r *ResultUserItem) InitData(item *User) {
 		r.Mobile = item.UserMobile.Mobile
 		r.CountryCode = item.UserMobile.CountryCode
 	}
+}
+
+func (r *RequestUser) HaveShop() (res bool, err error) {
+	if r.ShopId == 0 {
+		err = fmt.Errorf("您当前的账号没有用户权限")
+		return
+	}
+	res = true
+	return
 }
 
 func (r *RequestUser) InitRequestUser(c *gin.Context) (err error) {
