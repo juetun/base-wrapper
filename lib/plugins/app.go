@@ -24,7 +24,10 @@ func PluginsApp(arg *app_start.PluginsOperate) (err error) {
 	var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
 	io.SystemOutPrintln("Load app config start")
 	defer func() {
-		io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("app config is: '%v' \n", app_obj.App.ToString())
+		io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("app config \n")
+		for key, value := range app_obj.App.ToMap() {
+			io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("\t【%s】'%#v' \n", key, value)
+		}
 		io.SystemOutPrintf("load app config finished \n")
 	}()
 	dir := common.GetConfigFileDirectory()

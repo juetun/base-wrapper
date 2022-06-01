@@ -3,6 +3,7 @@ package plugins
 import (
 	"fmt"
 	"io/ioutil"
+	"strings"
 	"sync"
 	"time"
 
@@ -22,6 +23,28 @@ type Mysql struct {
 	Addr         string `json:"addr" yaml:"addr"`
 	MaxIdleConns int    `json:"max_idle_conns" yaml:"maxidleconns"`
 	MaxOpenConns int    `json:"max_open_conns" yaml:"maxopenconns"`
+}
+
+func (r *Mysql) ToString() (res string) {
+	res = fmt.Sprintf("name_space:%s ,addr:%s ,max_idle_conns:%d ,max_open_conns:%d", r.NameSpace, r.getHiddenPwd(), r.MaxIdleConns, r.MaxOpenConns)
+	return
+}
+
+func (r *Mysql) getHiddenPwd() (res string) {
+	addr := strings.Split(r.Addr, ":")
+	if len(addr) >= 2 {
+		sArr := make([]int32, 0, len(addr[1]))
+		for k, it := range addr[1] {
+			if k < 4 {
+				sArr = append(sArr, '*')
+			} else {
+				sArr = append(sArr, it)
+			}
+		}
+		addr[1] = string(sArr)
+	}
+	res = strings.Join(addr, ":")
+	return
 }
 
 func PluginMysql(arg *app_start.PluginsOperate) (err error) {
@@ -47,7 +70,8 @@ func loadMysqlConfig() (err error) {
 		io.SystemOutFatalf("load database config err(%+v) \n", err)
 	}
 	for key, value := range mysqlConfig {
-		io.SystemOutPrintf("load database config is 【 %s 】%+v \n", key, value)
+
+		io.SystemOutPrintf("【 %s 】%+v \n", key, value.ToString())
 		initMysql(key, &value)
 	}
 
@@ -93,8 +117,6 @@ func initMysql(nameSpace string, config *Mysql) {
 // 	)
 // }
 func getMysql(nameSpace string, addr *Mysql) *gorm.DB {
-	io.SetInfoType(base.LogLevelInfo).
-		SystemOutPrintf("init mysql :%#v", addr)
 	var db *gorm.DB
 	var err error
 	// 数据库连接不可用会自动报错

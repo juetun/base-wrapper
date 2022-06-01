@@ -90,6 +90,11 @@ func (r *Application) ToString() string {
 	return string(v)
 }
 
+func (r *Application) ToMap() (res map[string]interface{}) {
+	s := r.ToString()
+	_ = json.Unmarshal([]byte(s), &res)
+	return
+}
 func (r *Application) Default() {
 	if r.AppPort == 0 { // 默认80端口
 		r.AppPort = 80
