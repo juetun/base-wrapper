@@ -46,8 +46,8 @@ func loadMysqlConfig() (err error) {
 	if err = yaml.Unmarshal(yamlFile, &mysqlConfig); err != nil {
 		io.SystemOutFatalf("load database config err(%+v) \n", err)
 	}
-	io.SystemOutPrintf("load database config is:%+v \n", mysqlConfig)
 	for key, value := range mysqlConfig {
+		io.SystemOutPrintf("load database config is 【 %s 】%+v \n", key, value)
 		initMysql(key, &value)
 	}
 

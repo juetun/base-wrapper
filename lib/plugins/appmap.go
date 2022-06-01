@@ -14,7 +14,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func PluginAppMap(arg  *app_start.PluginsOperate) (err error) {
+func PluginAppMap(arg *app_start.PluginsOperate) (err error) {
 	var syncLock sync.Mutex
 	syncLock.Lock()
 	defer syncLock.Unlock()
@@ -30,8 +30,10 @@ func PluginAppMap(arg  *app_start.PluginsOperate) (err error) {
 	if err = yaml.Unmarshal(yamlFile, &app_obj.AppMap); err != nil {
 		io.SystemOutFatalf("Load  appMap config failure(%#v) \n", err)
 	}
-	io.SetInfoType(base.LogLevelInfo).
-		SystemOutPrintf("Load  appMap config is : '%#v' ", app_obj.AppMap)
+	for key, value := range app_obj.AppMap {
+		io.SetInfoType(base.LogLevelInfo).
+			SystemOutPrintf("Load  appMap config is : '【%s】 %#v' ", key, value)
+	}
 	return
 
 }
