@@ -9,10 +9,6 @@ import (
 	"github.com/juetun/base-wrapper/lib/base"
 )
 
-// DistributedOkHandler redis 分布式锁实现结构体
-type DistributedOkHandler func(ctx context.Context) (err error)
-type RedisLockOption func(RedisLock *RedisLock)
-
 //分布式锁，锁数据
 /** 调用实例
 err = redis.NewRedisLock(
@@ -39,6 +35,25 @@ func NewRedisLock(options ...RedisLockOption) (res *RedisLock) {
 	}
 	return
 }
+
+// DistributedOkHandler redis 分布式锁实现结构体
+type (
+	RedisLock struct {
+		AttemptsTime     int                  `json:"attempts_time"`     // 尝试获取锁的次数
+		AttemptsInterval time.Duration        `json:"attempts_interval"` // 尝试获取锁时间间隔
+		LockKey          string               `json:"lock_key"`          // 业务key
+		UniqueKey        string               `json:"unique_key"`        // 锁的值 （用于释放锁时，只能指定线程才可释放锁）
+		Duration         time.Duration        `json:"duration"`          // 锁的时长 （单位秒）
+		TTlDuration      time.Duration        `json:"ttl_duration"`      // 锁续时的时长 （单位秒）
+		OkHandler        DistributedOkHandler `json:"-"`
+		Context          *base.Context        `json:"-"`
+		Ctx              context.Context
+	}
+
+	DistributedOkHandler func(ctx context.Context) (err error)
+	RedisLockOption      func(RedisLock *RedisLock)
+	unLockAct            func() (err error)
+)
 
 func RedisLockAttemptsTime(attemptsTime int) RedisLockOption {
 	return func(RedisLock *RedisLock) {
@@ -89,19 +104,84 @@ func RedisLockDuration(Duration time.Duration) RedisLockOption {
 }
 
 // RedisLock Redis 分布式锁
-type RedisLock struct {
-	AttemptsTime     int                  `json:"attempts_time"`     // 尝试获取锁的次数
-	AttemptsInterval time.Duration        `json:"attempts_interval"` // 尝试获取锁时间间隔
-	LockKey          string               `json:"lock_key"`          // 业务key
-	UniqueKey        string               `json:"unique_key"`        // 锁的值 （用于释放锁时，只能指定线程才可释放锁）
-	Duration         time.Duration        `json:"duration"`          // 锁的时长 （单位秒）
-	TTlDuration      time.Duration        `json:"ttl_duration"`      // 锁续时的时长 （单位秒）
-	OkHandler        DistributedOkHandler `json:"-"`
-	Context          *base.Context        `json:"-"`
-	Ctx              context.Context
+
+// RunWithGetLock 多次尝试获取锁实现逻辑
+func (r *RedisLock) RunWithGetLock() (err error) {
+	//校验参数是否可用
+	if err = r.validateParameters(); err != nil {
+		return
+	}
+	var i = 0
+	var getLock bool
+
+	for {
+		if r.AttemptsTime > 0 && i >= r.AttemptsTime {
+			err = fmt.Errorf("%d次尝试获取锁失败", r.AttemptsTime)
+			r.Context.Warn(map[string]interface{}{
+				"msg": err.Error(),
+			}, "RedisLockRunWithGetLock")
+			break
+		}
+		// 如果获取到锁成功，则不管执行结果如何 直接突出当前操作
+		if getLock, err = r.Run(); getLock {
+			return
+		} else if err != nil {
+			return
+		}
+		time.Sleep(r.AttemptsInterval)
+		i++
+	}
+	return
 }
 
-func (r *RedisLock) Lock() (ok bool, err error) {
+//单次去获取锁，获取到就做 没获取到就跳过
+func (r *RedisLock) Run() (getLock bool, err error) {
+	if err = r.validateParameters(); err != nil {
+		return
+	}
+	logContent := map[string]interface{}{}
+	defer func() {
+		if err == nil {
+			return
+		}
+		r.Context.Error(logContent, "RedisLockRun1")
+	}()
+	// 如果锁成功了，则操作，然后释放锁
+	if getLock, err = r.lock(); err != nil {
+		logContent["desc"] = "获取锁异常"
+		return
+	}
+
+	if !getLock {
+		logContent["desc"] = "获取锁失败"
+		return
+	}
+	if r.Ctx == nil {
+		r.Ctx = context.TODO()
+	}
+	// 如果是当前操作锁定的数据
+	ctx, cancel := context.WithCancel(r.Ctx)
+	defer func() {
+		cancel()
+	}()
+
+	go func() {
+		//续租锁
+		_ = r.tTlTime(ctx, r.unLockAct)
+	}()
+
+	// 执行锁逻辑
+	if err = r.OkHandler(ctx); err != nil {
+		r.Context.Error(map[string]interface{}{
+			"err": err.Error(),
+		}, "RedisLockRun2")
+		return
+	}
+
+	return
+}
+
+func (r *RedisLock) lock() (ok bool, err error) {
 	defer func() {
 		if err == nil {
 			return
@@ -133,7 +213,7 @@ func (r *RedisLock) Lock() (ok bool, err error) {
 	return
 }
 
-func (r *RedisLock) UnLock() (ok bool, err error) {
+func (r *RedisLock) unLock() (ok bool, err error) {
 
 	uniqueKey := r.Context.CacheClient.Get(r.Ctx, r.LockKey).String()
 	if uniqueKey == "" {
@@ -174,37 +254,6 @@ func (r *RedisLock) validateParameters() (err error) {
 	return
 }
 
-// RunWithGetLock 多次尝试获取锁实现逻辑
-func (r *RedisLock) RunWithGetLock() (err error) {
-	//校验参数是否可用
-	if err = r.validateParameters(); err != nil {
-		return
-	}
-	var i = 0
-	var getLock bool
-
-	for {
-		if r.AttemptsTime > 0 && i >= r.AttemptsTime {
-			err = fmt.Errorf("%d次尝试获取锁失败", r.AttemptsTime)
-			r.Context.Warn(map[string]interface{}{
-				"msg": err.Error(),
-			}, "RedisLockRunWithGetLock")
-			break
-		}
-		// 如果获取到锁成功，则不管执行结果如何 直接突出当前操作
-		if getLock, err = r.Run(); getLock {
-			return
-		} else if err != nil {
-			return
-		}
-		time.Sleep(r.AttemptsInterval)
-		i++
-	}
-	return
-}
-
-type unLockAct func() (err error)
-
 func (r *RedisLock) tTlTime(ctx context.Context, unLockAct unLockAct) (err error) {
 	// 如果加锁成功
 	// 创建协程,定时延期锁的过期时间
@@ -227,60 +276,14 @@ func (r *RedisLock) tTlTime(ctx context.Context, unLockAct unLockAct) (err error
 BreakLogic:
 	return
 }
+
 func (r *RedisLock) unLockAct() (e1 error) {
-	if _, e1 = r.UnLock(); e1 != nil {
+	if _, e1 = r.unLock(); e1 != nil {
 		r.Context.Debug(map[string]interface{}{
 			"e1": e1.Error(),
 		}, "RedisLockUnLockAct")
 		return
 	}
-	return
-}
-
-//单次去获取锁，获取到就做 没获取到就跳过
-func (r *RedisLock) Run() (getLock bool, err error) {
-	if err = r.validateParameters(); err != nil {
-		return
-	}
-	logContent := map[string]interface{}{}
-	defer func() {
-		if err == nil {
-			return
-		}
-		r.Context.Error(logContent, "RedisLockRun1")
-	}()
-	// 如果锁成功了，则操作，然后释放锁
-	if getLock, err = r.Lock(); err != nil {
-		logContent["desc"] = "获取锁异常"
-		return
-	}
-
-	if !getLock {
-		logContent["desc"] = "获取锁失败"
-		return
-	}
-	if r.Ctx == nil {
-		r.Ctx = context.TODO()
-	}
-	// 如果是当前操作锁定的数据
-	ctx, cancel := context.WithCancel(r.Ctx)
-	defer func() {
-		cancel()
-	}()
-
-	go func() {
-		//续租锁
-		_ = r.tTlTime(ctx, r.unLockAct)
-	}()
-
-	// 执行锁逻辑
-	if err = r.OkHandler(ctx); err != nil {
-		r.Context.Error(map[string]interface{}{
-			"err": err.Error(),
-		}, "RedisLockRun2")
-		return
-	}
-
 	return
 }
 
