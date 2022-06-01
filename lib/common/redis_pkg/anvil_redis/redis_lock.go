@@ -156,13 +156,20 @@ func (r *RedisLock) UnLock() (ok bool, err error) {
 	return
 }
 func (r *RedisLock) validateParameters() (err error) {
-	if r.TTlDuration == 0 {
-		err = fmt.Errorf("TTlDuration 未设置")
+	if r.Duration == 0 { //锁的有效期
+		err = fmt.Errorf("请设置Duration")
 		return
 	}
 	if r.TTlDuration >= r.Duration {
 		err = fmt.Errorf("Duration必须大于TTlDuration")
 		return
+	}
+	if r.TTlDuration == 0 {
+		r.TTlDuration = r.Duration - 1
+		if r.TTlDuration <= 0 {
+			err = fmt.Errorf("请设置TTlDuration的值")
+			return
+		}
 	}
 	return
 }
