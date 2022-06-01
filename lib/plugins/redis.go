@@ -52,9 +52,6 @@ func initRedis(nameSpace string, configs *Redis) {
 		MinIdleConns: configs.MinIdleConns,
 		Password:     configs.Password,
 	}
-
-	io.SetInfoType(base.LogLevelInfo).
-		SystemOutPrintf("Init redis is  '%s'", RedisOptionToString(&conf))
 	// 初始化Redis连接信息
 	app_obj.DbRedis[nameSpace] = redis.NewClient(&conf)
 
