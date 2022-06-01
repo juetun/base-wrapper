@@ -102,25 +102,24 @@ func (r *RedisDelayMq) Consumer(topic string, handler ConsumerHandler) {
 func (r *RedisDelayMq) deferWaitTicker(t time.Time, mqConsumerItem MqConsumerItem, tickHandler ConsumerHandler) {
 	log.Printf("tick触发 \n")
 
-	var lock *anvil_redis.RedisLock
-
 	defer func() {
 		mqConsumerItem.Timer.Reset(r.Config.Delayer.TimerInterval)
-		_, _ = lock.UnLock()
 	}()
 	uk := fmt.Sprintf("rdslk:%s", mqConsumerItem.Topic)
-	lock = anvil_redis.NewRedisLock(
+
+	_ = anvil_redis.NewRedisLock(
+		anvil_redis.RedisLockDuration(10*time.Second),
 		anvil_redis.RedisLockContext(r.Context),
 		anvil_redis.RedisLockCtx(r.Ctx),
+		anvil_redis.RedisLockAttemptsTime(100), //尝试获取锁的次数
+		anvil_redis.RedisLockAttemptsInterval(30*time.Millisecond),
 		anvil_redis.RedisLockUniqueKey(utils.Guid(uk)),
 		anvil_redis.RedisLockLockKey(uk),
-		anvil_redis.RedisLockDuration(10*time.Second),
 		anvil_redis.RedisLockOkHandler(func(ctx context.Context) (err error) {
 			r.tickHandler(t, mqConsumerItem.Topic, tickHandler)
 			return
 		}),
-	)
-	_ = lock.RunWithGetLock()
+	).RunWithGetLock()
 }
 
 func (r *RedisDelayMq) waitTimer(mqConsumerItem MqConsumerItem, tickHandler ConsumerHandler) {

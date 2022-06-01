@@ -11,18 +11,19 @@ import (
 
 //分布式锁，锁数据
 /** 调用实例
-err = redis.NewRedisLock(
-	anvil_redis.LockCacheClient(s.Dao.GetRedisLink()),
-	anvil_redis.LockDuration(2), //每秒
-	anvil_redis.LockLockKey(fmt.Sprintf("kuji_ubox_lk_%d", arg.UserBoxId)),
-	anvil_redis.LockUniqueKey(arg.RequestId),
-	anvil_redis.LockLogging(logging.SqlLogger),
-	anvil_redis.LockAttemptsTime(100), //尝试获取锁的次数
-	anvil_redis.LockAttemptsInterval(30*time.Millisecond),
-	anvil_redis.LockOkHandler(func() (e error) {
-		//TODO 获取到锁的逻辑 ...
-	}),
-).RunWithGetLock()
+_ = anvil_redis.NewRedisLock(
+		anvil_redis.RedisLockDuration(10*time.Second),
+		anvil_redis.RedisLockContext(r.Context),
+		anvil_redis.RedisLockCtx(r.Ctx),
+		anvil_redis.RedisLockAttemptsTime(100), //尝试获取锁的次数
+		anvil_redis.RedisLockAttemptsInterval(30*time.Millisecond),
+		anvil_redis.RedisLockUniqueKey(utils.Guid(uk)),
+		anvil_redis.RedisLockLockKey(uk),
+		anvil_redis.RedisLockOkHandler(func(ctx context.Context) (err error) {
+			// TODO 获取到锁的逻辑 ...
+			return
+		}),
+	).RunWithGetLock()
 */
 func NewRedisLock(options ...RedisLockOption) (res *RedisLock) {
 	res = &RedisLock{}
