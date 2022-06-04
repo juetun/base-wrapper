@@ -13,10 +13,16 @@ import (
 	"github.com/juetun/base-wrapper/web/models"
 )
 
-type (
+const (
+	ChatMsgTypeSingleChart = "single" // 单聊
+	ChatMsgTypeRoomChart   = "room"   // 群聊
+)
 
+type (
 	ArgWebSocket struct {
-		UserHid string `json:"uid" form:"uid"`
+		UserHid int64  `json:"uid" form:"uid"`
+		ToId    int64  `json:"to_id" form:"to_id"`
+		MsgType string `json:"msg_type" form:"msg_type"`
 		base.ArgWebSocketBase
 	}
 	ArgumentDefault struct {
