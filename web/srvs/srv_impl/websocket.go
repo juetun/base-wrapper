@@ -22,7 +22,7 @@ func (r *SrvWebSocketImpl) WebsocketSrv(conn *websocket.Conn, arg *wrapper.ArgWe
 		ext.WebSocketAnvilOptionCommonParams(&arg.ArgWebSocketBase),
 		ext.WebSocketAnvilOptionContext(r.Context),
 		ext.WebSocketAnvilOptionUser(func() (user ext.UserInterface, err error) {
-			if arg.UserHid == "" {
+			if arg.UserHid == 0 {
 				return
 			}
 			user, err = r.getCurrentUserByUid(arg.UserHid)
@@ -35,7 +35,7 @@ func (r *SrvWebSocketImpl) WebsocketSrv(conn *websocket.Conn, arg *wrapper.ArgWe
 }
 
 // GetCurrentUser 获取当前请求用户信息
-func (r *SrvWebSocketImpl) getCurrentUserByUid(userHid string) (res *models.User, err error) {
+func (r *SrvWebSocketImpl) getCurrentUserByUid(userHid int64) (res *models.User, err error) {
 	res = &models.User{UserHid: userHid}
 	return
 }

@@ -2,18 +2,19 @@
 package models
 
 import (
+	"fmt"
 	"github.com/juetun/base-wrapper/lib/base"
 )
 
 type User struct {
 	base.Model
-	UserHid string `json:"user_hid"`
+	UserHid int64  `json:"user_hid"`
 	Name    string `json:"name"`
 	Age     int    `json:"age"`
 }
 
 func (r *User) GetUserHid() (userHid string, err error) {
-	userHid = r.UserHid
+	userHid = fmt.Sprintf("%d", r.UserHid)
 	return
 }
 
