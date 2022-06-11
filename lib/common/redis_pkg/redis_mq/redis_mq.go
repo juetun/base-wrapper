@@ -15,13 +15,12 @@ const (
 )
 
 type (
-
 	// RedisMQ redis mq操作对象
 	RedisMQ struct {
 		Ctx         context.Context // 上下文参数 用于停止监听动作
 		cancel      context.CancelFunc
 		Context     *base.Context // 上下文参数用于记录日志使用
-		ChannelList []string      `json:"channel_list"`
+		ChannelList []string `json:"channel_list"`
 
 		client *redis.Client
 		pb     *redis.PubSub
@@ -105,13 +104,11 @@ func (r *RedisMQ) AddSubscribe(channelList ...string) {
 	if len(channelList) == 0 {
 		return
 	}
-
 	if r.pb == nil {
-		r.client.Subscribe(r.Ctx, channelList...)
+		r.pb = r.client.Subscribe(r.Ctx, channelList...)
 		return
 	}
-
-	r.pb = r.client.Subscribe(r.Ctx, channelList...)
+	r.client.Subscribe(r.Ctx, channelList...)
 }
 
 // Unsubscribe 退订渠道
@@ -148,7 +145,7 @@ func (r *RedisMQ) AcceptMsg(actionHandler ActionHandler) {
 				r.Close()
 				break
 			default:
-				actionHandler(msg.Payload, msg.Channel)
+				_ = actionHandler(msg.Payload, msg.Channel)
 			}
 		default:
 

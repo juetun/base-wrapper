@@ -32,7 +32,7 @@ func PluginAppMap(arg *app_start.PluginsOperate) (err error) {
 	}
 	for key, value := range app_obj.AppMap {
 		io.SetInfoType(base.LogLevelInfo).
-			SystemOutPrintf("Load  appMap config is : '【%s】 %#v' ", key, value)
+			SystemOutPrintf("【%s】 %#v", key, value)
 	}
 	return
 
