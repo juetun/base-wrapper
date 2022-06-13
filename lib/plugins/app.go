@@ -47,7 +47,5 @@ func PluginsApp(arg *app_start.PluginsOperate) (err error) {
 	if err = yaml.Unmarshal(yamlFile, &data); err != nil {
 		io.SystemOutFatalf("load app config err(%#v) \n", err)
 	}
-
-	io.SystemOutPrintf("App Config is : '%#v' ", app_obj.App)
-	return
+ 	return
 }

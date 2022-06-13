@@ -39,7 +39,6 @@ func PluginElasticSearchV7(arg *app_start.PluginsOperate) (err error) {
 	if err = yaml.Unmarshal(yamlFile, &configs); err != nil {
 		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Fatal error elastic_search file(%#v) \n", err)
 	}
-	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("Load elastic_search config is : '%#v' ", configs)
 
 	for key, value := range configs {
 		esConfig := orgConfig(&value)
