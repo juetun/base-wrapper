@@ -20,9 +20,10 @@ const (
 
 type (
 	ArgWebSocket struct {
-		UserHid int64  `json:"uid" form:"uid"`
-		ToId    int64  `json:"to_id" form:"to_id"`
-		MsgType string `json:"msg_type" form:"msg_type"`
+		UserHid         int64  `json:"uid" form:"uid"`
+		ToId            int64  `json:"to_id" form:"to_id"`
+		MsgType         string `json:"msg_type" form:"msg_type"`
+		SecWebsocketKey string `json:"sec_websocket_key"` //websocket的key
 		base.ArgWebSocketBase
 	}
 	ArgumentDefault struct {
