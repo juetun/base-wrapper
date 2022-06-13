@@ -15,16 +15,18 @@ import (
 )
 
 const (
-	DateTimeGeneral   = "2006-01-02 15:04:05"
-	DateTimeDashboard = "2006.01.02 15:04"
-	DateGeneral       = "2006-01-02"
-	DateTimeChat      = "01月02 15:04" //聊天信息展示的时间格式
-	TimeDay           = 86400 * time.Second
-	TimeWeek          = 7 * 86400 * time.Second
+	DateTimeGeneral     = "2006-01-02 15:04:05"
+	DateTimeGeneralNano = "2006-01-02 15:04:05.999999999" //纳秒时间格式
+	DateTimeDashboard   = "2006.01.02 15:04"
+	DateGeneral         = "2006-01-02"
+	DateTimeChat        = "01月02 15:04" //聊天信息展示的时间格式
+	TimeDay             = 86400 * time.Second
+	TimeWeek            = 7 * 86400 * time.Second
 )
 
 // DateTime 时间格式转换
 func DateTime(t time.Time, format ...string) (res string) {
+
 	var f = DateTimeGeneral
 	if len(format) > 0 {
 		f = format[0]
