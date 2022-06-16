@@ -89,7 +89,7 @@ func (r *ServiceDao) ActErrorHandler(actHandler ActHandlerDao) (err error) {
 		if res.TableName == "" {
 			res.TableName = res.Model.TableName()
 		}
-		if res.TableComment == "" {
+		if res.TableComment == "" && res.Model != nil {
 			res.TableComment = res.Model.GetTableComment()
 		}
 		if err = r.CreateTableWithError(res.Db, res.TableName, res.Err, res.Model, TableSetOption{
