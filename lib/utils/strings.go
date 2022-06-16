@@ -17,6 +17,7 @@ import (
 	"regexp"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 )
 
 // Md5 生成32位MD5摘要
@@ -26,6 +27,12 @@ func Md5(str string) string {
 	c.Write([]byte(str))
 	cipherStr := c.Sum(nil)
 	return hex.EncodeToString(cipherStr)
+}
+
+//获取字符串的utf8格式(中文格式)长度
+func StringUtf8Length(s string) (res int) {
+	res = utf8.RuneCountInString(s)
+	return
 }
 
 func round(a int, b int) int {
@@ -72,49 +79,49 @@ func IsDigit(str string) (res bool) {
 	return
 }
 
-type Paginate struct {
-	Limit   int `json:"limit"`
-	Count   int `json:"count"`
-	Total   int `json:"total"`
-	Last    int `json:"last"`
-	Current int `json:"current"`
-	Next    int `json:"next"`
-}
-
-func MyPaginate(count int64, limit int, page int) Paginate {
-	res := round(int(count), limit)
-	totalPage := res
-
-	lastPage := 0
-	if page-1 <= 0 {
-		lastPage = 1
-	} else {
-		lastPage = page - 1
-	}
-
-	currentPage := 0
-	if page >= res {
-		currentPage = res
-	} else {
-		currentPage = page
-	}
-
-	nextPage := 0
-	if page+1 >= res {
-		nextPage = res
-	} else {
-		nextPage = page + 1
-	}
-
-	return Paginate{
-		Limit:   limit,
-		Count:   int(count),
-		Total:   totalPage,
-		Last:    lastPage,
-		Current: currentPage,
-		Next:    nextPage,
-	}
-}
+//type Paginate struct {
+//	Limit   int `json:"limit"`
+//	Count   int `json:"count"`
+//	Total   int `json:"total"`
+//	Last    int `json:"last"`
+//	Current int `json:"current"`
+//	Next    int `json:"next"`
+//}
+//
+//func MyPaginate(count int64, limit int, page int) Paginate {
+//	res := round(int(count), limit)
+//	totalPage := res
+//
+//	lastPage := 0
+//	if page-1 <= 0 {
+//		lastPage = 1
+//	} else {
+//		lastPage = page - 1
+//	}
+//
+//	currentPage := 0
+//	if page >= res {
+//		currentPage = res
+//	} else {
+//		currentPage = page
+//	}
+//
+//	nextPage := 0
+//	if page+1 >= res {
+//		nextPage = res
+//	} else {
+//		nextPage = page + 1
+//	}
+//
+//	return Paginate{
+//		Limit:   limit,
+//		Count:   int(count),
+//		Total:   totalPage,
+//		Last:    lastPage,
+//		Current: currentPage,
+//		Next:    nextPage,
+//	}
+//}
 
 // SubString 汉字截取
 func SubString(strValue string, num int, suffix ...string) (res string) {
