@@ -167,6 +167,11 @@ func NewPager(option ...PageOption) *Pager {
 	for _, item := range option {
 		item(r)
 	}
+	if r.PageType == DefaultPageTypeList {
+		if r.PageNo < DefaultPageNo {
+			r.PageNo = DefaultPageNo
+		}
+	}
 	return r
 }
 
