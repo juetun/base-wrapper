@@ -19,7 +19,6 @@ import (
 // 可通过自定义 GetDbFunc  GetTableFunc 数据数据库和表的算法实现
 // 如果不传递方法，则默认使用数值(字符串取每个字符的assi码值之和)取余数作为数据库和表的定位
 type SubTreasuryBase struct {
-
 	// 表统一前缀
 	TablePrefix string `json:"table_prefix"`
 
@@ -28,6 +27,8 @@ type SubTreasuryBase struct {
 
 	// 总数据库数,通过计算DbNameSpaceList的长度获取
 	dbNumber int64 `json:"-"`
+
+	TableComment string `json:"table_comment"` //表的注释
 
 	// 数据库访问空间名
 	DbNameSpaceList []string `json:"db_name_list"`
@@ -90,9 +91,9 @@ func (r *SubTreasuryBase) doEveryDb(handler OperateEveryDatabaseHandler, i int64
 	}
 	return
 }
-func (r *SubTreasuryBase) GetHashDbAndTableByStringId(id string) (db *gorm.DB, dbName, tableName string, err error) {
+func (r *SubTreasuryBase) GetHashDbAndTableByStringId(id string) (commonDb CommonDb, err error) {
 	code := r.GetASCII(id)
-	db, dbName, tableName, err = r.GetHashDbAndTableById(code)
+	commonDb, err = r.GetHashDbAndTableById(code)
 	return
 }
 
@@ -103,21 +104,17 @@ func (r *SubTreasuryBase) GetDataByStringId(id string, fetchDataHandler FetchDat
 
 func (r *SubTreasuryBase) GetDataByIntegerId(id int64, fetchDataHandler FetchDataHandler) (err error) {
 	var (
-		db                *gorm.DB
-		tableName, dbName string
+		commonDb CommonDb
 	)
 
-	db, dbName, tableName, err = r.GetHashDbAndTableById(id)
+	commonDb, err = r.GetHashDbAndTableById(id)
 	fetchDataParameter := FetchDataParameter{
-		CommonDb:CommonDb{
-			Db:  db,
-			DbName:    dbName,
-			TableName: tableName,
-		},
+		CommonDb: commonDb,
 	}
 	err = fetchDataHandler(&fetchDataParameter)
 	return
 }
+
 func (r *SubTreasuryBase) GetHashTable(columnValue int64) (tableName string, err error) {
 	if r.GetTableFuncHandler != nil {
 		tableName, err = r.GetTableFuncHandler(r, columnValue)
@@ -141,13 +138,13 @@ func (r *SubTreasuryBase) TableNameString(tableIndex int64) (tableName string) {
 	return
 }
 
-func (r *SubTreasuryBase) GetHashDbAndTableById(id int64) (db *gorm.DB, dbName, tableName string, err error) {
+func (r *SubTreasuryBase) GetHashDbAndTableById(id int64) (commonDb CommonDb, err error) {
 
-	if db, dbName, err = r.GetHashIntegerDb(id); err != nil {
+	if commonDb.Db, commonDb.DbName, err = r.GetHashIntegerDb(id); err != nil {
 		return
 	}
 
-	if tableName, err = r.GetHashTable(id); err != nil {
+	if commonDb.TableName, err = r.GetHashTable(id); err != nil {
 		return
 	}
 	return
@@ -161,31 +158,26 @@ func (r *SubTreasuryBase) GetDataByIntegerIds(ids []int64, fetchDataHandler Fetc
 	}
 
 	var (
-		db                *gorm.DB
-		dbName, tableName string
-		ok                bool
-		dta               FetchDataParameterBatch
-		mapDb             = make(map[string]FetchDataParameterBatch, l)
-		f                 bool
-		v                 []string
+		ok       bool
+		dta      FetchDataParameterBatch
+		mapDb    = make(map[string]FetchDataParameterBatch, l)
+		f        bool
+		v        []string
+		commonDb CommonDb
 	)
 
 	if len(mapNumString) > 0 {
 		f = true
 	}
 	for _, id := range ids {
-		if db, dbName, tableName, err = r.GetHashDbAndTableById(id); err != nil {
+		if commonDb, err = r.GetHashDbAndTableById(id); err != nil {
 			return
 		}
-		uk := dbName + tableName
+		uk := commonDb.DbName + commonDb.TableName
 		if dta, ok = mapDb[uk]; !ok {
 			dta = FetchDataParameterBatch{
-				CommonDb:CommonDb{
-					Db:  db,
-					DbName:    dbName,
-					TableName: tableName,
-				},
-				Ids:       make([]string, 0, l),
+				CommonDb: commonDb,
+				Ids:      make([]string, 0, l),
 			}
 		}
 
@@ -314,7 +306,11 @@ func SubTreasuryTablePrefix(tablePrefix string) SubTreasuryBaseOption {
 		p.TablePrefix = tablePrefix
 	}
 }
-
+func SubTreasuryTableComment(tableComment string) SubTreasuryBaseOption {
+	return func(p *SubTreasuryBase) {
+		p.TableComment = tableComment
+	}
+}
 func SubTreasuryDbNameSpace(dbNameSpace ...string) SubTreasuryBaseOption {
 	return func(p *SubTreasuryBase) {
 		p.DbNameSpaceList = dbNameSpace

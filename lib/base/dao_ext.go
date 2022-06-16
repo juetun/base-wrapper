@@ -7,9 +7,10 @@ import (
 
 type (
 	CommonDb struct {
-		Db        *gorm.DB `json:"-"`
-		DbName    string   `json:"db_name"`
-		TableName string   `json:"table_name"` // 添加数据对应的表名
+		Db           *gorm.DB `json:"-"`
+		DbName       string   `json:"db_name"`
+		TableName    string   `json:"table_name"` // 添加数据对应的表名
+		TableComment string   `json:"table_comment"`
 	}
 	ModelBase interface {
 		TableName() string
