@@ -84,17 +84,31 @@ func (r *ServiceDao) GetDefaultBatchAddDataParameter(modelBase ...ModelBase) (re
 
 // ActErrorHandler 操作(当前实现逻辑 如果报指定状态，则创建表)
 func (r *ServiceDao) ActErrorHandler(actHandler ActHandlerDao) (err error) {
-	var res *ActErrorHandlerResult
+	var (
+		res            *ActErrorHandlerResult
+		tableSetOption = TableSetOption{}
+	)
 	if res = actHandler(); res.Err != nil {
+		if res.Model == nil {
+			err = fmt.Errorf("您没有选择创建表的结构体")
+			return
+		}
 		if res.TableName == "" {
 			res.TableName = res.Model.TableName()
 		}
-		if res.TableComment == "" && res.Model != nil {
+		if res.TableComment == "" {
 			res.TableComment = res.Model.GetTableComment()
 		}
-		if err = r.CreateTableWithError(res.Db, res.TableName, res.Err, res.Model, TableSetOption{
-			"COMMENT": res.TableComment,
-		}); err != nil {
+
+		if res.TableComment != "" {
+			tableSetOption["COMMENT"] = res.TableComment
+		}
+		if len(tableSetOption) > 0 {
+			err = r.CreateTableWithError(res.Db, res.TableName, res.Err, res.Model, tableSetOption)
+		} else {
+			err = r.CreateTableWithError(res.Db, res.TableName, res.Err, res.Model)
+		}
+		if err != nil {
 			return
 		}
 		if res = actHandler(); res.Err != nil {
