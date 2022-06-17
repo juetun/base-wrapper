@@ -306,11 +306,13 @@ func SubTreasuryTablePrefix(tablePrefix string) SubTreasuryBaseOption {
 		p.TablePrefix = tablePrefix
 	}
 }
+
 func SubTreasuryTableComment(tableComment string) SubTreasuryBaseOption {
 	return func(p *SubTreasuryBase) {
 		p.TableComment = tableComment
 	}
 }
+
 func SubTreasuryDbNameSpace(dbNameSpace ...string) SubTreasuryBaseOption {
 	return func(p *SubTreasuryBase) {
 		p.DbNameSpaceList = dbNameSpace

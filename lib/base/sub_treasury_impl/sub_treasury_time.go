@@ -23,6 +23,9 @@ type SubTreasuryTime struct {
 	// TablePrefix 表统一前缀
 	TablePrefix string `json:"table_prefix"`
 
+	//表注释
+	TableComment string `json:"table_comment"`
+
 	// TableSuffixDateFormat 表后缀时间格式
 	TableSuffixDateFormat string `json:"table_suffix_date_format"`
 
@@ -289,6 +292,13 @@ func SubTreasuryTimeTablePrefix(tablePrefix string) SubTreasuryTimeOption {
 		p.TablePrefix = tablePrefix
 	}
 }
+func SubTreasuryTimeTableComment(tableComment string) SubTreasuryTimeOption {
+	return func(p *SubTreasuryTime) {
+		p.TableComment = tableComment
+	}
+}
+
+
 func SubTreasuryTimeDbDateFormat(dbDateFormat string) SubTreasuryTimeOption {
 	return func(p *SubTreasuryTime) {
 		p.DbDateFormat = dbDateFormat
