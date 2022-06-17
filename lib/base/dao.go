@@ -23,6 +23,11 @@ import (
 	"gorm.io/gorm"
 )
 
+//mysql 错误的码
+const (
+	MysqlErrorTableNotExists = 1146 //表不存在
+)
+
 type (
 	Dao interface {
 		// BatchAdd 批量添加数据
@@ -247,6 +252,36 @@ func ScopesDeletedAt(prefix ...string) func(db *gorm.DB) *gorm.DB {
 
 }
 
+func (r *ServiceDao) mysqlCreateError(e error) (err error) {
+	err = e
+	switch e.(type) {
+	case *mysql.MySQLError: // 运行时错误
+		me := e.(*mysql.MySQLError)
+		if me.Number == MysqlErrorTableNotExists {
+			err = nil
+			return
+		}
+	}
+	return
+}
+
+func (r *ServiceDao) createTableAct(db *gorm.DB, tableName string, model interface{}, comment ...TableSetOption) (err error) {
+	dba := db.Table(tableName)
+	for _, option := range comment {
+		for s, s2 := range option {
+			dba = dba.Set("gorm:table_options", fmt.Sprintf("%s='%s'", s, s2))
+		}
+	}
+
+	//执行创建表
+	if err = dba.Migrator().CreateTable(model); err != nil {
+		//如果是创建表操作,如果返回的错误还是表不存在，则跳过
+		err = r.mysqlCreateError(err)
+		return
+	}
+	return
+}
+
 // CreateTableWithError 判断SQL err 如果表不存在，则创建表
 func (r *ServiceDao) CreateTableWithError(db *gorm.DB, tableName string, e, model interface{}, comment ...TableSetOption) (err error) {
 
@@ -266,21 +301,14 @@ func (r *ServiceDao) CreateTableWithError(db *gorm.DB, tableName string, e, mode
 	switch e.(type) {
 	case *mysql.MySQLError: // 运行时错误
 		me := e.(*mysql.MySQLError)
-		if me.Number == 1146 {
-			dba := db.Table(tableName)
-			for _, option := range comment {
-				for s, s2 := range option {
-					dba = dba.Set("gorm:table_options", fmt.Sprintf("%s='%s'", s, s2))
-				}
-			}
-			if err = dba.Migrator().CreateTable(model); err != nil {
-				return
-			}
+		switch me.Number {
+		case MysqlErrorTableNotExists:
+			err = r.createTableAct(db, tableName, model, comment...)
 			return
 		}
+
 		err = fmt.Errorf(me.Error())
 	default:
-
 		err = fmt.Errorf("数据异常,请重试(102)")
 		return
 	}
