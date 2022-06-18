@@ -4,12 +4,14 @@ import "github.com/shopspring/decimal"
 
 type (
 	ArgOrderFromCartItem struct {
-		SkuId       string `json:"sku_id" form:"sku_id"`       // sku地址
-		Num         int    `json:"num" form:"num"`             // 商品数量
-		SkuPrice    string `json:"sku_price" form:"sku_price"` // SPU项目本次要支付的单价(定金预售定金金额或尾款金额 sku_price)
-		SkuSetPrice string `json:"sku_price" form:"sku_price"` // SPU项目本的单价
-		ShopId      int64  `json:"shop_id" form:"shop_id"`     // 店铺ID
-		SpuId       string `json:"spu_id" form:"spu_id"`       // 商品ID
+		SkuId         string `json:"sku_id" form:"sku_id"`                 // sku地址
+		Num           int    `json:"num" form:"num"`                       // 商品数量
+		SkuPrice      string `json:"sku_price" form:"sku_price"`           // SPU项目本次要支付的单价(定金预售定金金额或尾款金额 sku_price)
+		SkuSetPrice   string `json:"sku_price" form:"sku_price"`           // SPU项目本的单价
+		ShopId        int64  `json:"shop_id" form:"shop_id"`               // 店铺ID
+		SpuId         string `json:"spu_id" form:"spu_id"`                 // 商品ID
+		FreightTplId  int64  `json:"freight_tpl_id" form:"freight_tpl_id"` // 运费模板
+		FreightAmount string `json:"-" form:"-"`                           //邮费
 	}
 )
 
