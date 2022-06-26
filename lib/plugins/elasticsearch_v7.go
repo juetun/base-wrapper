@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -75,8 +76,23 @@ func initEs(nameSpace string, configOption []SetElasticSearchConfigOption) {
 	var err error
 	var handler *elasticsearch.Client
 
+	var configInterface map[string]interface{}
+	var (
+		bt []byte
+	)
 	io.SetInfoType(base.LogLevelInfo).
-		SystemOutPrintf("Load elastic_search config(%s):   '%#v' ", nameSpace, esConfig.Config)
+		SystemOutPrintf("Load elastic_search config(%s) ", nameSpace)
+	if bt, err = json.Marshal(esConfig.Config); err != nil {
+		io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("init es failure \n"))
+		panic(err)
+	}
+	if err = json.Unmarshal(bt, &configInterface); err != nil {
+		io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("init es failure \n"))
+		panic(err)
+	}
+	for key, data := range configInterface {
+		io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("【%s】%+v \n", key, data))
+	}
 	handler, err = elasticsearch.NewClient(esConfig.Config)
 	if err != nil {
 		io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("init es failure \n"))
