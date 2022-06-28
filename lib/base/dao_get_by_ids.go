@@ -16,8 +16,12 @@ var (
 
 //是否刷新缓存
 const (
-	RefreshCacheNo = iota
+	RefreshCacheNo = iota //
 	RefreshCacheYes
+)
+const (
+	ExpireTimeRandYes = true  //缓存有效期随机
+	ExpireTimeRandNo  = false //缓存有效期不随机
 )
 
 type (
@@ -37,6 +41,7 @@ type (
 		IncludeDelData bool   `json:"include_del_data" form:"include_del_data"` // 查询数据包括已删除(软删)的数据默认查询不包括软删数据
 		RefreshCache   uint8  `json:"refresh_cache" form:"refresh_cache"`       // 是否刷新缓存数据
 		MaxLimit       int64  `json:"max_limit" form:"max_limit"`               // 本次请求最多查询数据数量
+		ExpireTimeRand bool   `json:"expire_time_rand" form:"expire_time_rand"` // 缓存有效期是否
 	}
 	ArgGetByStringIdsOption func(arg *ArgGetByStringIds)
 	ArgGetByNumberIdsOption func(arg *ArgGetByNumberIds)
@@ -48,7 +53,7 @@ func NewArgGetByStringIds(options ...ArgGetByStringIdsOption) (res *ArgGetByStri
 	for _, option := range options {
 		option(res)
 	}
-	res.GetDataTypeCommon.Default()
+	_ = res.GetDataTypeCommon.Default()
 	return
 }
 
@@ -117,12 +122,23 @@ func ArgGetByNumberIdsOptionRefreshCache(refreshCache uint8) ArgGetByNumberIdsOp
 		arg.RefreshCache = refreshCache
 	}
 }
-
-func (r *GetDataTypeCommon) Default() (err error) {
-	if r.GetType == "" { // 默认是从缓存拿，如果拿不到，则从数据库拿
-		r.GetType = DefaultGetDataType
+func (r *GetDataTypeCommon) validateExpireTimeRandValue() (err error) {
+	ExpireTimeRandValue := []bool{ExpireTimeRandYes, ExpireTimeRandNo}
+	var f1 bool
+	for _, value := range ExpireTimeRandValue {
+		if value == r.ExpireTimeRand {
+			f1 = true
+			break
+		}
 	}
+	if !f1 {
+		err = fmt.Errorf("expire_time_rand值异常")
+		return
+	}
+	return
+}
 
+func (r *GetDataTypeCommon) validateRefreshCacheValue() (err error) {
 	RefreshCacheValue := []uint8{RefreshCacheNo, RefreshCacheYes}
 	var f bool
 	for _, value := range RefreshCacheValue {
@@ -135,5 +151,19 @@ func (r *GetDataTypeCommon) Default() (err error) {
 		err = fmt.Errorf("refresh_cache值异常")
 		return
 	}
+	return
+}
+
+func (r *GetDataTypeCommon) Default() (err error) {
+	if r.GetType == "" { // 默认是从缓存拿，如果拿不到，则从数据库拿
+		r.GetType = DefaultGetDataType
+	}
+	if err = r.validateExpireTimeRandValue(); err != nil {
+		return
+	}
+	if err = r.validateRefreshCacheValue(); err != nil {
+		return
+	}
+
 	return
 }
