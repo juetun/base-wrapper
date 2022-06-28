@@ -82,7 +82,10 @@ func initEs(nameSpace string, configOption []SetElasticSearchConfigOption) {
 	)
 	io.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintf("Load elastic_search config(%s) ", nameSpace)
-	if bt, err = json.Marshal(esConfig.Config); err != nil {
+
+	var showEsConfig ShowEsConfig
+	showEsConfig.ParseFromEsConfig(&esConfig.Config)
+	if bt, err = json.Marshal(showEsConfig); err != nil {
 		io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("init es failure \n"))
 		panic(err)
 	}
@@ -100,6 +103,46 @@ func initEs(nameSpace string, configOption []SetElasticSearchConfigOption) {
 	}
 	app_obj.ElasticSearchV7Maps[nameSpace] = handler
 
+}
+
+type ShowEsConfig struct {
+	Addresses             []string      `json:"addresses"`
+	Username              string        `json:"username"`
+	Password              string        `json:"password"`
+	CloudID               string        `json:"cloud_id"`
+	APIKey                string        `json:"api_key"`
+	ServiceToken          string        `json:"service_token"`
+	Header                http.Header   `json:"header"`
+	CACert                string        `json:"ca_cert"`
+	RetryOnStatus         []int         `json:"retry_on_status"`
+	DisableRetry          bool          `json:"disable_retry"`
+	EnableRetryOnTimeout  bool          `json:"enable_retry_on_timeout"`
+	MaxRetries            int           `json:"max_retries"`
+	DiscoverNodesOnStart  bool          `json:"discover_nodes_on_start"`
+	DiscoverNodesInterval time.Duration `json:"discover_nodes_interval"`
+	EnableMetrics         bool          `json:"enable_metrics"`
+	EnableDebugLogger     bool          `json:"enable_debug_logger"`
+	DisableMetaHeader     bool          `json:"disable_meta_header"`
+}
+
+func (r *ShowEsConfig) ParseFromEsConfig(data *elasticsearch.Config) {
+	r.Addresses = data.Addresses
+	r.Username = data.Username
+	r.Password = data.Password
+	r.CloudID = data.CloudID
+	r.APIKey = data.APIKey
+	r.ServiceToken = data.ServiceToken
+	r.Header = data.Header
+	r.CACert = string(data.CACert)
+	r.RetryOnStatus = data.RetryOnStatus
+	r.DisableRetry = data.DisableRetry
+	r.EnableRetryOnTimeout = data.EnableRetryOnTimeout
+	r.MaxRetries = data.MaxRetries
+	r.DiscoverNodesOnStart = data.DiscoverNodesOnStart
+	r.DiscoverNodesInterval = data.DiscoverNodesInterval
+	r.EnableMetrics = data.EnableMetrics
+	r.EnableDebugLogger = data.EnableDebugLogger
+	r.DisableMetaHeader = data.DisableMetaHeader
 }
 
 type ElasticSearchConfig struct {
