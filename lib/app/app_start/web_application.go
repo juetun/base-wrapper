@@ -271,7 +271,7 @@ func (r *WebApplication) registerDefaultRoute(UrlPrefix string) {
 }
 func (r *WebApplication) registerSwagger(appConfig *app_obj.Application) {
 	// 如果非线上(release)环境，则可以直接使用
-	if app_obj.App.AppEnv != app_obj.EnvProd {
+	if app_obj.App.AppEnv == app_obj.EnvProd {
 		return
 	}
 
