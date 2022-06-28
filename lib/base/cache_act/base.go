@@ -12,7 +12,7 @@ type (
 		Context     *base.Context
 		GetCacheKey GetCacheKey
 	}
-	GetCacheKey           func(id interface{}) (cacheKey string, duration time.Duration)
+	GetCacheKey           func(id interface{}, expireTimeRand ...bool) (cacheKey string, duration time.Duration)
 	CacheActionBaseOption func(cacheFreightAction *CacheActionBase)
 )
 
@@ -44,8 +44,8 @@ func (r *CacheActionBase) LoadBase(options ...CacheActionBaseOption) {
 	}
 }
 
-func (r *CacheActionBase) SetToCache(id interface{}, data interface{}) (err error) {
-	key, duration := r.GetCacheKey(id)
+func (r *CacheActionBase) SetToCache(id interface{}, data interface{}, expireTimeRand ...bool) (err error) {
+	key, duration := r.GetCacheKey(id, expireTimeRand...)
 	if err = r.Context.CacheClient.Set(r.Ctx, key, data, duration).Err(); err != nil {
 		r.Context.Info(map[string]interface{}{
 			"id":       id,
