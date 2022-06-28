@@ -9,7 +9,9 @@
 package base
 
 import (
+	"crypto/rand"
 	"fmt"
+	"math/big"
 	"reflect"
 	"runtime"
 	"strings"
@@ -75,6 +77,23 @@ func (r *ServiceDao) GetDefaultAddOneDataParameter(modelBase ModelBase) (res *Ad
 	return
 }
 
+//真随机数生成
+//生成规则参考，https://blog.csdn.net/study_in/article/details/102919019
+func (r *ServiceDao) RealRandomNumber(maxWeight int64) (result int64, err error) {
+	if maxWeight == 0 {
+		result = 0
+		return
+	}
+	//生成[0, maxWeight) 范围的真随机数。
+	bigInt := big.NewInt(maxWeight)
+	var res *big.Int
+	if res, err = rand.Int(rand.Reader, bigInt); err != nil {
+		return
+	}
+	result = res.Int64()
+	//fmt.Printf("随机数 maxWeight:%d result:%d",maxWeight,result)
+	return
+}
 func (r *ServiceDao) GetDefaultBatchAddDataParameter(modelBase ...ModelBase) (res *BatchAddDataParameter, err error) {
 	if len(modelBase) == 0 {
 		err = fmt.Errorf("您没有选择要添加的数据")
