@@ -43,7 +43,6 @@ func loadLogConfig() (mysqlConfig app_obj.OptionLog, err error) {
 	if err = yaml.Unmarshal(yamlFile, &mysqlConfig); err != nil {
 		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Load log config config err(%#v) \n", err)
 	}
-	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("Load log config is : '%#v' ", mysqlConfig)
 
 	return
 }

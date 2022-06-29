@@ -9,6 +9,7 @@
 package app_obj
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	systemLog "log"
@@ -99,10 +100,14 @@ func InitConfig(config *OptionLog) {
 	if logConfig.Format == "" {
 		logConfig.Format = "json"
 	}
-
-	//
-	systemLog.Printf("【INFO】log config: %#v", logConfig)
-
+	systemLog.Printf("【INFO】Load log config:\n ")
+	var logConfigMap map[string]interface{}
+	bt, _ := json.Marshal(logConfig)
+	_ = json.Unmarshal(bt, &logConfigMap)
+	for key, value := range logConfigMap {
+		systemLog.Printf("【INFO】【%s】%v", key, value)
+	}
+	
 	return
 }
 
