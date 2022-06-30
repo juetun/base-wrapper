@@ -15,6 +15,7 @@ Traefik 默认带很多插件，但是可能一些我们的个性化需求原生
 在 pkg/middleware/auth文件夹中添加插件主逻辑文件，这个位置可以根据自己需求修改。
 
 ![图标](https://void.oss-cn-beijing.aliyuncs.com/img/20201014142902.png)
+```
 package auth
 
 import (
@@ -198,9 +199,10 @@ type Middleware struct {
 type TokenAuth struct {
 	Address             string     `json:"address,omitempty" toml:"address,omitempty" yaml:"address,omitempty"`
 }
+```
 构造插件示例
 这里写创建插件实体的代码
-
+```
 // pkg/server/middleware/middlewares.go
 
 func (b *Builder) buildConstructor(ctx context.Context, middlewareName string) (alice.Constructor, error) {
@@ -218,6 +220,7 @@ func (b *Builder) buildConstructor(ctx context.Context, middlewareName string) (
 
 	/* ... */
 }
+```
 打包配置
 直接用自带的打包命令打linux包(需要安装docker)。
 
