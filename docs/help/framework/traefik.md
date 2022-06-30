@@ -14,8 +14,7 @@ Traefik 默认带很多插件，但是可能一些我们的个性化需求原生
 添加插件执行文件
 在 pkg/middleware/auth文件夹中添加插件主逻辑文件，这个位置可以根据自己需求修改。
 
-https://void.oss-cn-beijing.aliyuncs.com/img/20201014142902.png
-
+![图标](https://void.oss-cn-beijing.aliyuncs.com/img/20201014142902.png)
 package auth
 
 import (
@@ -225,7 +224,7 @@ func (b *Builder) buildConstructor(ctx context.Context, middlewareName string) (
 make binary
 之后会在dist文件夹下生成可执行文件。
 
-https://void.oss-cn-beijing.aliyuncs.com/img/20201014154636.png
+![图标](https://void.oss-cn-beijing.aliyuncs.com/img/20201014154636.png)
 
 添加插件配置
 
