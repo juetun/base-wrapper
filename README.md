@@ -36,6 +36,7 @@
 #### 1.7、[WEBSOCKET使用](./docs/help/framework/gin_micro.md)
 #### 1.9、[微服务注册](./docs/help/framework/gin_micro.md)
 ##### 1.9.1、[服务间的调用实例](./docs/help/framework/call_method.md)
+##### 1.9.2、[traefik代码改造文档](./docs/help/framework/traefik.md)
 ### 二、其他帮助文档
 #### 2.1、[go mod](docs/help/other/go_mod.md)
 
