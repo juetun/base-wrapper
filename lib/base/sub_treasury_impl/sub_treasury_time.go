@@ -46,16 +46,17 @@ type SubTreasuryTime struct {
 
 	// Context 当前配置的数据库连接
 	Context *Context `json:"-"`
+	Ctx     context.Context
 }
 
 // SubTreasuryTimeOption 调用分布式数据库操作的对象结构体参数
 type SubTreasuryTimeOption func(p *SubTreasuryTime)
 
 // GetDbWithTimeFunc 自定义操作哪个数据库算法实现的操作方法(按时间)
-type GetDbWithTimeFunc func(subTreasury *SubTreasuryTime, normal TimeNormal) (db *gorm.DB, dbName string, err error)
+type GetDbWithTimeFunc func(subTreasury *SubTreasuryTime, normal int64) (db *gorm.DB, dbName string, err error)
 
 // GetTableWithTimeFunc 自定义操作哪个table实现的操作方法(按时间)
-type GetTableWithTimeFunc func(subTreasury *SubTreasuryTime, normal TimeNormal) (tableName string, err error)
+type GetTableWithTimeFunc func(subTreasury *SubTreasuryTime, normal int64) (tableName string, err error)
 
 // HandlerGetTables 根据数据库名返回数据对应的表名
 type HandlerGetTables func(dbNameSpace string, r *SubTreasuryTime) (res []string)
@@ -118,27 +119,29 @@ func (r *SubTreasuryTime) GetDataByStringId(timeNormal TimeNormal, fetchDataHand
 	return
 }
 
-func (r *SubTreasuryTime) GetHashTable(columnValue TimeNormal) (tableName string, err error) {
+func (r *SubTreasuryTime) GetHashTable(tableIndex int64) (tableName string, err error) {
 	if r.GetTableFuncHandler != nil {
-		tableName, err = r.GetTableFuncHandler(r, columnValue)
+		if tableName, err = r.GetTableFuncHandler(r, tableIndex); err != nil {
+			return
+		}
 		return
 	}
-	_, tableIndex := r.GetHashNumber(columnValue)
 	tableName = r.TableNameString(tableIndex)
 	return
 }
 
-func (r *SubTreasuryTime) GetHashNumber(columnValue TimeNormal) (dbNumber int64, tableNumber string) {
+//func (r *SubTreasuryTime) getHashNumber(columnValue TimeNormal) (dbNumber int64, tableNumber string) {
+//	dbNumber = r.getDbName(columnValue)
+//	tableNumber = columnValue.Format(r.TableSuffixDateFormat)
+//	return
+//}
 
-	tmp := columnValue.Format(r.DbDateFormat)
-	n, _ := strconv.ParseInt(tmp, 10, 64)
-	dbNumber = int64(math.Floor(float64(n / r.dbNumber)))
-	tableNumber = columnValue.Format(r.TableSuffixDateFormat)
+func (r *SubTreasuryTime) getDbName(dbIndex int64) (dbNumber int64) {
+	dbNumber = int64(math.Floor(float64(dbIndex / r.dbNumber)))
 	return
 }
-
-func (r *SubTreasuryTime) TableNameString(tableIndex string) (tableName string) {
-	tableName = fmt.Sprintf("%s%s", r.TablePrefix, tableIndex)
+func (r *SubTreasuryTime) TableNameString(tableIndex int64) (tableName string) {
+	tableName = fmt.Sprintf("%s%d", r.TablePrefix, tableIndex)
 	return
 }
 
@@ -148,12 +151,88 @@ func (r *SubTreasuryTime) GetHashDbAndTableById(timeNormal TimeNormal) (db *gorm
 	if db, dbName, err = r.GetHashIntegerDb(timeNormal); err != nil {
 		return
 	}
+	var (
+		tableIndex       int64
+		tableIndexString = timeNormal.Format(r.TableSuffixDateFormat)
+	)
 
+	if tableIndex, err = strconv.ParseInt(tableIndexString, 10, 64); err != nil {
+		return
+	}
 	// 获取数据库表名
-	if tableName, err = r.GetHashTable(timeNormal); err != nil {
+	if tableName, err = r.GetHashTable(tableIndex); err != nil {
 		return
 	}
 	return
+}
+
+func (r *SubTreasuryTime) getStartAndOverTimeNumber(startTime, overTime TimeNormal) (overTimeIndexNumber, startTimeIndexNumber int64, err error) {
+
+	if overTimeIndexNumber, err = strconv.ParseInt(overTime.Format(r.TableSuffixDateFormat), 10, 64); err != nil {
+		return
+	}
+	if startTimeIndexNumber, err = strconv.ParseInt(startTime.Format(r.TableSuffixDateFormat), 10, 64); err != nil {
+		return
+	}
+	return
+}
+
+// 按照时间开始时间 和 结束时间跨表查询数据使用
+func (r *SubTreasuryTime) GetDataByTimeStartAndOverTime(startTime, overTime TimeNormal, fetchDataHandler OperateEveryDatabaseHandler) (err error) {
+
+	var (
+		overTimeIndexNumber, startTimeIndexNumber int64
+		mapDb                                     = make(map[string]OperateEveryDatabase, r.dbNumber)
+		db                                        *gorm.DB
+		ok                                        bool
+		dbName, tableName                         string
+		dta                                       OperateEveryDatabase
+	)
+
+	//时间交换保证开始时间一定小于结束时间
+	if startTime.After(overTime.Time) {
+		overTime, startTime = startTime, overTime
+	}
+
+	if overTimeIndexNumber, startTimeIndexNumber, err = r.getStartAndOverTimeNumber(startTime, overTime); err != nil {
+		return
+	}
+
+	for {
+		if db, dbName, tableName, err = r.GetHashDbAndTableByIndexId(startTimeIndexNumber); err != nil {
+			return
+		}
+		if dta, ok = mapDb[dbName]; !ok {
+			dta = OperateEveryDatabase{Db: db, DbName: dbName, Tables: []string{tableName}}
+		}
+		if startTimeIndexNumber > overTimeIndexNumber {
+			break
+		}
+		dta.Tables = append(dta.Tables, tableName)
+		startTimeIndexNumber += 1
+		mapDb[dbName] = dta
+	}
+	r.getDataByTimeStartAndOverTimeItemDb(mapDb, fetchDataHandler)
+	return
+}
+
+func (r *SubTreasuryTime) getDataByTimeStartAndOverTimeItemDb(mapDb map[string]OperateEveryDatabase, fetchDataHandler OperateEveryDatabaseHandler) {
+	var syncG sync.WaitGroup
+	syncG.Add(len(mapDb))
+	var actHandler = func(k string, item OperateEveryDatabase) {
+		defer syncG.Done()
+		//执行每个数据库操作动作
+		if err := fetchDataHandler(&item); err != nil {
+			r.Context.Error(map[string]interface{}{
+				"err": err.Error(),
+				"k":   k,
+			}, "SubTreasuryTimeGetDataByTimeStartAndOverTimeItemDb")
+		}
+	}
+	for k, itemDb := range mapDb {
+		go actHandler(k, itemDb)
+	}
+	syncG.Wait()
 }
 
 // GetDataByTimes 使用时间维度分库分表
@@ -171,6 +250,7 @@ func (r *SubTreasuryTime) GetDataByTimes(times []TimeNormal, fetchDataHandler Fe
 	)
 
 	for _, timeItem := range times {
+
 		if db, dbName, tableName, err = r.GetHashDbAndTableByTimeId(timeItem); err != nil {
 			return
 		}
@@ -234,7 +314,6 @@ func (r *SubTreasuryTime) getById(it FetchDataParameter, fetchDataHandler FetchD
 }
 
 func (r *SubTreasuryTime) getDbByIndex(index int64) (db *gorm.DB, dbName string, err error) {
-
 	dbName = r.DbNameSpaceList[index]
 	return r.GetDbByDbName(dbName)
 
@@ -243,18 +322,16 @@ func (r *SubTreasuryTime) getDbByIndex(index int64) (db *gorm.DB, dbName string,
 func (r *SubTreasuryTime) GetDbByDbName(dbNameString string) (db *gorm.DB, dbName string, err error) {
 	dbName = dbNameString
 	s := ""
-	var ctx = context.TODO()
 	if nil != r.Context.GinContext {
 		if tp, ok := r.Context.GinContext.Get(app_obj.TraceId); ok {
 			s = fmt.Sprintf("%v", tp)
 		}
-		// ctx = r.Context.GinContext.Request.Context()
 	}
 	db, dbName, err = GetDbClient(&GetDbClientData{
 		Context:     r.Context,
 		DbNameSpace: dbName,
 		CallBack: func(db *gorm.DB, dbName string) (dba *gorm.DB, err error) {
-			dba = db.WithContext(context.WithValue(ctx, app_obj.DbContextValueKey, DbContextValue{
+			dba = db.WithContext(context.WithValue(r.Ctx, app_obj.DbContextValueKey, DbContextValue{
 				TraceId: s,
 				DbName:  dbName,
 			}))
@@ -264,14 +341,30 @@ func (r *SubTreasuryTime) GetDbByDbName(dbNameString string) (db *gorm.DB, dbNam
 	return
 }
 
-func (r *SubTreasuryTime) GetHashIntegerDb(timeNormal TimeNormal) (db *gorm.DB, dbName string, err error) {
+func (r *SubTreasuryTime) getHashIntegerDbWithNumber(dbIndexNum int64) (db *gorm.DB, dbName string, err error) {
+
 	// 如果自定义了获取数据连接的算法
 	if r.GetDbFuncHandler != nil {
-		return r.GetDbFuncHandler(r, timeNormal)
+		return r.GetDbFuncHandler(r, dbIndexNum)
+	}
+	configDatabaseIndex := r.getDbName(dbIndexNum)
+	if db, dbName, err = r.getDbByIndex(configDatabaseIndex); err != nil {
+		return
+	}
+	return
+}
+
+func (r *SubTreasuryTime) GetHashIntegerDb(timeNormal TimeNormal) (db *gorm.DB, dbName string, err error) {
+	var (
+		dbIndexNum int64
+		dbIndex    = timeNormal.Format(r.DbDateFormat)
+	)
+
+	if dbIndexNum, err = strconv.ParseInt(dbIndex, 10, 64); err != nil {
+		return
 	}
 
-	dbNumber, _ := r.GetHashNumber(timeNormal)
-	db, dbName, err = r.getDbByIndex(dbNumber)
+	db, dbName, err = r.getHashIntegerDbWithNumber(dbIndexNum)
 	return
 }
 
@@ -279,7 +372,24 @@ func (r *SubTreasuryTime) GetHashDbAndTableByTimeId(timeNormal TimeNormal) (db *
 	if db, dbName, err = r.GetHashIntegerDb(timeNormal); err != nil {
 		return
 	}
-	tableName, err = r.GetHashTable(timeNormal)
+	var tableIndex int64
+	if tableIndex, err = r.getTableIndexWith(timeNormal); err != nil {
+		return
+	}
+	tableName, err = r.GetHashTable(tableIndex)
+	return
+}
+func (r *SubTreasuryTime) getTableIndexWith(timeNormal TimeNormal) (tableIndex int64, err error) {
+	timeNormal.Format(r.TableSuffixDateFormat)
+	return
+}
+
+func (r *SubTreasuryTime) GetHashDbAndTableByIndexId(indexId int64) (db *gorm.DB, dbName, tableName string, err error) {
+
+	if db, dbName, err = r.getHashIntegerDbWithNumber(indexId); err != nil {
+		return
+	}
+	tableName, err = r.GetHashTable(indexId)
 	return
 }
 
@@ -292,18 +402,19 @@ func SubTreasuryTimeTablePrefix(tablePrefix string) SubTreasuryTimeOption {
 		p.TablePrefix = tablePrefix
 	}
 }
+
 func SubTreasuryTimeTableComment(tableComment string) SubTreasuryTimeOption {
 	return func(p *SubTreasuryTime) {
 		p.TableComment = tableComment
 	}
 }
 
-
 func SubTreasuryTimeDbDateFormat(dbDateFormat string) SubTreasuryTimeOption {
 	return func(p *SubTreasuryTime) {
 		p.DbDateFormat = dbDateFormat
 	}
 }
+
 func SubTreasuryTimeDbNameSpace(dbNameSpace ...string) SubTreasuryTimeOption {
 	return func(p *SubTreasuryTime) {
 		p.DbNameSpaceList = dbNameSpace
@@ -322,11 +433,13 @@ func SubTreasuryTimeGetTableFuncHandler(getTableFuncHandler GetTableWithTimeFunc
 		p.GetTableFuncHandler = getTableFuncHandler
 	}
 }
+
 func SubTreasuryTimeGetDbFunc(getDbFunc GetDbWithTimeFunc) SubTreasuryTimeOption {
 	return func(p *SubTreasuryTime) {
 		p.GetDbFuncHandler = getDbFunc
 	}
 }
+
 func SubTreasuryTimeContext(ctx *Context) SubTreasuryTimeOption {
 	return func(p *SubTreasuryTime) {
 		p.Context = ctx
@@ -352,6 +465,9 @@ func NewSubTreasuryTime(options ...SubTreasuryTimeOption) (res *SubTreasuryTime)
 	}
 	if p.TableSuffixDateFormat == "" {
 		p.TableSuffixDateFormat = "200601" // 默认按照月分表
+	}
+	if p.Ctx == nil {
+		p.Ctx = context.TODO()
 	}
 	return p
 }
