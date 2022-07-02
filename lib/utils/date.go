@@ -20,9 +20,25 @@ const (
 	DateTimeDashboard   = "2006.01.02 15:04"
 	DateGeneral         = "2006-01-02"
 	DateTimeChat        = "01月02 15:04" //聊天信息展示的时间格式
-	TimeDay             = 86400 * time.Second
-	TimeWeek            = 7 * 86400 * time.Second
+	TimeDay             = 24 * time.Hour
+	TimeWeek            = 7 * 24 * time.Hour
 )
+
+// GetMondayDateStamp 获取指定时间的星期一凌晨0时0分0秒
+func GetMondayDateStamp(t time.Time) (mondayStamp time.Time) {
+	var offset int
+	if offset = int(time.Monday - t.Weekday()); offset > 0 {
+		offset = -6
+	}
+	mondayStamp = time.Date(
+		t.Year(),
+		t.Month(),
+		t.Day(),
+		0, 0, 0, 0,
+		time.Local).
+		AddDate(0, 0, offset)
+	return
+}
 
 // DateTime 时间格式转换
 func DateTime(t time.Time, format ...string) (res string) {
