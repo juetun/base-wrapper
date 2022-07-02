@@ -13,13 +13,13 @@ import (
 type (
 	//定时任务操作结构体
 	TaskTimer struct {
-		c       *cron.Cron
-		context *base.Context
-		Ctx     context.Context
-		logIo   *base.SystemOut
+		base.ControllerBase
+		c     *cron.Cron
+		Ctx   context.Context
+		logIo *base.SystemOut
 	}
 	//定时任务执行过程方法
-	TaskCallBack    func()
+	TaskCallBack    func(context *base.Context, guid string)
 	TaskTimerOption func(*TaskTimer)
 )
 
@@ -37,11 +37,6 @@ func NewTaskTimer(options ...TaskTimerOption) (taskTimer *TaskTimer) {
 func TaskTimerCtx(ctx context.Context) TaskTimerOption {
 	return func(timer *TaskTimer) {
 		timer.Ctx = ctx
-	}
-}
-func TaskTimerContext(context *base.Context) TaskTimerOption {
-	return func(timer *TaskTimer) {
-		timer.context = context
 	}
 }
 
@@ -62,11 +57,11 @@ func (r *TaskTimer) ConfigTaskCall(format, taskName string, callBack TaskCallBac
 			lockKey,
 		)
 	entryID, err = r.c.AddFunc(format, func() {
-
+		contextBase, guid := base.CreateCrontabContext(r.ControllerBase)
 		//分布式锁 防止重复执行定时任务
 		_, _ = anvil_redis.NewRedisLock(
 			anvil_redis.RedisLockDuration(10*time.Second),
-			anvil_redis.RedisLockContext(r.context),
+			anvil_redis.RedisLockContext(contextBase),
 			anvil_redis.RedisLockCtx(r.Ctx),
 			anvil_redis.RedisLockAttemptsTime(100), //尝试获取锁的次数
 			anvil_redis.RedisLockAttemptsInterval(30*time.Millisecond),
@@ -74,7 +69,7 @@ func (r *TaskTimer) ConfigTaskCall(format, taskName string, callBack TaskCallBac
 			anvil_redis.RedisLockLockKey(lockKey),
 			anvil_redis.RedisLockOkHandler(func(ctx context.Context) (err error) {
 				//执行定时任务
-				callBack()
+				callBack(contextBase, guid)
 				return
 			}),
 		).Run()
