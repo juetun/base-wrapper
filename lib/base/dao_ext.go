@@ -56,6 +56,12 @@ func AddOneDataParameterIgnoreColumn(ignoreColumn []string) AddOneDataParameterO
 	}
 }
 
+func AddOneDataParameterModel(model ModelBase) AddOneDataParameterOption {
+	return func(addOneDataParameter *AddOneDataParameter) {
+		addOneDataParameter.Model = model
+	}
+}
+
 func AddOneDataParameterRuleOutColumn(ruleOutColumn []string) AddOneDataParameterOption {
 	return func(addOneDataParameter *AddOneDataParameter) {
 		addOneDataParameter.RuleOutColumn = ruleOutColumn
