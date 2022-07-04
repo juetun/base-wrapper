@@ -11,7 +11,6 @@ package base
 import (
 	"crypto/rand"
 	"fmt"
-	"github.com/juetun/base-wrapper/lib/base"
 	"math/big"
 	"reflect"
 	"runtime"
@@ -607,8 +606,7 @@ func (r *ServiceDao) AddOneData(parameter *AddOneDataParameter) (err error) {
 	r.defaultAddDataParameter(&parameter.AddDataParameter, parameter.Model)
 	batchAddDataParameter := &BatchAddDataParameter{}
 	batchAddDataParameter.AddDataParameter = parameter.AddDataParameter
-	batchAddDataParameter.Data = []base.ModelBase{parameter.Model}
-
+	batchAddDataParameter.Data = []ModelBase{parameter.Model}
 	err = r.batchAddAct(batchAddDataParameter, &logContent)
 	return
 }
