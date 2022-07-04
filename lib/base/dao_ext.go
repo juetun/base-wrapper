@@ -40,9 +40,8 @@ type (
 	}
 	AddDataParameter struct {
 		CommonDb
-		IgnoreColumn  []string               `json:"ignore_column"`   // replace 忽略字段,添加到此字段中的字段不会出现在SQL执行中
-		RuleOutColumn []string               `json:"rule_out_column"` // nil时使用默认值，当数据表中存在唯一数据时，此字段的值不会被新的数据替换
-		ReturnConfig  *DatabaseAddDataReturn `json:"return_config"`   // 如果添加的同时需要返回字段内容
+		IgnoreColumn  []string `json:"ignore_column"`   // replace 忽略字段,添加到此字段中的字段不会出现在SQL执行中
+		RuleOutColumn []string `json:"rule_out_column"` // nil时使用默认值，当数据表中存在唯一数据时，此字段的值不会被新的数据替换
 	}
 
 	DatabaseAddDataReturn struct {
@@ -57,32 +56,6 @@ type (
 	TableSetOption map[string]string
 	ActHandlerDao  func() (actRes *ActErrorHandlerResult)
 )
-
-// 需要返回的字段 例
-func AddOneDataParameterReturnColumn(returnColumn []string) AddOneDataParameterOption {
-	return func(addOneDataParameter *AddOneDataParameter) {
-		if addOneDataParameter.ReturnConfig == nil { //初始化数据
-			addOneDataParameter.ReturnConfig = &DatabaseAddDataReturn{}
-		}
-		addOneDataParameter.ReturnConfig.ReturnColumn = returnColumn
-	}
-}
-
-//返回结果数据
-func AddOneDataParameterReturnData(returnData interface{}) AddOneDataParameterOption {
-	return func(addOneDataParameter *AddOneDataParameter) {
-		if addOneDataParameter.ReturnConfig == nil { //初始化数据
-			addOneDataParameter.ReturnConfig = &DatabaseAddDataReturn{}
-		}
-		addOneDataParameter.ReturnConfig.ReturnData = returnData
-	}
-}
-
-func AddOneDataParameterReturnConfig(returnConfig *DatabaseAddDataReturn) AddOneDataParameterOption {
-	return func(addOneDataParameter *AddOneDataParameter) {
-		addOneDataParameter.ReturnConfig = returnConfig
-	}
-}
 
 func AddOneDataParameterIgnoreColumn(ignoreColumn []string) AddOneDataParameterOption {
 	return func(addOneDataParameter *AddOneDataParameter) {
@@ -131,31 +104,6 @@ func BatchAddDataParameterData(data []ModelBase) BatchAddDataParameterOption {
 	}
 }
 
-// 需要返回的字段 例
-func BatchAddDataParameterReturnColumn(returnColumn []string) AddOneDataParameterOption {
-	return func(addOneDataParameter *AddOneDataParameter) {
-		if addOneDataParameter.ReturnConfig == nil { //初始化数据
-			addOneDataParameter.ReturnConfig = &DatabaseAddDataReturn{}
-		}
-		addOneDataParameter.ReturnConfig.ReturnColumn = returnColumn
-	}
-}
-
-//返回结果数据
-func BatchAddDataParameterReturnData(returnData interface{}) AddOneDataParameterOption {
-	return func(addOneDataParameter *AddOneDataParameter) {
-		if addOneDataParameter.ReturnConfig == nil { //初始化数据
-			addOneDataParameter.ReturnConfig = &DatabaseAddDataReturn{}
-		}
-		addOneDataParameter.ReturnConfig.ReturnData = returnData
-	}
-}
-
-func BatchAddDataParameterReturnConfig(returnConfig *DatabaseAddDataReturn) AddOneDataParameterOption {
-	return func(addOneDataParameter *AddOneDataParameter) {
-		addOneDataParameter.ReturnConfig = returnConfig
-	}
-}
 
 func BatchAddDataParameterRuleOutColumn(ruleOutColumn []string) BatchAddDataParameterOption {
 	return func(batchAddDataParameter *BatchAddDataParameter) {

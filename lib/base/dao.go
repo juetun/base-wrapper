@@ -335,7 +335,6 @@ func (r *ServiceDao) CreateTableWithError(db *gorm.DB, tableName string, e, mode
 }
 
 func newDataModal(data *BatchAddDataParameter) (res *dataModal) {
-	defaultMaxColumn := 20
 	l := len(data.Data) * defaultMaxColumn
 	res = &dataModal{
 		val:         make([]interface{}, 0, l),
@@ -346,52 +345,17 @@ func newDataModal(data *BatchAddDataParameter) (res *dataModal) {
 }
 
 func (r *ServiceDao) getItemColumns(dataModal *dataModal) (err error) {
-	//types := reflect.TypeOf(dataModal.modal)
-	//values := reflect.ValueOf(dataModal.modal)
-	//fieldNum := types.Elem().NumField()
-	//columns = make([]string, 0, fieldNum)
-	//replaceKeys = make([]string, 0, fieldNum)
 
 	dataModalReflect := &dataModalReflect{
 		Types:  reflect.TypeOf(dataModal.modal),
 		Values: reflect.ValueOf(dataModal.modal),
 	}
-
 	if err = r.getKind(dataModal, dataModalReflect); err != nil {
 		return
 	}
-	//fmt.Println(dataModal)
-	//
-	//var tag string
-	//var tagValue = "gorm"
-	//var ignoreColumnFlag bool
-	//
-	//for i := 0; i < fieldNum; i++ {
-	//
-	//	ignoreColumnFlag, tag = r.GetColumnName(types.Elem().Field(i).Tag.Get(tagValue), types.Elem().Field(i).Name)
-	//
-	//	if ignoreColumnFlag { // 如果是tag标记忽略字段
-	//		continue
-	//	}
-	//
-	//	if tag == "" {
-	//		continue
-	//	}
-	//	if r.InStringSlice(tag, dataModal.ignoreColumn) {
-	//		continue
-	//	}
-	//
-	//	columns = append(columns, tag)
-	//	dataModal.val = append(dataModal.val, r.formatValue(values.Elem().Field(i)))
-	//	dataModal.vv = append(dataModal.vv, "?")
-	//	if r.InStringSlice(tag, dataModal.ruleOutColumn) {
-	//		continue
-	//	}
-	//	replaceKeys = append(replaceKeys, fmt.Sprintf("`%s`=VALUES(`%s`)", tag, tag))
-	//
-	//}
 	return
 }
+
 func (r *ServiceDao) batchAddAct(data *BatchAddDataParameter, logContent *map[string]interface{}) (err error) {
 
 	var (
@@ -399,9 +363,11 @@ func (r *ServiceDao) batchAddAct(data *BatchAddDataParameter, logContent *map[st
 		vl        = make([]string, 0, len(data.Data))
 		dataModal *dataModal
 	)
+
 	dataModal = newDataModal(data)
 	dataModal.ignoreColumn = data.IgnoreColumn
 	dataModal.ruleOutColumn = data.RuleOutColumn
+
 	for k, item := range data.Data {
 		if k == 0 && data.TableName == "" {
 			data.TableName = item.TableName()
@@ -415,36 +381,8 @@ func (r *ServiceDao) batchAddAct(data *BatchAddDataParameter, logContent *map[st
 		vvs := fmt.Sprintf("(%s)", strings.Join(dataModal.vv, ","))
 		vl = append(vl, vvs)
 	}
-	if data.ReturnConfig == nil { //不需要返回数据字段
-		err = r.execNotNeedReturn(dataModal, data, logContent, vl)
-		return
-	}
-	err = r.execNeedReturn(dataModal, data, logContent, vl)
-	return
-}
+	err = r.execNotNeedReturn(dataModal, data, logContent, vl)
 
-func (r *ServiceDao) execNeedReturn(dataModal *dataModal, data *BatchAddDataParameter, logContent *map[string]interface{}, vl []string) (err error) {
-	returnString := "*"
-	if len(data.ReturnConfig.ReturnColumn) == 0 {
-		returnString = fmt.Sprintf("`%s`", strings.Join(data.ReturnConfig.ReturnColumn, "`,`"))
-	}
-	sql := fmt.Sprintf("INSERT INTO `%s`(`%s`) VALUES %s ON DUPLICATE KEY UPDATE %s RETURNING %s",
-		data.TableName,
-		strings.Join(dataModal.columns, "`,`"),
-		strings.Join(vl, ","),
-		strings.Join(dataModal.replaceKeys, ","),
-		returnString,
-	)
-	(*logContent)["sql"] = sql
-	(*logContent)["val"] = dataModal.val
-	db := data.Db.Exec(sql, dataModal.val...)
-	if err = db.Error; err != nil {
-		if data.DbName != "" {
-			(*logContent)[app_obj.DbNameKey] = data.DbName
-		}
-		return
-	}
-	err = db.Scan(data.ReturnConfig.ReturnData).Error
 	return
 }
 
@@ -517,6 +455,28 @@ type (
 	}
 )
 
+const (
+	defaultMaxColumn = 80
+)
+
+//获取ModelBase对象的所有gorm 支持字段
+func (r *ServiceDao) GetAllColumn(modal ModelBase) (columns []string, err error) {
+	dataModalReflect := &dataModalReflect{
+		Types:  reflect.TypeOf(modal),
+		Values: reflect.ValueOf(modal),
+	}
+	dataModal := &dataModal{
+		val:         make([]interface{}, 0, defaultMaxColumn),
+		columns:     make([]string, 0, defaultMaxColumn),
+		replaceKeys: make([]string, 0, defaultMaxColumn),
+	}
+	if err = r.getKind(dataModal, dataModalReflect); err != nil {
+		return
+	}
+	columns = dataModal.columns
+	return
+}
+
 func (r *ServiceDao) getKind(dataModal *dataModal, dataModalReflectObj *dataModalReflect) (err error) {
 	//if dataModalReflectObj.Types.IsVariadic() {
 	//	err = fmt.Errorf("参数格式错误")
@@ -526,17 +486,18 @@ func (r *ServiceDao) getKind(dataModal *dataModal, dataModalReflectObj *dataModa
 
 	switch kind {
 	case reflect.Struct: //如果是结构体
+		var (
+			ignoreColumnFlag bool
+			tag              string
+		)
 		for i := 0; i < dataModalReflectObj.Types.NumField(); i++ {
 			field := dataModalReflectObj.Types.Field(i)
 			value := dataModalReflectObj.Values.Field(i)
-			ignoreColumnFlag, tag := r.GetColumnName(field.Tag.Get(GORMTAG), field.Name)
-			if ignoreColumnFlag { // 如果是tag标记忽略字段
+
+			if ignoreColumnFlag, tag = r.GetColumnName(field.Tag.Get(GORMTAG), field.Name); ignoreColumnFlag { // 如果是tag标记忽略字段
 				return
 			}
-			dataModalReflectTmp := &dataModalReflect{
-				Types:  field.Type,
-				Values: value,
-			}
+			dataModalReflectTmp := &dataModalReflect{Types: field.Type, Values: value,}
 			if tag == "" {
 				err = r.getKind(dataModal, dataModalReflectTmp)
 				continue
