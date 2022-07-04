@@ -444,7 +444,7 @@ func (r *ServiceDao) execNeedReturn(dataModal *dataModal, data *BatchAddDataPara
 		}
 		return
 	}
-	err = db.Scan(data.ReturnConfig.Return).Error
+	err = db.Scan(data.ReturnConfig.ReturnData).Error
 	return
 }
 
