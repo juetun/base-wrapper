@@ -430,8 +430,8 @@ func (r *ServiceDao) execNeedReturn(dataModal *dataModal, data *BatchAddDataPara
 	}
 	sql := fmt.Sprintf("INSERT INTO `%s`(`%s`) VALUES %s ON DUPLICATE KEY UPDATE %s RETURNING %s",
 		data.TableName,
-		strings.Join(vl, ","),
 		strings.Join(dataModal.columns, "`,`"),
+		strings.Join(vl, ","),
 		strings.Join(dataModal.replaceKeys, ","),
 		returnString,
 	)
@@ -449,8 +449,14 @@ func (r *ServiceDao) execNeedReturn(dataModal *dataModal, data *BatchAddDataPara
 }
 
 func (r *ServiceDao) execNotNeedReturn(dataModal *dataModal, data *BatchAddDataParameter, logContent *map[string]interface{}, vl []string) (err error) {
-	sql := fmt.Sprintf("INSERT INTO `%s`(`"+strings.Join(dataModal.columns, "`,`")+"`) VALUES "+strings.Join(vl, ",")+
-		" ON DUPLICATE KEY UPDATE "+strings.Join(dataModal.replaceKeys, ","), data.TableName)
+	//sql := fmt.Sprintf("INSERT INTO `%s`(`"+strings.Join(dataModal.columns, "`,`")+"`) VALUES "+strings.Join(vl, ",")+
+	//	" ON DUPLICATE KEY UPDATE "+strings.Join(dataModal.replaceKeys, ","), data.TableName)
+	sql := fmt.Sprintf("INSERT INTO `%s`(`%s`) VALUES %s ON DUPLICATE KEY UPDATE %s",
+		data.TableName,
+		strings.Join(dataModal.columns, "`,`"),
+		strings.Join(vl, ","),
+		strings.Join(dataModal.replaceKeys, ","),
+	)
 	(*logContent)["sql"] = sql
 	(*logContent)["val"] = dataModal.val
 	if err = data.Db.Exec(sql, dataModal.val...).Error; err != nil {
