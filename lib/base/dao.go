@@ -11,6 +11,7 @@ package base
 import (
 	"crypto/rand"
 	"fmt"
+	"github.com/juetun/base-wrapper/lib/base"
 	"math/big"
 	"reflect"
 	"runtime"
@@ -99,10 +100,8 @@ func (r *ServiceDao) GetDefaultBatchAddDataParameter(modelBase ...ModelBase) (re
 		err = fmt.Errorf("您没有选择要添加的数据")
 		return
 	}
-	res = &BatchAddDataParameter{
-		CommonDb: r.GetDefaultDb(modelBase[0]),
-		Data:     modelBase,
-	}
+	res = &BatchAddDataParameter{Data: modelBase,}
+	res.CommonDb = r.GetDefaultDb(modelBase[0])
 	return
 }
 
@@ -162,7 +161,9 @@ func (r *ServiceDao) SetContext(context ...*Context) (s *ServiceDao) {
 }
 
 func (r *ActErrorHandlerResult) ParseAddOneDataParameter(options ...AddOneDataParameterOption) (res *AddOneDataParameter) {
-	res = &AddOneDataParameter{CommonDb: r.CommonDb, Model: r.Model,}
+	res = &AddOneDataParameter{}
+	res.CommonDb = r.CommonDb
+	res.Model = r.Model
 	for _, handler := range options {
 		handler(res)
 	}
@@ -338,8 +339,7 @@ func newDataModal(data *BatchAddDataParameter) (res *dataModal) {
 	defaultMaxColumn := 20
 	l := len(data.Data) * defaultMaxColumn
 	res = &dataModal{
-		val: make([]interface{}, 0, l),
-
+		val:         make([]interface{}, 0, l),
 		columns:     make([]string, 0, defaultMaxColumn),
 		replaceKeys: make([]string, 0, defaultMaxColumn),
 	}
@@ -393,20 +393,7 @@ func (r *ServiceDao) getItemColumns(dataModal *dataModal) (err error) {
 	//}
 	return
 }
-
-func (r *ServiceDao) BatchAdd(data *BatchAddDataParameter) (err error) {
-	logContent := map[string]interface{}{"data": data,}
-	defer func() {
-		if err == nil || r.Context == nil {
-			return
-		}
-		logContent["err"] = err.Error()
-		r.Context.Error(logContent, "ServiceDaoBatchAdd")
-	}()
-	if len(data.Data) == 0 {
-		return
-	}
-	r.defaultBatchAddDataParameter(data)
+func (r *ServiceDao) batchAddAct(data *BatchAddDataParameter, logContent *map[string]interface{}) (err error) {
 
 	var (
 		l         = len(data.Data) * 20
@@ -429,17 +416,66 @@ func (r *ServiceDao) BatchAdd(data *BatchAddDataParameter) (err error) {
 		vvs := fmt.Sprintf("(%s)", strings.Join(dataModal.vv, ","))
 		vl = append(vl, vvs)
 	}
+	if data.ReturnConfig == nil { //不需要返回数据字段
+		err = r.execNotNeedReturn(dataModal, data, logContent, vl)
+		return
+	}
+	err = r.execNeedReturn(dataModal, data, logContent, vl)
+	return
+}
 
-	sql := fmt.Sprintf("INSERT INTO `%s`(`"+strings.Join(dataModal.columns, "`,`")+"`) VALUES "+strings.Join(vl, ",")+
-		" ON DUPLICATE KEY UPDATE "+strings.Join(dataModal.replaceKeys, ","), data.TableName)
-	logContent["sql"] = sql
-	logContent["val"] = dataModal.val
-	if err = data.Db.Exec(sql, dataModal.val...).Error; err != nil {
+func (r *ServiceDao) execNeedReturn(dataModal *dataModal, data *BatchAddDataParameter, logContent *map[string]interface{}, vl []string) (err error) {
+	returnString := "*"
+	if len(data.ReturnConfig.ReturnColumn) == 0 {
+		returnString = fmt.Sprintf("`%s`", strings.Join(data.ReturnConfig.ReturnColumn, "`,`"))
+	}
+	sql := fmt.Sprintf("INSERT INTO `%s`(`%s`) VALUES %s ON DUPLICATE KEY UPDATE %s RETURNING %s",
+		data.TableName,
+		strings.Join(vl, ","),
+		strings.Join(dataModal.columns, "`,`"),
+		strings.Join(dataModal.replaceKeys, ","),
+		returnString,
+	)
+	(*logContent)["sql"] = sql
+	(*logContent)["val"] = dataModal.val
+	db := data.Db.Exec(sql, dataModal.val...)
+	if err = db.Error; err != nil {
 		if data.DbName != "" {
-			logContent[app_obj.DbNameKey] = data.DbName
+			(*logContent)[app_obj.DbNameKey] = data.DbName
 		}
 		return
 	}
+	err = db.Scan(data.ReturnConfig.Return).Error
+	return
+}
+
+func (r *ServiceDao) execNotNeedReturn(dataModal *dataModal, data *BatchAddDataParameter, logContent *map[string]interface{}, vl []string) (err error) {
+	sql := fmt.Sprintf("INSERT INTO `%s`(`"+strings.Join(dataModal.columns, "`,`")+"`) VALUES "+strings.Join(vl, ",")+
+		" ON DUPLICATE KEY UPDATE "+strings.Join(dataModal.replaceKeys, ","), data.TableName)
+	(*logContent)["sql"] = sql
+	(*logContent)["val"] = dataModal.val
+	if err = data.Db.Exec(sql, dataModal.val...).Error; err != nil {
+		if data.DbName != "" {
+			(*logContent)[app_obj.DbNameKey] = data.DbName
+		}
+		return
+	}
+	return
+}
+func (r *ServiceDao) BatchAdd(data *BatchAddDataParameter) (err error) {
+	if len(data.Data) == 0 {
+		return
+	}
+	logContent := map[string]interface{}{"data": data,}
+	defer func() {
+		if err == nil || r.Context == nil {
+			return
+		}
+		logContent["err"] = err.Error()
+		r.Context.Error(logContent, "ServiceDaoBatchAdd")
+	}()
+	r.defaultAddDataParameter(&data.AddDataParameter, data.Data[0])
+	err = r.batchAddAct(data, &logContent)
 	return
 }
 
@@ -534,12 +570,13 @@ func (r *ServiceDao) defaultIgnoreColumn() []string {
 	return []string{"id"}
 }
 
-func (r *ServiceDao) defaultBatchAddDataParameter(parameter *BatchAddDataParameter) {
+func (r *ServiceDao) defaultAddDataParameter(parameter *AddDataParameter, model ModelBase) {
+
 	if parameter.TableName == "" {
-		if len(parameter.Data) > 0 {
-			parameter.TableName = parameter.Data[0].TableName()
-		}
+		parameter.TableName = model.TableName()
+
 	}
+
 	if parameter.Db == nil && r.Context != nil {
 		parameter.Db = r.Context.Db
 		parameter.DbName = r.Context.DbName
@@ -553,34 +590,26 @@ func (r *ServiceDao) defaultBatchAddDataParameter(parameter *BatchAddDataParamet
 	}
 }
 
-//func (r *ServiceDao) defaultAddOneDataParameter(parameter *AddOneDataParameter) {
-//	if parameter.TableName == "" {
-//		parameter.TableName = parameter.Model.TableName()
-//	}
-//	if parameter.Db == nil {
-//		parameter.Db = r.Context.Db
-//		parameter.DbName = r.Context.DbName
-//	}
-//	if parameter.RuleOutColumn == nil {
-//		parameter.RuleOutColumn = r.defaultRuleOutColumn()
-//	}
-//	if parameter.IgnoreColumn == nil {
-//		parameter.IgnoreColumn = r.defaultIgnoreColumn()
-//	}
-//}
-
 func (r *ServiceDao) AddOneData(parameter *AddOneDataParameter) (err error) {
+	logContent := map[string]interface{}{"parameter": parameter,}
+	defer func() {
+		if err == nil || r.Context == nil {
+			return
+		}
+		logContent["err"] = err.Error()
+		r.Context.Error(logContent, "ServiceAddOneData")
+	}()
 	if parameter.Model == nil {
 		err = fmt.Errorf("您要添加的数据为空")
 		return
 	}
-	batchAddDataParameter := &BatchAddDataParameter{
-		CommonDb:      parameter.CommonDb,
-		IgnoreColumn:  parameter.IgnoreColumn,
-		RuleOutColumn: parameter.RuleOutColumn,
-		Data:          []ModelBase{parameter.Model},
-	}
-	err = r.BatchAdd(batchAddDataParameter)
+
+	r.defaultAddDataParameter(&parameter.AddDataParameter, parameter.Model)
+	batchAddDataParameter := &BatchAddDataParameter{}
+	batchAddDataParameter.AddDataParameter = parameter.AddDataParameter
+	batchAddDataParameter.Data = []base.ModelBase{parameter.Model}
+
+	err = r.batchAddAct(batchAddDataParameter, &logContent)
 	return
 }
 

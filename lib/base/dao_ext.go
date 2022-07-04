@@ -26,20 +26,28 @@ type (
 	}
 
 	AddOneDataParameter struct {
-		CommonDb
-		Model         ModelBase `json:"model"`
-		IgnoreColumn  []string  `json:"ignore_column"`   // replace 忽略字段,添加到此字段中的字段不会出现在SQL执行中
-		RuleOutColumn []string  `json:"rule_out_column"` // nil时使用默认值，当数据表中存在唯一数据时，此字段的值不会被新的数据替换
+		AddDataParameter
+		Model ModelBase `json:"model"`
 	}
+
 	AddOneDataParameterOption func(addOneDataParameter *AddOneDataParameter)
 
 	BatchAddDataParameterOption func(addOneDataParameter *BatchAddDataParameter)
 
 	BatchAddDataParameter struct {
+		AddDataParameter
+		Data []ModelBase `json:"data"` // 添加的数据
+	}
+	AddDataParameter struct {
 		CommonDb
-		IgnoreColumn  []string    `json:"ignore_column"`   // replace 忽略字段,添加到此字段中的字段不会出现在SQL执行中
-		RuleOutColumn []string    `json:"rule_out_column"` // nil时使用默认值，当数据表中存在唯一数据时，此字段的值不会被新的数据替换
-		Data          []ModelBase `json:"data"`            // 添加的数据
+		IgnoreColumn  []string               `json:"ignore_column"`   // replace 忽略字段,添加到此字段中的字段不会出现在SQL执行中
+		RuleOutColumn []string               `json:"rule_out_column"` // nil时使用默认值，当数据表中存在唯一数据时，此字段的值不会被新的数据替换
+		ReturnConfig  *DatabaseAddDataReturn `json:"return_config"`   // 如果添加的同时需要返回字段内容
+	}
+
+	DatabaseAddDataReturn struct {
+		ReturnColumn []string    // 需要返回的字段 例:clause.Returning{Columns: []clause.Column{{Name: "name"}, {Name: "salary"}}}
+		Return       interface{} // 返回字段数据的接收对象
 	}
 	ActErrorHandlerResult struct {
 		CommonDb
@@ -78,7 +86,7 @@ func (r *ActErrorHandlerResult) GetDbWithTableName(tableAsName ...string) (db *g
 }
 
 func (r *ActErrorHandlerResult) ParseBatchAddDataParameter(options ...BatchAddDataParameterOption) (res *BatchAddDataParameter) {
-	res = &BatchAddDataParameter{CommonDb: r.CommonDb,}
+	res = &BatchAddDataParameter{AddDataParameter: AddDataParameter{CommonDb: r.CommonDb}}
 	for _, handler := range options {
 		handler(res)
 	}
