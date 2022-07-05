@@ -26,7 +26,7 @@ type (
 		ExcelImportValidate(args *ArgExcelImportValidateAndSync) (res []ExcelImportDataItem, err error)
 
 		//数据同步
-		ExcelImportSyncData(args *ArgExcelImportValidateAndSync) (res *ResultExcelImportSyncData, err error)
+		ExcelImportSyncData(args *ArgExcelImportValidateAndSync) (res []ExcelImportDataItem, err error)
 	}
 
 	ArgExcelImportHeaderRelate struct {
@@ -53,9 +53,7 @@ type (
 		ValidateStatus uint8  `gorm:"-" json:"validate_status"` //验证状态是否通过
 		ErrMsg         string `gorm:"-" json:"err_msg"`         //错误信息提示
 	}
-	ResultExcelImportSyncData struct {
-		Result bool `json:"result"`
-	}
+
 )
 
 const (
@@ -127,11 +125,11 @@ func ExcelImportValidate(c *gin.Context, srv ServiceExcelImport) (data []ExcelIm
 	return
 }
 
-func ExcelImportSyncData(c *gin.Context, srv ServiceExcelImport) (data *ResultExcelImportSyncData, err error) {
+func ExcelImportSyncData(c *gin.Context, srv ServiceExcelImport) (data []ExcelImportDataItem, err error) {
 	var (
 		arg ArgExcelImportValidateAndSync
 	)
-	data = &ResultExcelImportSyncData{}
+	data = []ExcelImportDataItem{}
 	if err = c.Bind(&arg); err != nil {
 		return
 	}
