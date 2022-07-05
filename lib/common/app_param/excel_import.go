@@ -2,10 +2,21 @@ package app_param
 
 import (
 	"encoding/json"
+	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/base"
 )
 
 type (
+	ControllerExcelImport interface {
+		ExcelImportHeaderRelate(c *gin.Context)
+
+		//excel导入的参数校验
+		ExcelImportValidate(c *gin.Context)
+
+		//数据同步
+		ExcelImportSyncData(c *gin.Context)
+	}
+
 	//Excel导入服务需要定义的接口，对应服务上需要实现这些方法和调用接口
 	ServiceExcelImport interface {
 		//excel导入的header关系
@@ -25,7 +36,7 @@ type (
 		Headers map[string]ExcelImportHeaderRelateItem `json:"headers"`
 	}
 	ArgExcelImportValidateAndSync struct {
-		Scene string                 `json:"scene" form:"scene"`
+		Scene string                `json:"scene" form:"scene"`
 		Data  []ExcelImportDataItem `json:"data" form:"data"`
 	}
 	ExcelImportHeaderRelateItem struct {
@@ -82,6 +93,50 @@ func (r *ArgExcelImportValidateAndSync) ToJson() (res []byte, err error) {
 	res, err = json.Marshal(r)
 	return
 }
+
 func (r *ExcelImportDataItem) GetId() (res int64) {
 	return r.Id
+}
+
+func ExcelImportHeaderRelate(c *gin.Context, srv ServiceExcelImport) (data *ResultExcelImportHeaderRelate, err error) {
+	var (
+		arg ArgExcelImportHeaderRelate
+	)
+	data = &ResultExcelImportHeaderRelate{}
+	if err = c.Bind(&arg); err != nil {
+		return
+	}
+	if data, err = srv.ExcelImportHeaderRelate(&arg); err != nil {
+		return
+	}
+	return
+}
+
+func ExcelImportValidate(c *gin.Context, srv ServiceExcelImport) (data []ExcelImportDataItem, err error) {
+
+	var (
+		arg ArgExcelImportValidateAndSync
+	)
+	data = make([]ExcelImportDataItem, 0)
+	if err = c.Bind(&arg); err != nil {
+		return
+	}
+	if data, err = srv.ExcelImportValidate(&arg); err != nil {
+		return
+	}
+	return
+}
+
+func ExcelImportSyncData(c *gin.Context, srv ServiceExcelImport) (data *ResultExcelImportSyncData, err error) {
+	var (
+		arg ArgExcelImportValidateAndSync
+	)
+	data = &ResultExcelImportSyncData{}
+	if err = c.Bind(&arg); err != nil {
+		return
+	}
+	if data, err = srv.ExcelImportSyncData(&arg); err != nil {
+		return
+	}
+	return
 }
