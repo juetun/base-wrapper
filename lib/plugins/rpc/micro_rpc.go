@@ -34,24 +34,20 @@ type CollectParam struct {
 	PathUrl string `json:"path_url"`
 }
 type RequestOptions struct {
-	Context  *base.Context `json:"-"`         // 上下文传参 操作日志对象
-	NotMicro bool          `json:"not_micro"` // 不是微服务应用 默认false
-
-	Method         string        `json:"method"`           // http请求方法
-	AppName        string        `json:"app_name"`         // 应用名
-	URI            string        `json:"uri"`              // 请求的地址
-	ConnectTimeOut time.Duration `json:"connect_time_out"` // 请求连接超时时长 默认300毫秒(建立HTTP请求的时长)
-	RequestTimeOut time.Duration `json:"request_time_out"` // 获取请求时长 默认5秒(获取数据的时长)
-
-	Header      http.Header `json:"header"`    // 请求的header请求
-	Value       url.Values  `json:"value"`     // 请求参数
-	BodyJson    []byte      `json:"body_json"` // 请求的body信息
-	PathVersion string      `json:"path_version"`
-
+	Context            *base.Context `json:"-"`                // 上下文传参 操作日志对象
+	NotMicro           bool          `json:"not_micro"`        // 不是微服务应用 (默认false -是微服务内调用)
+	Method             string        `json:"method"`           // http请求方法
+	AppName            string        `json:"app_name"`         // 应用名
+	URI                string        `json:"uri"`              // 请求的地址
+	ConnectTimeOut     time.Duration `json:"connect_time_out"` // 请求连接超时时长 默认300毫秒(建立HTTP请求的时长)
+	RequestTimeOut     time.Duration `json:"request_time_out"` // 获取请求时长 默认5秒(获取数据的时长)
+	Header             http.Header   `json:"header"`           // 请求的header请求
+	Value              url.Values    `json:"value"`            // 请求参数
+	BodyJson           []byte        `json:"body_json"`        // 请求的body信息
+	PathVersion        string        `json:"path_version"`
 	RetryTimes         int           `json:"retry_times"`          // 失败重试次数,1不重试（只发送一次请求） 2尝试再请求一次
 	RetryTimesDuration time.Duration `json:"retry_times_duration"` // 重试时间间隔
-
-	CollectParams CollectParam `json:"collect_params"`
+	CollectParams      CollectParam  `json:"collect_params"`
 }
 
 // 请求操作结构体

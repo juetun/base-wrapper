@@ -35,7 +35,7 @@ func TestMicroRpcGet(t *testing.T) {
 	ro := rpc.RequestOptions{
 		Method:      "Get",
 		AppName:     appName,
-		PathVersion: "v1",
+		PathVersion: app_obj.RouteTypeDefaultIntranet,
 		URI:         "/permit/admin_user",
 		Header:      http.Header{},
 	}
@@ -52,7 +52,7 @@ func TestMicroRpcPost(t *testing.T) {
 	ro := rpc.RequestOptions{
 		Method:      "Post",
 		AppName:     appName,
-		PathVersion: "v1",
+		PathVersion: app_obj.RouteTypeDefaultIntranet,
 		URI:         "/permit/admin_user",
 		Header:      http.Header{},
 	}
