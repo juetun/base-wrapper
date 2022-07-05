@@ -1,6 +1,9 @@
 package app_param
 
-import "github.com/juetun/base-wrapper/lib/base"
+import (
+	"encoding/json"
+	"github.com/juetun/base-wrapper/lib/base"
+)
 
 type (
 	//Excel导入服务需要定义的接口，对应服务上需要实现这些方法和调用接口
@@ -9,7 +12,7 @@ type (
 		ExcelImportHeaderRelate(args *ArgExcelImportHeaderRelate) (res *ResultExcelImportHeaderRelate, err error)
 
 		//excel导入的参数校验
-		ExcelImportValidate(args *ArgExcelImportValidateAndSync) (res []*ExcelImportDataItem, err error)
+		ExcelImportValidate(args *ArgExcelImportValidateAndSync) (res []ExcelImportDataItem, err error)
 
 		//数据同步
 		ExcelImportSyncData(args *ArgExcelImportValidateAndSync) (res *ResultExcelImportSyncData, err error)
@@ -19,11 +22,11 @@ type (
 		Scene string `json:"scene" form:"scene"`
 	}
 	ResultExcelImportHeaderRelate struct {
-		Headers []*ExcelImportHeaderRelateItem `json:"headers"`
+		Headers map[string]ExcelImportHeaderRelateItem `json:"headers"`
 	}
 	ArgExcelImportValidateAndSync struct {
 		Scene string                 `json:"scene" form:"scene"`
-		Data  []*ExcelImportDataItem `json:"data" form:"data"`
+		Data  []ExcelImportDataItem `json:"data" form:"data"`
 	}
 	ExcelImportHeaderRelateItem struct {
 		Label      string `json:"label"`       //列中文标题
@@ -71,3 +74,14 @@ var (
 		},
 	}
 )
+
+func (r *ArgExcelImportValidateAndSync) ToJson() (res []byte, err error) {
+	if r == nil {
+		r = &ArgExcelImportValidateAndSync{}
+	}
+	res, err = json.Marshal(r)
+	return
+}
+func (r *ExcelImportDataItem) GetId() (res int64) {
+	return r.Id
+}
