@@ -45,19 +45,19 @@ type (
 		ShopId           int64      `json:"shop_id"`
 	}
 	RequestUser struct {
-		UserHid           int64           `json:"user_hid" form:"user_hid"`                         //用户
-		UserMobileIndex   string          `json:"user_mobile_index" form:"user_mobile_index"`       //手机数据存储位置
-		UserEmailIndex    string          `json:"user_email_index" form:"user_email_index"`         //email存储位置
-		Portrait          string          `json:"portrait" form:"portrait"`                         //头像
-		NickName          string          `json:"nick_name" form:"nick_name"`                       //昵称
-		UserName          string          `json:"user_name" form:"user_name"`                       //账号
-		Gender            int             `json:"gender" form:"gender"`                             //性别
-		Status            int             `json:"status" form:"status"`                             //状态
-		Score             int             `json:"score" form:"score"`                               //积分
-		RememberToken     string          `json:"remember_token" form:"remember_token"`             //是否记住密码
-		MsgReadTimeCursor base.TimeNormal `json:"msg_read_time_cursor" form:"msg_read_time_cursor"` //消息未读时刻节点
-		ShopId            int64           `json:"shop_id" form:"shop_id"`                           //店铺ID
-		HaveDashboard     bool            `json:"have_dashboard" form:"have_dashboard"`             //是否有客服后台权限
+		UUserHid           int64           `json:"u_user_hid" form:"u_user_hid"`                         //用户
+		UUserMobileIndex   string          `json:"u_user_mobile_index" form:"u_user_mobile_index"`       //手机数据存储位置
+		UUserEmailIndex    string          `json:"u_user_email_index" form:"u_user_email_index"`         //email存储位置
+		UPortrait          string          `json:"u_portrait" form:"u_portrait"`                         //头像
+		UNickName          string          `json:"u_nick_name" form:"u_nick_name"`                       //昵称
+		UUserName          string          `json:"u_user_name" form:"u_user_name"`                       //账号
+		UGender            int             `json:"u_gender" form:"u_gender"`                             //性别
+		UStatus            int             `json:"u_status" form:"u_status"`                             //状态
+		UScore             int             `json:"u_score" form:"u_score"`                               //积分
+		URememberToken     string          `json:"u_remember_token" form:"u_remember_token"`             //是否记住密码
+		UMsgReadTimeCursor base.TimeNormal `json:"u_msg_read_time_cursor" form:"u_msg_read_time_cursor"` //消息未读时刻节点
+		UShopId            int64           `json:"u_shop_id" form:"u_shop_id"`                           //店铺ID
+		UHaveDashboard     bool            `json:"u_have_dashboard" form:"u_have_dashboard"`             //是否有客服后台权限
 	}
 
 	User struct {
