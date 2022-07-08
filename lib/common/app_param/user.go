@@ -182,7 +182,7 @@ func (r *ResultUserItem) InitData(item *User) {
 }
 
 func (r *RequestUser) HaveShop() (res bool, err error) {
-	if r.ShopId == 0 {
+	if r.UShopId == 0 {
 		err = fmt.Errorf("您当前的账号没有用户权限")
 		return
 	}
@@ -193,15 +193,15 @@ func (r *RequestUser) HaveShop() (res bool, err error) {
 func (r *RequestUser) InitRequestUser(c *gin.Context) (err error) {
 
 	defer func() {
-		if r.ShopId > 0 {
+		if r.UShopId > 0 {
 			return
 		}
 		if app_obj.App.UseDefaultShopId { //店铺ID默认值，调试数据使用（测试环境）
 			shopId := c.GetHeader(app_obj.HttpShopId)
-			r.ShopId, _ = strconv.ParseInt(shopId, 10, 64)
+			r.UShopId, _ = strconv.ParseInt(shopId, 10, 64)
 		}
 	}()
-	if r.UserHid > 0 {
+	if r.UUserHid > 0 {
 		return
 	}
 	var uidString string
@@ -209,7 +209,7 @@ func (r *RequestUser) InitRequestUser(c *gin.Context) (err error) {
 		err = fmt.Errorf("请先登录系统")
 		return
 	}
-	if r.UserHid, err = strconv.ParseInt(uidString, 10, 64); err != nil {
+	if r.UUserHid, err = strconv.ParseInt(uidString, 10, 64); err != nil {
 		err = fmt.Errorf("用户信息参数格式不正确(uid:%s)", uidString)
 		return
 	}
