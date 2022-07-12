@@ -7,13 +7,6 @@ package app_start
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"os"
-	"os/signal"
-	"strconv"
-	"strings"
-	"time"
-
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
@@ -22,6 +15,12 @@ import (
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
+	"net/http"
+	"os"
+	"os/signal"
+	"strconv"
+	"strings"
+	"time"
 )
 
 // HandleRouter 路由注册函数
@@ -156,18 +155,24 @@ func (r *WebApplication) LoadRouter(routerHandler ...RouterHandler) (res *WebApp
 }
 
 // Run 开始加载Gin 服务
-func (r *WebApplication) Run() (err error) {
-
+func (r *WebApplication) Run(cTxs ...context.Context) (err error) {
+	var ctx context.Context
+	if len(cTxs) > 0 {
+		ctx = cTxs[0]
+	}
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	appConfig := common.GetAppConfig()
 
 	// // 如果支持优雅重启
 	if appConfig.AppGraceReload > 0 {
-		r.start()
+		r.start(ctx)
 		return
 	}
 	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintln("General start ")
 	if r.MicroOperate != nil { //如果实现了微服务注册与发现
-		r.MicroOperate.RegisterMicro(r.GinEngine)
+		r.MicroOperate.RegisterMicro(r.GinEngine,ctx)
 	}
 
 	return
@@ -181,7 +186,7 @@ func (r *WebApplication) UnRegisterMicro() {
 	return
 }
 
-func (r *WebApplication) start() {
+func (r *WebApplication) start(ctx context.Context) {
 
 	r.syslog.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintln("Support grace reload")
@@ -196,7 +201,7 @@ func (r *WebApplication) start() {
 
 		if r.MicroOperate != nil {
 			var err error
-			_, err = r.MicroOperate.RegisterMicro(r.GinEngine)
+			_, err = r.MicroOperate.RegisterMicro(r.GinEngine,ctx)
 			if err != nil {
 				r.syslog.SetInfoType(base.LogLevelError).SystemOutFatalf("listen: %s\n", err.Error())
 				return
@@ -218,20 +223,22 @@ func (r *WebApplication) start() {
 		close(quit)
 	}()
 	signal.Notify(quit, os.Interrupt)
-
 	<-quit
 	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintln("Shutdown Server ...")
+
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer func() {
+		cancel()
+		r.syslog.SetInfoType(base.LogLevelError).SystemOutPrintln("Server exiting")
+	}()
+
 	if r.MicroOperate != nil { //如果开启了微服务,
 		r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintln("将服务信息从注册中心移除")
 		//则先将服务从注册中心拿掉
 		r.UnRegisterMicro()
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer func() {
-		cancel()
-		r.syslog.SetInfoType(base.LogLevelError).SystemOutPrintln("Server exiting")
-	}()
+
 	if err := httpServer.Shutdown(ctx); err != nil {
 		r.syslog.SetInfoType(base.LogLevelError).SystemOutFatalf("Server Shutdown:", err)
 	}
