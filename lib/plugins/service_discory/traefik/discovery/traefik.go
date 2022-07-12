@@ -194,9 +194,9 @@ func NewTraefikConfigTest() (res *TraefikConfig) {
 							Middlewares: []string{"foobar", "foobar"},
 						},
 					},
-					"Middleware04": middleware_traefik.HttpMiddlewareCircuitBreaker{
+					"Middleware04": middleware_traefik.HttpMiddlewareCircuitBreaker{//熔断配置
 						CircuitBreaker: middleware_traefik.HttpCircuitBreakerArg{
-							Expression: "foobar",
+							Expression: "LatencyAtQuantileMS(50.0) > 100",
 						},
 					},
 					"Middleware05": middleware_traefik.HttpMiddlewareCompress{
@@ -338,9 +338,9 @@ func NewTraefikConfigTest() (res *TraefikConfig) {
 					},
 					"Middleware15": middleware_traefik.HttpMiddlewareRateLimit{
 						RateLimit: middleware_traefik.HttpMiddlewareRateLimitArg{
-							Average: 42,
-							Period:  42,
-							Burst:   42,
+							Average: 500,
+							Period:  42, // # 1s 内接收的请求数的平均值不大于500个，高峰最大1000个请求
+							Burst:   1000,
 							SourceCriterion: middleware_traefik.HttpMiddlewareRateLimitSourceCriterionArg{
 								IpStrategy: middleware_traefik.HttpMiddlewareRateLimitSourceCriterionIpStrategy{
 									Depth:       42,
