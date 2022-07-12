@@ -75,10 +75,10 @@ func NewETCDRegister() (res *ETCDRegister) {
 	return
 }
 
-func (r *ETCDRegister) RegisterMicro(c *gin.Engine,cTxs ...context.Context) (ok bool, err error) {
+func (r *ETCDRegister) RegisterMicro(c *gin.Engine, cTxs ...context.Context) (ok bool, err error) {
 	r.syslog.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintln("Run as micro!")
-	r.microServer = r.runAsMicro(c,cTxs...)
+	r.microServer = r.runAsMicro(c, cTxs...)
 	return
 }
 
@@ -96,7 +96,7 @@ func (r *ETCDRegister) GetListenPortString() string {
 }
 
 // RunAsMicro 使用go-micro实现服务注册与发现
-func (r *ETCDRegister) runAsMicro(gin *gin.Engine,cTxs ...context.Context) (microServer server.Server) {
+func (r *ETCDRegister) runAsMicro(gin *gin.Engine, cTxs ...context.Context) (microServer server.Server) {
 	var err error
 	address := r.GetListenPortString()
 	etcdRegistry := newETCDRegistry(
@@ -105,10 +105,14 @@ func (r *ETCDRegister) runAsMicro(gin *gin.Engine,cTxs ...context.Context) (micr
 		registry.Timeout(20*time.Second),
 		registry.Secure(true),
 	)
+	var ctx context.Context
+	if len(cTxs) > 0 {
+		ctx = cTxs[0]
+	}
 	microServer = httpServer.NewServer(
 		server.Name(common.GetAppConfig().AppName),
 		server.Address(address),
-		server.Context(cTxs[0]),
+		server.Context(ctx),
 		server.RegisterTTL(time.Second*10),
 		server.RegisterInterval(time.Second*5),
 	)
