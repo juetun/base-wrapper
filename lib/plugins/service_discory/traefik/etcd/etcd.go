@@ -196,7 +196,7 @@ func (r *TraefikEtcd) getAllKey(prefixs []string) (res map[string]string, err er
 			k := string(it.Key)
 			v := string(it.Value)
 			if RegistryMicroLogShow {
-				r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("etcd value:`%s = %v` [prefix:%s]\n", prefix, k, v)
+				r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("【%v】\t【%s】\n" , k, v)
 			}
 			res[k] = v
 		}
@@ -280,16 +280,16 @@ func (r *TraefikEtcd) readyServerData() (res *discovery.HttpTraefik, serviceName
 // 获取需要设置的参数
 func (r *TraefikEtcd) getTraefikConfigToKeyValue(etcdTraefikConfig *discovery.TraefikConfig, currentServer *discovery.HttpTraefik) (res map[string]string) {
 
-	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("当前系统的路由参数为:%s", currentServer.ToRouterString())
-	etcdTraefikConfig.Http.MergeRouters(currentServer.Routers)
+	//r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("当前系统的路由参数为:%s", currentServer.ToRouterString())
+ 	etcdTraefikConfig.Http.MergeRouters(currentServer.Routers)
 
-	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("当前系统的服务参数(Services)参数为:%s", currentServer.ToServicesString())
+	//r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("当前系统的服务参数(Services)参数为:%s", currentServer.ToServicesString())
 	etcdTraefikConfig.Http.MergeServices(currentServer.Services)
 
-	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("当前系统的中间件参数(MiddleWares)参数为:%s", currentServer.ToMiddleWaresString())
+	//r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("当前系统的中间件参数(MiddleWares)参数为:%s", currentServer.ToMiddleWaresString())
 	etcdTraefikConfig.Http.MergeMiddlewares(currentServer.Middlewares)
 
-	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("当前系统的参数(ServersTransports)参数为:%s", currentServer.ToServersTransportsString())
+	//r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("当前系统的参数(ServersTransports)参数为:%s", currentServer.ToServersTransportsString())
 	etcdTraefikConfig.Http.MergeServersTransports(currentServer.ServersTransports)
 
 	res = etcdTraefikConfig.ToKV()

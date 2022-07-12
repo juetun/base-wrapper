@@ -69,7 +69,9 @@ type (
 )
 
 func NewETCDRegister() (res *ETCDRegister) {
-	res = &ETCDRegister{syslog: base.NewSystemOut()}
+	res = &ETCDRegister{
+		syslog: base.NewSystemOut(),
+	}
 	return
 }
 
@@ -77,11 +79,6 @@ func (r *ETCDRegister) RegisterMicro(c *gin.Engine) (ok bool, err error) {
 	r.syslog.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintln("Run as micro!")
 	r.microServer = r.runAsMicro(c)
-	// listen and serve on 0.0.0.0:8080
-	//if err = c.Run(r.GetListenPortString()); err != nil {
-	//	r.syslog.SetInfoType(base.LogLevelError).SystemOutPrintf("start err :%s", err.Error())
-	//}
-
 	return
 }
 

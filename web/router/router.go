@@ -4,6 +4,8 @@
 package router
 
 import (
+	"github.com/gin-gonic/gin"
+	"github.com/juetun/base-wrapper/lib/app/app_start"
 	_ "github.com/juetun/base-wrapper/web/router/admin"    // 加载超管访问路由
 	_ "github.com/juetun/base-wrapper/web/router/intranet" // 加载内网访问路由
 	_ "github.com/juetun/base-wrapper/web/router/outernet" // 加载外网访问路由
@@ -11,5 +13,11 @@ import (
 )
 
 func init() {
-
+	app_start.HandleFuncPage = append(app_start.HandleFuncPage, func(r *gin.Engine, urlPrefix string) {
+		r.LoadHTMLGlob("web/views/**/*.htm")
+		r.Static("/static/home", "./static/home")
+		r.Static("/static/car", "./static/car")
+		r.StaticFile("/jd_root.txt", "./static/jd_root.txt")
+		r.StaticFile("/favicon.ico", "./static/favicon.ico")
+	})
 }

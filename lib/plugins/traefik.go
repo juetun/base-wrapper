@@ -26,7 +26,7 @@ func PluginRegistry(arg *app_start.PluginsOperate) (err error) {
 
 func loadRegistryConfig() (err error) {
 
-	io.SystemOutPrintln("Load micro server registry start")
+	io.SystemOutPrintln("开始注册服务")
 
 	// 数据库配置信息存储对象
 	var yamlFile []byte
