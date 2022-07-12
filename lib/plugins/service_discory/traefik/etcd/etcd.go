@@ -105,17 +105,17 @@ func (r *TraefikEtcd) getChildString(slice []KeyStruct) (res string) {
 func (r *TraefikEtcd) parseMapToJsonByte(prefix string, mapv map[string]string) (res discovery.HttpTraefik, err error) {
 	res = discovery.HttpTraefik{}
 	var slice = make([]KeyStruct, 0, len(mapv))
-	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("从注册中心读取到参数start........")
+	r.Log(base.LogLevelInfo, "从注册中心读取到参数start........")
 	for key, v := range mapv {
-		r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("%s = %s", key, v)
+		r.Log(base.LogLevelInfo, fmt.Sprintf("%s = %s", key, v))
 		curString := strings.TrimPrefix(key, prefix)
 		keySlice := strings.Split(curString, "/")
 		slice = append(slice, KeyStruct{Key: keySlice, Value: v,})
 	}
-	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("结束从注册中心读取到参数........")
+	r.Log(base.LogLevelInfo, "结束从ETCD获取参数........")
 
 	stringJson := r.getChildString(slice)
-	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("从etcd中获取json为: %s", stringJson)
+	//r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("从etcd中获取json为: %s", stringJson)
 	if err = json.Unmarshal([]byte(stringJson), &res); err != nil {
 		return
 	}
@@ -196,7 +196,7 @@ func (r *TraefikEtcd) getAllKey(prefixs []string) (res map[string]string, err er
 			k := string(it.Key)
 			v := string(it.Value)
 			if RegistryMicroLogShow {
-				r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("【%v】\t【%s】\n" , k, v)
+				r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("【%v】\t【%s】\n", k, v)
 			}
 			res[k] = v
 		}
@@ -281,7 +281,7 @@ func (r *TraefikEtcd) readyServerData() (res *discovery.HttpTraefik, serviceName
 func (r *TraefikEtcd) getTraefikConfigToKeyValue(etcdTraefikConfig *discovery.TraefikConfig, currentServer *discovery.HttpTraefik) (res map[string]string) {
 
 	//r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("当前系统的路由参数为:%s", currentServer.ToRouterString())
- 	etcdTraefikConfig.Http.MergeRouters(currentServer.Routers)
+	etcdTraefikConfig.Http.MergeRouters(currentServer.Routers)
 
 	//r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("当前系统的服务参数(Services)参数为:%s", currentServer.ToServicesString())
 	etcdTraefikConfig.Http.MergeServices(currentServer.Services)
