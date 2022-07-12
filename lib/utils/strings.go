@@ -45,6 +45,20 @@ func round(a int, b int) int {
 	}
 }
 
+//URL转换为字符串格式(用于权限验证生成KEY)
+func UrlParseKey(s string) (res string) {
+	for i := 0; i < len(s); i++ {
+		switch string(s[i]) {
+		case "/":
+			res += `#`
+			continue
+		default:
+			res += string(s[i])
+		}
+	}
+	return
+}
+
 // IsDigit 判断一个字符串是否为数字
 // +0.00001是数字
 // -0.1111是数字
