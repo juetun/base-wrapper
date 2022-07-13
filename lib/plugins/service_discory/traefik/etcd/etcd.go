@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/etcd-io/etcd/clientv3"
+	"go.etcd.io/etcd/client/v3"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/app/micro_service"
 	"github.com/juetun/base-wrapper/lib/base"

@@ -6,7 +6,7 @@ package etcd
 import (
 	"context"
 	"fmt"
-	"github.com/etcd-io/etcd/clientv3"
+	"go.etcd.io/etcd/client/v3"
 	"sync"
 	"time"
 )
