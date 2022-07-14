@@ -7,7 +7,6 @@ package sub_treasury_impl
 import (
 	"context"
 	"fmt"
-	"math"
 	"strconv"
 	"sync"
 
@@ -137,7 +136,7 @@ func (r *SubTreasuryTime) GetHashTable(tableIndex int64) (tableName string, err 
 //}
 
 func (r *SubTreasuryTime) getDbName(dbIndex int64) (dbNumber int64) {
-	dbNumber = int64(math.Floor(float64(dbIndex / r.dbNumber)))
+	dbNumber = dbIndex % r.dbNumber
 	return
 }
 func (r *SubTreasuryTime) TableNameString(tableIndex int64) (tableName string) {
