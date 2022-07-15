@@ -35,18 +35,18 @@ func DefaultAppTemplateDirectory(io *base.SystemOut) (res string) {
 
 // GetConfigFileDirectory 获得配置文件所在目录
 func GetConfigFileDirectory(notEnv ...bool) (res string) {
-
-	var env = ""
+	var (
+		dir = ExecPath
+		err error
+		env = ""
+		io  = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
+	)
 	if app_obj.App != nil && app_obj.App.AppEnv != "" {
 		env = app_obj.App.AppEnv + "/"
 	}
-	var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
 
 	if app_obj.BaseDirect == "" {
-		var (
-			dir = ExecPath
-			err error
-		)
+
 		if ExecPath == "" {
 			if dir, err = os.Getwd(); err != nil {
 				io.SystemOutPrintf("Template GetConfigFileDirectory is :'%s'", res)
@@ -54,19 +54,21 @@ func GetConfigFileDirectory(notEnv ...bool) (res string) {
 		}
 
 		if len(notEnv) > 0 && notEnv[0] {
-			return fmt.Sprintf("%s/config/", dir)
-		} else {
-			return fmt.Sprintf("%s/config/%s", dir, env)
+			res = fmt.Sprintf("%s/config/", dir)
+			return
 		}
+		res = fmt.Sprintf("%s/config/apps/%s/%s", dir, app_obj.App.AppName, env)
+		return
 
 	}
+
 	if len(notEnv) > 0 && notEnv[0] {
 		res = fmt.Sprintf("%s/config/", app_obj.BaseDirect)
 		return
-	} else {
-		return fmt.Sprintf("%s/config/%s", app_obj.BaseDirect, env)
 	}
 
+	res = fmt.Sprintf("%s/config/%s", app_obj.BaseDirect, env)
+	return
 }
 
 // GetConfigFilePath 获取配置文件的路径

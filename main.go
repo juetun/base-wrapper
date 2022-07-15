@@ -40,7 +40,7 @@ func main() {
 		PluginClickHouse,
 		PluginOss,
 		PluginJwt, // 加载用户验证插件,必须放在Redis插件后
-		// PluginElasticSearchV7,
+		PluginElasticSearchV7,
 		PluginShortMessage,
 		PluginAppMap,
 		PluginAuthorization,

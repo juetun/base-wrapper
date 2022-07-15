@@ -89,9 +89,7 @@ func (r *RedisDelayMq) initConsumerMapGroupIdMessageHandler() {
 func (r *RedisDelayMq) Consumer(topic string, handler ConsumerHandler) {
 	r.initConsumerMapGroupIdMessageHandler()
 	var RedisDelayMqTopic = []MqConsumerItem{
-		{
-			Topic: topic,
-		},
+		{Topic: topic,},
 	}
 	for _, item := range RedisDelayMqTopic {
 		item.Timer = time.NewTimer(r.Config.Delayer.TimerInterval)
