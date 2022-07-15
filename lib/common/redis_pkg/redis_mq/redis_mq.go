@@ -26,11 +26,7 @@ type (
 		pb     *redis.PubSub
 	}
 
-	// RedisMQDelay Redis延迟队列操作结构
-	RedisMQDelay struct {
-		RedisMQ
-		RedisTopicMap map[string][]ActionHandler
-	}
+
 	// RedisMqOption RedisMQ赋值属性参数
 	RedisMqOption func(mq *RedisMQ)
 
@@ -153,57 +149,4 @@ func (r *RedisMQ) AcceptMsg(actionHandler ActionHandler) {
 	}
 }
 
-/***************以下为redis延迟队列实现***************/
 
-// DelayMqPublish 延迟队列发布消息
-// param topic 			string 				发布的主题
-// param data  			interface{}			数据
-// param consumeTime 	time.Time 			队列数据消费时刻(此时间之后消费数据)
-// return error
-// func (r *RedisMQDelay) DelayMqPublish(topic string, data interface{}, consumeTime time.Time) (err error) {
-// 	r.client.ZAdd(r.Ctx, topic, &redis.Z{
-// 		Score:  float64(consumeTime.UnixNano()),
-// 		Member: data,
-// 	})
-// 	return
-// }
-//
-// // DelayMqConsume 				延迟队列数据消费处理
-// // param topic  string 			主题
-// // param handler ActionHandler	处理数据逻辑的过程函数
-// func (r *RedisMQDelay) DelayMqConsume(topic string, handler ActionHandler) {
-// 	var syncLock sync.Mutex
-// 	syncLock.Lock()
-// 	defer func() {
-// 		syncLock.Unlock()
-// 	}()
-// 	if _, ok := r.RedisTopicMap[topic]; !ok {
-// 		r.RedisTopicMap[topic] = []ActionHandler{}
-// 	}
-// 	r.RedisTopicMap[topic] = append(r.RedisTopicMap[topic], handler)
-// 	return
-// }
-//
-// // Start 启动Redis延迟队列操作逻辑
-// func (r *RedisMQDelay) Start() {
-// 	for topic, handler := range r.RedisTopicMap {
-// 		r.doItem(topic, handler)
-// 	}
-// }
-//
-// func (r *RedisMQDelay) doItem(topic string, handler []ActionHandler) {
-// 	// 创建一个计时器
-// 	timeTicker := time.NewTicker(time.Millisecond * 200)
-// 	defer func() {
-// 		// 清理计时器
-// 		timeTicker.Stop()
-// 	}()
-//
-// 	// i := 0
-// 	for {
-// 		// i++
-// 		<-timeTicker.C
-// 		fmt.Println(time.Now().UnixNano())
-// 	}
-// 	return
-// }

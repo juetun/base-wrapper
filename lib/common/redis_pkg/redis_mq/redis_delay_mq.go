@@ -78,6 +78,7 @@ func (d DelayMqData) MarshalBinary() (data []byte, err error) {
 	data, err = json.Marshal(d)
 	return
 }
+
 func (r *RedisDelayMq) initConsumerMapGroupIdMessageHandler() {
 	if r.ConsumerMapGroupIdMessageHandler == nil {
 		r.ConsumerMapGroupIdMessageHandler = map[string]ConsumerHandler{}
