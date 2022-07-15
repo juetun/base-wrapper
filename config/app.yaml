@@ -1,0 +1,11 @@
+app:
+  alias: ""  #如果要访问当前服务器的别名 如IP地址，或者反向代理的名称别名
+  system_name: "觉屯网"
+  name: "base-wrapper" #应用名称
+  port: 8194    #应用启动端口
+  version: "2.0" #应用版本
+  grace_reload: 1  #是否支持优雅重启
+  app_api_version: "v1"
+  app_need_p_prof: false
+  administrator: "zhaocj2009@126.com"
+  app_run_timer_task: false

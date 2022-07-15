@@ -1,9 +1,8 @@
-config
+config/apps
 basic
 main.go
 /log.log
 /vendor/
 /log/
-/config
 /static/
 .idea
