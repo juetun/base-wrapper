@@ -1,12 +1,10 @@
 package utils
 
 import (
-	"strings"
-
 	"github.com/google/uuid"
 
-	"gorm.io/gorm"
 	"github.com/juetun/base-wrapper/lib/utils/hashid"
+	"gorm.io/gorm"
 )
 
 type HashModel interface {
@@ -18,9 +16,10 @@ type HashModel interface {
 // 生成GUID
 // param prefix string 数据库名+表名
 func Guid(prefix string) string {
+
 	guid := uuid.New()
 	s := guid.String()
-	s = strings.Join(strings.Split(s, "-"), "")
+	//s = strings.Join(strings.Split(s, "-"), "")
 	return s
 }
 func OnPanic(f func()) {
