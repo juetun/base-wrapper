@@ -33,7 +33,7 @@ type (
 	TimeNormal struct {
 		time.Time
 	}
-	//字段选项类型（用于前端拼接select  radio checkbox类型数据）
+	// 字段选项类型（用于前端拼接select  radio checkbox类型数据）
 	ModelItemOption struct {
 		Value interface{} `json:"value"`
 		Label string      `json:"label"`
@@ -42,8 +42,12 @@ type (
 )
 
 // GetNowTimeNormal 获取当前时间的时间格式
-func GetNowTimeNormal() (res TimeNormal) {
-	res = TimeNormal{Time: time.Now()}
+func GetNowTimeNormal(t ...time.Time) (res TimeNormal) {
+	var t1 = time.Now()
+	if len(t) > 0 {
+		t1 = t[0]
+	}
+	res = TimeNormal{Time: t1}
 	return
 }
 
