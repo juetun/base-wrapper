@@ -59,7 +59,7 @@ func initRedis(nameSpace string, configs *Redis) {
 
 	if err != nil {
 		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("Load  redis config is error \n"))
-		io.SetInfoType(base.LogLevelFatal).SetInfoType(fmt.Sprintf("err:%s,conf:%#v",err.Error(),conf))
+		io.SetInfoType(base.LogLevelFatal).SystemOutPrintf(fmt.Sprintf("err:%s,conf:%#v",err.Error(),conf))
 
 	}
 	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("Load  redis config is finished \n"))
