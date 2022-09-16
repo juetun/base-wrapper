@@ -85,6 +85,12 @@ func ArgGetByStringIdsOptionIds(Ids ...string) ArgGetByStringIdsOption {
 	}
 }
 
+func ArgGetByStringIdsOptionExpireTimeRand(expireTimeRand bool) ArgGetByStringIdsOption {
+	return func(arg *ArgGetByStringIds) {
+		arg.ExpireTimeRand = expireTimeRand
+	}
+}
+
 //NewArgGetByNumberIds
 func NewArgGetByNumberIds(options ...ArgGetByNumberIdsOption) (res *ArgGetByNumberIds) {
 	res = &ArgGetByNumberIds{}
@@ -99,6 +105,11 @@ func NewArgGetByNumberIds(options ...ArgGetByNumberIdsOption) (res *ArgGetByNumb
 func ArgGetByNumberIdsOptionIds(Ids ...int64) ArgGetByNumberIdsOption {
 	return func(arg *ArgGetByNumberIds) {
 		arg.Ids = Ids
+	}
+}
+func ArgGetByNumberIdsOptionExpireTimeRand(expireTimeRand bool) ArgGetByNumberIdsOption {
+	return func(arg *ArgGetByNumberIds) {
+		arg.ExpireTimeRand = expireTimeRand
 	}
 }
 
