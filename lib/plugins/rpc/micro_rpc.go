@@ -221,7 +221,16 @@ func (r *httpRpc) DefaultBaseUrl() {
 			r.Error = fmt.Errorf("base url config is not exists(%s)", r.Request.AppName)
 			return
 		}
+		if r.Request.PathVersion == "" {
+			r.BaseUrl = fmt.Sprintf("%s/%s", app_obj.AppMap[r.Request.AppName], r.Request.AppName)
+			return
+		}
+		if strings.Index(r.Request.PathVersion, "/") == -1 {
+			r.BaseUrl = fmt.Sprintf("%s/%s/%s", app_obj.AppMap[r.Request.AppName], r.Request.AppName, r.Request.PathVersion)
+			return
+		}
 		r.BaseUrl = fmt.Sprintf("%s/%s%s", app_obj.AppMap[r.Request.AppName], r.Request.AppName, r.Request.PathVersion)
+		return
 	}
 }
 
