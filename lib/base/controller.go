@@ -34,12 +34,12 @@ type (
 		Log *app_obj.AppLog
 	}
 	ParameterInterface interface {
-		Default(c *gin.Context) (err error)
+		Default(ctx *Context) (err error)
 	}
 )
 
 // ParametersAccept 当前参数接收
-func (r *ControllerBase) ParametersAccept(c *gin.Context, parameter ParameterInterface, getParamsTypes ...string) (haveError bool) {
+func (r *ControllerBase) ParametersAccept(ctx *Context, parameter ParameterInterface, getParamsTypes ...string) (haveError bool) {
 	var err error
 	var getParamsType = ControllerGetParamTypeShouldBind
 	if len(getParamsTypes) > 0 {
@@ -47,45 +47,45 @@ func (r *ControllerBase) ParametersAccept(c *gin.Context, parameter ParameterInt
 	}
 	switch getParamsType {
 	case ControllerGetParamTypeShouldBind:
-		err = c.ShouldBind(parameter)
+		err = ctx.GinContext.ShouldBind(parameter)
 	case ControllerGetParamTypeBind:
-		err = c.Bind(parameter)
+		err = ctx.GinContext.Bind(parameter)
 	case ControllerGetParamTypeBindJSON:
-		err = c.BindJSON(parameter)
+		err = ctx.GinContext.BindJSON(parameter)
 	case ControllerGetParamTypeBindXML:
-		err = c.BindXML(parameter)
+		err = ctx.GinContext.BindXML(parameter)
 	case ControllerGetParamTypeBindQuery:
-		err = c.BindQuery(parameter)
+		err = ctx.GinContext.BindQuery(parameter)
 	case ControllerGetParamTypeBindYAML:
-		err = c.BindYAML(parameter)
+		err = ctx.GinContext.BindYAML(parameter)
 	case ControllerGetParamTypeBindHeader:
-		err = c.BindHeader(parameter)
+		err = ctx.GinContext.BindHeader(parameter)
 	case ControllerGetParamTypeBindUri:
-		err = c.BindUri(parameter)
+		err = ctx.GinContext.BindUri(parameter)
 	case ControllerGetParamTypeShouldBindJSON:
-		err = c.ShouldBindJSON(parameter)
+		err = ctx.GinContext.ShouldBindJSON(parameter)
 	case ControllerGetParamTypeShouldBindXML:
-		err = c.ShouldBindXML(parameter)
+		err = ctx.GinContext.ShouldBindXML(parameter)
 	case ControllerGetParamTypeShouldBindQuery:
-		err = c.ShouldBindQuery(parameter)
+		err = ctx.GinContext.ShouldBindQuery(parameter)
 	case ControllerGetParamTypeShouldBindYAML:
-		err = c.ShouldBindYAML(parameter)
+		err = ctx.GinContext.ShouldBindYAML(parameter)
 	case ControllerGetParamTypeShouldBindHeader:
-		err = c.ShouldBindHeader(parameter)
+		err = ctx.GinContext.ShouldBindHeader(parameter)
 	case ControllerGetParamTypeShouldBindUri:
-		err = c.ShouldBindUri(parameter)
+		err = ctx.GinContext.ShouldBindUri(parameter)
 	default:
 		err = fmt.Errorf("当前不支持你选择的获取参数类型(%s)", getParamsType)
 		return
 	}
 	if err != nil {
 		haveError = true
-		r.ResponseError(c, err, ErrorParameterCode)
+		r.ResponseError(ctx.GinContext, err, ErrorParameterCode)
 		return
 	}
-	if err = parameter.Default(c); err != nil {
+	if err = parameter.Default(ctx); err != nil {
 		haveError = true
-		r.ResponseError(c, err, ErrorParameterCode)
+		r.ResponseError(ctx.GinContext, err, ErrorParameterCode)
 		return
 	}
 	return

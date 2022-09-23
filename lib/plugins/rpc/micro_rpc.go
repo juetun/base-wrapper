@@ -183,34 +183,33 @@ func (r *httpRpc) sendAct() (needBreak bool) {
 	}
 	return
 }
+
+func (r *httpRpc)dialContextHandlerfunc(ctx context.Context, network, addr string) (conn net.Conn, err error) {
+	deadline := time.Now().Add(r.Request.RequestTimeOut)
+	if conn, err = net.DialTimeout(network, addr, r.Request.ConnectTimeOut); err != nil {
+		r.Request.Context.Error(map[string]interface{}{
+			"err":      err.Error(),
+			"network":  network,
+			"addr":     addr,
+			"deadline": deadline.Format(utils.DateTimeGeneral),
+		}, "rpcHttpRpcInitClient")
+		return
+	}
+	if err = conn.SetDeadline(deadline); err != nil {
+		r.Request.Context.Error(map[string]interface{}{
+			"err":      err.Error(),
+			"network":  network,
+			"addr":     addr,
+			"deadline": deadline.Format(utils.DateTimeGeneral),
+		}, "rpcHttpRpcInitClient")
+		return
+	}
+	return
+}
+
 func (r *httpRpc) initClient() (res *httpRpc) {
 	res = r
-	r.client = &http.Client{
-		Transport: &http.Transport{
-			DialContext: func(ctx context.Context, network, addr string) (conn net.Conn, err error) {
-				deadline := time.Now().Add(r.Request.RequestTimeOut)
-				if conn, err = net.DialTimeout(network, addr, r.Request.ConnectTimeOut); err != nil {
-					r.Request.Context.Error(map[string]interface{}{
-						"err":      err.Error(),
-						"network":  network,
-						"addr":     addr,
-						"deadline": deadline.Format(utils.DateTimeGeneral),
-					}, "rpcHttpRpcInitClient")
-					return
-				}
-				if err = conn.SetDeadline(deadline); err != nil {
-					r.Request.Context.Error(map[string]interface{}{
-						"err":      err.Error(),
-						"network":  network,
-						"addr":     addr,
-						"deadline": deadline.Format(utils.DateTimeGeneral),
-					}, "rpcHttpRpcInitClient")
-					return
-				}
-				return
-			},
-		},
-	}
+	r.client = &http.Client{Transport: &http.Transport{DialContext: r.dialContextHandlerfunc,},}
 	return
 }
 
