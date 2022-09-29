@@ -76,6 +76,10 @@ func DateTimeDiff(valueTime, baseTime time.Time, format ...string) (res string, 
 		res = fmt.Sprintf("%d周前", int(difW))
 		return
 	}
+	if len(format) > 0 {
+		res = valueTime.Format(format[0])
+		return
+	}
 	res = valueTime.Format(DateGeneral)
 	return
 }
