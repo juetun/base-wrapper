@@ -50,52 +50,12 @@ func DateTime(t time.Time, format ...string) (res string) {
 	return t.Format(f)
 }
 
-// DateDuration 指定时间离当前时间的差额
-func DateDuration(value string, baseTime *time.Time, format ...string) (res string, difTime time.Duration, err error) {
-	var t time.Time
-	if t, err = DateParse(value, format...); err != nil {
-		return
+func DateTimeDiff(valueTime, baseTime time.Time, format ...string) (res string, difTime time.Duration, err error) {
+	if baseTime.IsZero() {
+		baseTime = time.Now()
 	}
-	if baseTime == nil {
-		*baseTime = time.Now()
-	}
-	dif := baseTime.Unix() - t.Unix()
-	difTime = time.Duration(baseTime.UnixNano() - t.UnixNano())
-	if dif < 60 {
-		res = fmt.Sprintf("%d秒前", int(dif))
-		return
-	}
-	if difM := math.Floor(float64(dif / 60)); difM < 60 {
-		res = fmt.Sprintf("%d分前", int(difM))
-		return
-	}
-	if difH := math.Floor(float64(dif / 3600)); difH < 24 {
-		res = fmt.Sprintf("%d小时前", int(difH))
-		return
-	}
-	if difD := math.Floor(float64(dif / 86400)); difD < 7 {
-		res = fmt.Sprintf("%d天前", int(difD))
-		return
-	}
-	if difW := math.Floor(float64(dif / (86400 * 7))); difW < 4 {
-		res = fmt.Sprintf("%d周前", int(difW))
-		return
-	}
-	res = t.Format(DateGeneral)
-	return
-}
-
-// DateDuration 指定时间离当前时间的差额
-func DateDurationV1(value string, baseTime *time.Time, format ...string) (res string, difTime time.Duration, err error) {
-	var t time.Time
-	if t, err = DateParse(value, format...); err != nil {
-		return
-	}
-	if baseTime == nil {
-		*baseTime = time.Now()
-	}
-	dif := baseTime.Unix() - t.Unix()
-	difTime = time.Duration(baseTime.UnixNano() - t.UnixNano())
+	dif := baseTime.Unix() - valueTime.Unix()
+	difTime = time.Duration(baseTime.UnixNano() - valueTime.UnixNano())
 	if dif < 60 {
 		res = "刚刚"
 		return
@@ -116,8 +76,28 @@ func DateDurationV1(value string, baseTime *time.Time, format ...string) (res st
 		res = fmt.Sprintf("%d周前", int(difW))
 		return
 	}
-	res = t.Format(DateGeneral)
+	res = valueTime.Format(DateGeneral)
 	return
+}
+
+// DateDuration 指定时间离当前时间的差额
+func DateDuration(value string, baseTime time.Time, format ...string) (res string, difTime time.Duration, err error) {
+	var t time.Time
+	if t, err = DateParse(value, format...); err != nil {
+		return
+	}
+	return DateTimeDiff(t, baseTime, format...)
+
+}
+
+// DateDuration 指定时间离当前时间的差额
+func DateDurationV1(value string, baseTime time.Time, format ...string) (res string, difTime time.Duration, err error) {
+	var t time.Time
+	if t, err = DateParse(value, format...); err != nil {
+		return
+	}
+	return DateTimeDiff(t, baseTime, format...)
+
 }
 
 func Date(t time.Time) (res string) {
