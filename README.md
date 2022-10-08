@@ -22,25 +22,25 @@
 ...       
 
 ## 帮助文档
-​        使用go mod管理依赖包(详见[go mod](docs/help/other/go_mod.md)帮助文档)。
+​        使用go mod管理依赖包(详见[go mod](lib/docs/help/other/go_mod.md)帮助文档)。
 ### 一、框架使用实例
-#### 1.1、[框架启动](./docs/help/framework/init.md)
-##### 1.1.1、 [配置文件](./docs/help/framework/config.md)
-#### 1.2、[框架插件](./docs/help/framework/plugins.md)
-#### 1.3、[gin中间件引入](./docs/help/framework/gin_middleware.md)
-#### 1.4、[框架目录说明](./docs/help/framework/dir.md)
-#### 1.5、[GORM使用](./docs/help/framework/gorm.md)
-#### 1.6、[redis使用封装](./docs/help/framework/redis.md)
-##### 1.6.1、[分布式锁](./docs/help/framework/redis/lock.md)
-##### 1.6.1、[分布式订阅发布](./docs/help/framework/redis/lock.md)
-#### 1.7、[WEBSOCKET使用](./docs/help/framework/gin_micro.md)
-#### 1.9、[微服务注册](./docs/help/framework/gin_micro.md)
-##### 1.9.1、[服务间的调用实例](./docs/help/framework/call_method.md)
-##### 1.9.2、[traefik代码改造文档](./docs/help/framework/traefik.md)
+#### 1.1、[框架启动](lib/docs/help/framework/init.md)
+##### 1.1.1、 [配置文件](lib/docs/help/framework/config.md)
+#### 1.2、[框架插件](lib/docs/help/framework/plugins.md)
+#### 1.3、[gin中间件引入](lib/docs/help/framework/gin_middleware.md)
+#### 1.4、[框架目录说明](lib/docs/help/framework/dir.md)
+#### 1.5、[GORM使用](lib/docs/help/framework/gorm.md)
+#### 1.6、[redis使用封装](lib/docs/help/framework/redis.md)
+##### 1.6.1、[分布式锁](lib/docs/help/framework/redis/lock.md)
+##### 1.6.1、[分布式订阅发布](lib/docs/help/framework/redis/lock.md)
+#### 1.7、[WEBSOCKET使用](lib/docs/help/framework/gin_micro.md)
+#### 1.9、[微服务注册](lib/docs/help/framework/gin_micro.md)
+##### 1.9.1、[服务间的调用实例](lib/docs/help/framework/call_method.md)
+##### 1.9.2、[traefik代码改造文档](lib/docs/help/framework/traefik.md)
 ### 二、其他帮助文档
-#### 2.1、[go mod](docs/help/other/go_mod.md)
+#### 2.1、[go mod](lib/docs/help/other/go_mod.md)
 
-#### 2.2、[swagger](docs/help/other/swagger.md)
+#### 2.2、[swagger](lib/docs/help/other/swagger.md)
 
 
 

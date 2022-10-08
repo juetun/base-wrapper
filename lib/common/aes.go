@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/wumansgy/goEncrypt"
+	"github.com/wumansgy/goEncrypt/aes"
 )
 
 // Aes 加密解密
@@ -21,7 +21,8 @@ func NewAes() (res *Aes) {
 // EncryptionCtr 加密操作
 func (r *Aes) EncryptionCtr(text string, aesKey string) (res string, err error) {
 	var cryptText []byte
-	if cryptText, err = goEncrypt.AesCtrEncrypt([]byte(text), []byte(aesKey), nil); err != nil {
+
+	if cryptText, err = aes.AesCtrEncrypt([]byte(text), []byte(aesKey), nil); err != nil {
 		return
 	}
 	res = base64.StdEncoding.EncodeToString(cryptText)
@@ -34,7 +35,7 @@ func (r *Aes) DecryptCtr(text, aesKey string) (res string, err error) {
 		return
 	}
 	// 传入密文和自己定义的密钥，需要和加密的密钥一样，不一样会报错 可以自己传入初始化向量,如果不传就使用默认的初始化向量,16字节
-	if resBt, err = goEncrypt.AesCtrDecrypt(encrypted, []byte(aesKey), nil); err != nil {
+	if resBt, err = aes.AesCtrDecrypt(encrypted, []byte(aesKey), nil); err != nil {
 		return
 	}
 	res = string(resBt)

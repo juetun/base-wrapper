@@ -22,14 +22,15 @@ type CustomizeRdsStore struct {
 }
 
 // customizeRdsStore implementing Set method of  Store interface
-func (r *CustomizeRdsStore) Set(id string, value string) {
-	err := r.Context.CacheClient.Set(context.Background(), id, value, time.Minute*10).Err()
+func (r *CustomizeRdsStore) Set(id string, value string)(err error) {
+	err = r.Context.CacheClient.Set(context.Background(), id, value, time.Minute*10).Err()
 	if err != nil {
 		r.Context.Error(map[string]interface{}{
 			"message": "auth.AuthLogin",
 			"error":   err,
 		})
 	}
+	return
 }
 
 // customizeRdsStore implementing Get method of  Store interface
