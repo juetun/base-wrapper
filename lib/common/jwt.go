@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/juetun/base-wrapper/lib/base"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -66,66 +67,58 @@ func CreateToken(user app_obj.JwtUser, c *gin.Context) (tokenString string, err 
 	return
 }
 
-func ParseToken(myToken string, c *gin.Context) (jwtUser app_obj.JwtUser, err error) {
-	jwtParam := app_obj.GetJwtParam()
+func ParseToken(myToken string, ctx *base.Context) (jwtUser app_obj.JwtUser, err error) {
 
+	logContent := make(map[string]interface{}, 6)
+	logContent["token"] = "'" + myToken + "'"
+	defer func() {
+		if err != nil {
+			logContent["error"] = err.Error()
+			ctx.Error(logContent, "baseWrapperParseToken")
+		}
+	}()
+	if myToken == "" {
+		logContent["content"] = "token is null"
+		ctx.Warn(logContent, "baseWrapperParseToken")
+		return
+	}
+	jwtParam := app_obj.GetJwtParam()
 	token, err := jwt.Parse(myToken, func(token *jwt.Token) (interface{}, error) {
 		return []byte(jwtParam.SecretKey), nil
 	})
 	if err != nil {
-		app_obj.GetLog().Error(c, map[string]interface{}{
-			"content": "parse token has error",
-			"error":   err.Error(),
-			"token":   "'" + myToken + "'",
-		})
+		logContent["content"] = "parse token has error"
 		return
 	}
 
 	if !token.Valid {
-		app_obj.GetLog().Error(c, map[string]interface{}{
-			"content": fmt.Sprintf("token is invalid(%s)", myToken),
-			"error":   err.Error(),
-		})
+		logContent["content"] = fmt.Sprintf("token is invalid(%s)", myToken)
 		return
 	}
 	claims := token.Claims.(jwt.MapClaims)
 	var sub string
 	var ok bool
 	if sub, ok = claims["sub"].(string); !ok {
-		app_obj.GetLog().Error(c, map[string]interface{}{
-			"content": "claims duan yan is error",
-			"error":   err.Error(),
-		})
+		logContent["content"] = "claimsSub"
 		err = fmt.Errorf("claims duan yan is error")
 		return
 	}
 	if jwtParam.RedisCache == nil {
-		msg1 := "Redis connect is null"
-		app_obj.GetLog().Error(c, map[string]interface{}{
-			"content": "common/jwt.go",
-			"error":   msg1,
-		})
-		err = fmt.Errorf(msg1)
+		logContent["content"] = "common/jwt.go"
+		err = fmt.Errorf("Redis connect is null ")
 		return
 	}
 	var res string
 	if res, err = jwtParam.RedisCache.
 		Get(context.Background(), jwtParam.TokenKey+sub).
 		Result(); err != redis.Nil && err != nil {
-		app_obj.GetLog().Error(c, map[string]interface{}{
-			"content": "get token from redis error",
-			"error":   err.Error(),
-		})
+		logContent["content"] = "get token from redis error"
 		return
 	}
 
 	if res == "" || res != myToken {
 		desc := "token is invalid"
-		app_obj.GetLog().Error(c, map[string]interface{}{
-			"content": desc,
-			"method":  "ParseToken",
-			"token":   myToken,
-		})
+		logContent["content"] = desc
 		err = fmt.Errorf(desc)
 		return
 	}
@@ -133,18 +126,13 @@ func ParseToken(myToken string, c *gin.Context) (jwtUser app_obj.JwtUser, err er
 	// refresh the token life time
 	err = jwtParam.RedisCache.Set(context.Background(), jwtParam.TokenKey+sub, myToken, jwtParam.TokenLife).Err()
 	if err != nil {
-		app_obj.GetLog().Error(c, map[string]interface{}{
-			"content": "token create error",
-			"error":   err.Error(),
-		})
+		logContent["content"] = "token create error"
 		return
 	}
-	err = json.Unmarshal([]byte(sub), &jwtUser)
-	if err != nil {
-		app_obj.GetLog().Error(c, map[string]interface{}{
-			"content": "sub is error may be is not a json string",
-			"error":   err.Error(),
-		})
+
+	if err = json.Unmarshal([]byte(sub), &jwtUser); err != nil {
+		logContent["content"] = "sub is error may be is not a json string"
+		return
 	}
 	return
 }

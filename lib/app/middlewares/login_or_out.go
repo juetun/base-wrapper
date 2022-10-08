@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"fmt"
+	"github.com/juetun/base-wrapper/lib/base"
 	"net/http"
 	"strconv"
 
@@ -21,9 +22,8 @@ func AuthParse(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var jwtUser app_obj.JwtUser
 		var err error
-
-		//
-		jwtUser, _ = tokenValidate(c, true)
+		ctx := base.CreateContext(&base.ControllerBase{Log: app_obj.GetLog()}, c)
+		jwtUser, _ = tokenValidate(ctx, true)
 
 		if callBacks == nil && len(callBacks) == 0 { // 如果没配置回调 则直接结束
 			c.Next()
@@ -49,7 +49,7 @@ func Authentication(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 		var exitStatus bool
 		var err error
 		// 验证token是否合法
-		if jwtUser, exitStatus = tokenValidate(c, false); exitStatus {
+		if jwtUser, exitStatus = tokenValidate(base.CreateContext(&base.ControllerBase{Log: app_obj.GetLog()}, c), false); exitStatus {
 			c.Abort()
 			return
 		}
@@ -75,54 +75,56 @@ func Authentication(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 // 用户登录逻辑处理
 // param  notStrictValue    	true:当token=""时跳过
 // return bool 					true:用户信息获取失败，false:正常操作
-func tokenValidate(c *gin.Context, notStrictValue bool) (jwtUser app_obj.JwtUser, exit bool) {
+func tokenValidate(c *base.Context, notStrictValue bool) (jwtUser app_obj.JwtUser, exit bool) {
 	jwtUser = app_obj.JwtUser{}
 	var (
-		token   string
-		userHid int64
-		err     error
+		token      string
+		userHid    int64
+		err        error
+		logContent = make(map[string]interface{}, 10)
 	)
-	c.Set(app_obj.TraceId, c.GetHeader(app_obj.HttpTraceId))
-	if token = c.Request.Header.Get(app_obj.HttpUserToken); token == "" { // 如果token为空
+	defer func() {
+		if err != nil {
+			logContent["err"] = err.Error()
+			c.Error(logContent, "baseWrapperTokenValidate")
+		}
+	}()
+	c.GinContext.Set(app_obj.TraceId, c.GinContext.GetHeader(app_obj.HttpTraceId))
+	if token = c.GinContext.Request.Header.Get(app_obj.HttpUserToken); token == "" { // 如果token为空
 
 		// 如果token为空且设置了空跳过，则直接退出
 		if notStrictValue == true {
 			return
 		}
-
+		logContent["desc"] = "getHeader"
 		msg := "token is null"
-		app_obj.GetLog().Error(c, map[string]interface{}{
-			"error": msg,
-		})
-		c.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusUnauthorized).SetMessage(msg))
+		err = fmt.Errorf(msg)
+		c.GinContext.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusUnauthorized).SetMessage(msg))
 		exit = true
 		return
 	}
 
-	userHidString := c.Request.Header.Get(app_obj.HttpUserHid)
+	userHidString := c.GinContext.Request.Header.Get(app_obj.HttpUserHid)
 	if userHid, err = strconv.ParseInt(userHidString, 10, 64); err != nil {
+		logContent["desc"] = "ParseInt"
 		return
 	}
 	if jwtUser, err = common.ParseToken(token, c); err != nil { // 如果解析token失败
-
-		app_obj.GetLog().Error(c, map[string]interface{}{
-			"token": token,
-			"error": err.Error(),
-		})
-		c.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusForbidden).SetMessage(err.Error()))
+		logContent["desc"] = "ParseToken"
+		logContent["token"] = token
+		c.GinContext.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusForbidden).SetMessage(err.Error()))
 		exit = true
 		return
 	}
 	if jwtUser.UserId != userHid {
 		err = fmt.Errorf("用户信息(token uid)不匹配")
-		c.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusForbidden).SetMessage(err.Error()))
+		c.GinContext.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusForbidden).SetMessage(err.Error()))
 		exit = true
 		return
 	}
 	// 解析token成功 将用户信息放进gin 上下文对象context中
-	c.Set(app_obj.ContextUserObjectKey, jwtUser)
-	c.Set(app_obj.ContextUserTokenKey, token)
-
+	c.GinContext.Set(app_obj.ContextUserObjectKey, jwtUser)
+	c.GinContext.Set(app_obj.ContextUserTokenKey, token)
 	return
 }
 

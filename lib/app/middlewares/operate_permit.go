@@ -5,17 +5,18 @@
 package middlewares
 
 import (
+	"fmt"
+	"github.com/juetun/base-wrapper/lib/base"
 	"net/http"
 	"strings"
 
-	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/common"
 )
 
 // GetRUri 获取重写URL参数
-func GetRUri(c *gin.Context) string {
-	uri := strings.TrimLeft(c.Request.RequestURI, common.GetAppConfig().AppName+"/"+common.GetAppConfig().AppApiVersion)
+func GetRUri(c *base.Context) string {
+	uri := strings.TrimLeft(c.GinContext.Request.RequestURI, common.GetAppConfig().AppName+"/"+common.GetAppConfig().AppApiVersion)
 	if uri == "" { // 如果是默认页 ，则直接让过
 		return "default"
 	}
@@ -26,36 +27,40 @@ func GetRUri(c *gin.Context) string {
 }
 
 // Auth 用户登录逻辑处理
-func Auth(c *gin.Context) (exit bool) {
+func Auth(c *base.Context) (exit bool) {
 
-	token := c.Request.Header.Get(app_obj.HttpUserToken)
+	token := c.GinContext.Request.Header.Get(app_obj.HttpUserToken)
+	var (
+		err     error
+		jwtUser app_obj.JwtUser
+	)
+	logContent := make(map[string]interface{})
+	defer func() {
+		if err != nil {
+			c.Error(logContent, "baseWrapperMiddleWaresAuth")
+			return
+		}
+
+	}()
 
 	if token == "" {
+		logContent["desc"] = "zgh.ginmiddleware.Auth"
 		msg := "token is null"
-		app_obj.GetLog().Error(c, map[string]interface{}{
-			"method": "zgh.ginmiddleware.Auth",
-			"error":  msg,
-		})
-		c.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusUnauthorized).SetMessage(msg))
-		c.Abort()
+		err = fmt.Errorf(msg)
+		c.GinContext.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusUnauthorized).SetMessage(msg))
+		c.GinContext.Abort()
 		exit = true
 		return
 	}
 
-	jwtUser, err := common.ParseToken(token, c)
-	if err != nil {
-		app_obj.GetLog().Error(c, map[string]interface{}{
-			"method": "zgh.ginmiddleware.Auth",
-			"token":  token,
-			"error":  err.Error(),
-		})
-		c.JSON(http.StatusOK, common.NewHttpResult().SetCode(403).SetMessage(err.Error()))
-		c.Abort()
+	if jwtUser, err = common.ParseToken(token, c); err != nil {
+		logContent["desc"] = "ParseToken"
+		c.GinContext.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusForbidden).SetMessage(err.Error()))
+		c.GinContext.Abort()
 		exit = true
 		return
 	}
-	c.Set(app_obj.ContextUserObjectKey, jwtUser)
-	c.Set(app_obj.ContextUserTokenKey, token)
-
+	c.GinContext.Set(app_obj.ContextUserObjectKey, jwtUser)
+	c.GinContext.Set(app_obj.ContextUserTokenKey, token)
 	return
 }
