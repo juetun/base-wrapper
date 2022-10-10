@@ -210,3 +210,11 @@ func (r *ModelItemOptions) GetMapAsKeyUint64() (res map[uint64]string, err error
 
 	return
 }
+
+func (r *ModelItemOptions) GetValuesAsStringSlice() (res []string) {
+	res = make([]string, 0, len(*r))
+	for _, item := range *r {
+		res = append(res, fmt.Sprintf("%v", item.Value))
+	}
+	return
+}
