@@ -20,9 +20,9 @@ import (
 type (
 	Model struct {
 		Id        int         `gorm:"primary_key" json:"id"`
-		CreatedAt TimeNormal  `json:"created_at"`
-		UpdatedAt TimeNormal  `json:"updated_at"`
-		DeletedAt *TimeNormal `sql:"index" json:"-"`
+		CreatedAt TimeNormal  `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP" json:"created_at"`
+		UpdatedAt TimeNormal  `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP" json:"updated_at"`
+		DeletedAt *TimeNormal `gorm:"column:deleted_at;" json:"-"`
 	}
 	CreateTable interface {
 		// TableName 获取表名
