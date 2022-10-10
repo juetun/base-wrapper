@@ -148,15 +148,15 @@ func PagerPageType(pageType string) PageOption {
 	}
 }
 
-func NewPagerAndDefault(arg *PageQuery) (pager *Pager) {
+func NewPagerAndDefault(arg *PageQuery) (pager Pager) {
 	pager = NewPager()
 	pager.InitPager(arg)
 	return
 }
 
 // NewPager 初始化分页对象
-func NewPager(option ...PageOption) *Pager {
-	r := &Pager{
+func NewPager(option ...PageOption) Pager {
+	r := Pager{
 		TotalCount: 0,
 		PagerParameter: PagerParameter{
 			PageNo:   1,
@@ -165,7 +165,7 @@ func NewPager(option ...PageOption) *Pager {
 		List: []interface{}{},
 	}
 	for _, item := range option {
-		item(r)
+		item(&r)
 	}
 	if r.PageType == DefaultPageTypeList {
 		if r.PageNo < DefaultPageNo {
