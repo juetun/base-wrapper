@@ -24,6 +24,8 @@ var (
 	GinLogHeaderNotCollect = []string{
 		"Accept",
 		"User-Agent",
+		"Content-Length",
+		"Sec-Fetch-Site",
 		"Cache-Control",
 		"Sec-Ch-Ua-Mobile",
 		"Sec-Ch-Ua",
@@ -89,7 +91,7 @@ func delayExecGinLogCollect(start time.Time, c *gin.Context, path *url.URL, logg
 		"method":            c.Request.Method,
 		"path":              path.String(),
 		"ip":                c.ClientIP(),
-		"duration":          float64(time.Now().Sub(start) / 1e3), // 时长单位微秒
+		"duration":          float64(time.Now().Sub(start)) / 1e6, // 时长单位微秒
 		"request":           string(bodyBytes),
 		"header":            getUseHeader(&c.Request.Header),
 	}
