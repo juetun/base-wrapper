@@ -25,13 +25,14 @@ import (
 
 // HandleRouter 路由注册函数
 type HandleRouter func(c *gin.Engine, urlPrefix string)
+type RouterPath func(httpMethod, absolutePath, handlerName string, nuHandlers int)
 
 var HandleFunc = make([]HandleRouter, 0)         // 路由函数切片
 var HandleFuncIntranet = make([]HandleRouter, 0) // 内网路由函数切片
 var HandleFuncOuterNet = make([]HandleRouter, 0) // 外网路由函数切片
 var HandleFuncAdminNet = make([]HandleRouter, 0) // 外网路由函数切片
 var HandleFuncPage = make([]HandleRouter, 0)     // 外网路由函数切片
-
+var RoutePathInitCallBack RouterPath             //注册路由时调用
 type WebApplication struct {
 	GinEngine *gin.Engine
 	syslog    *base.SystemOut
@@ -57,11 +58,15 @@ func NewWebApplication(privateMiddleWares ...gin.HandlerFunc) *WebApplication {
 		GinEngine: gin.New(),
 		syslog:    base.NewSystemOut(),
 	}
-	gin.DebugPrintRouteFunc = func(httpMethod, absolutePath, handlerName string, nuHandlers int) {
-		//路由结构修改
-		webApp.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("endpoint %v %v %v (%v)\n", httpMethod, absolutePath, handlerName, nuHandlers)
-		//log.Printf("endpoint %v %v %v %v\n", httpMethod, absolutePath, handlerName, nuHandlers)
+	if RoutePathInitCallBack != nil {
+		gin.DebugPrintRouteFunc = RoutePathInitCallBack
+	} else {
+		gin.DebugPrintRouteFunc = func(httpMethod, absolutePath, handlerName string, nuHandlers int) {
+			//路由结构修改
+			webApp.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("ROUTE_PATH: %v %v %v (%v Handlers)\n", httpMethod, absolutePath, handlerName, nuHandlers)
+		}
 	}
+
 	// 加载GIN框架 中间件
 	middlewares.LoadMiddleWare()
 
