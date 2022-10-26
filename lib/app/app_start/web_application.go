@@ -57,7 +57,11 @@ func NewWebApplication(privateMiddleWares ...gin.HandlerFunc) *WebApplication {
 		GinEngine: gin.New(),
 		syslog:    base.NewSystemOut(),
 	}
-
+	gin.DebugPrintRouteFunc = func(httpMethod, absolutePath, handlerName string, nuHandlers int) {
+		//路由结构修改
+		webApp.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("endpoint %v %v %v (%v)\n", httpMethod, absolutePath, handlerName, nuHandlers)
+		//log.Printf("endpoint %v %v %v %v\n", httpMethod, absolutePath, handlerName, nuHandlers)
+	}
 	// 加载GIN框架 中间件
 	middlewares.LoadMiddleWare()
 
@@ -172,7 +176,7 @@ func (r *WebApplication) Run(cTxs ...context.Context) (err error) {
 	}
 	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintln("General start ")
 	if r.MicroOperate != nil { //如果实现了微服务注册与发现
-		r.MicroOperate.RegisterMicro(r.GinEngine,ctx)
+		r.MicroOperate.RegisterMicro(r.GinEngine, ctx)
 	}
 
 	return
@@ -201,7 +205,7 @@ func (r *WebApplication) start(ctx context.Context) {
 
 		if r.MicroOperate != nil {
 			var err error
-			_, err = r.MicroOperate.RegisterMicro(r.GinEngine,ctx)
+			_, err = r.MicroOperate.RegisterMicro(r.GinEngine, ctx)
 			if err != nil {
 				r.syslog.SetInfoType(base.LogLevelError).SystemOutFatalf("listen: %s\n", err.Error())
 				return
@@ -237,7 +241,6 @@ func (r *WebApplication) start(ctx context.Context) {
 		//则先将服务从注册中心拿掉
 		r.UnRegisterMicro()
 	}
-
 
 	if err := httpServer.Shutdown(ctx); err != nil {
 		r.syslog.SetInfoType(base.LogLevelError).SystemOutFatalf("Server Shutdown:", err)
