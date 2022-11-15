@@ -184,7 +184,7 @@ func (r *httpRpc) sendAct() (needBreak bool) {
 	return
 }
 
-func (r *httpRpc)dialContextHandlerfunc(ctx context.Context, network, addr string) (conn net.Conn, err error) {
+func (r *httpRpc) dialContextHandlerfunc(ctx context.Context, network, addr string) (conn net.Conn, err error) {
 	deadline := time.Now().Add(r.Request.RequestTimeOut)
 	if conn, err = net.DialTimeout(network, addr, r.Request.ConnectTimeOut); err != nil {
 		r.Request.Context.Error(map[string]interface{}{
@@ -367,6 +367,9 @@ func (r *httpRpc) GetBody() (res *httpRpc) {
 	logContent := map[string]interface{}{
 		"request": r.Request,
 		"uri":     r.Uri,
+	}
+	if r.Request.BodyJson != nil {
+		logContent["reqBody"] = string(r.Request.BodyJson)
 	}
 	defer func() {
 		if r.Error != nil {
