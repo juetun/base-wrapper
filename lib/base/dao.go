@@ -495,7 +495,7 @@ func (r *ServiceDao) getKind(dataModal *dataModal, dataModalReflectObj *dataModa
 			value := dataModalReflectObj.Values.Field(i)
 
 			if ignoreColumnFlag, tag = r.GetColumnName(field.Tag.Get(GORMTAG), field.Name); ignoreColumnFlag { // 如果是tag标记忽略字段
-				return
+				continue
 			}
 			dataModalReflectTmp := &dataModalReflect{Types: field.Type, Values: value,}
 			if tag == "" {
