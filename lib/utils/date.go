@@ -153,3 +153,20 @@ func ParseDate(t time.Time) (res string) {
 func ParseDateTime(t time.Time) (res string) {
 	return t.Format(DateTimeGeneral)
 }
+
+//时间时间格式转换
+func TimeZeroToString(timeStamp *time.Time, formats ...string) (res string) {
+	if timeStamp == nil || timeStamp.IsZero() {
+		return
+	}
+	var formatString = DateTimeDashboard
+	if len(formats) > 0 {
+		formatString = formats[0]
+	}
+	res = timeStamp.Format(formatString)
+	if res == "0001.01.01 00:00" || res == "0001.01.01" {
+		res = ""
+		return
+	}
+	return
+ }
