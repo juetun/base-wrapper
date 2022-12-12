@@ -50,37 +50,67 @@ func DateTime(t time.Time, format ...string) (res string) {
 	return t.Format(f)
 }
 
-func DateTimeDiff(valueTime, baseTime time.Time, format ...string) (res string, difTime time.Duration, err error) {
+func getNextTimeDesc(abs float64, valueTime time.Time, format string) (res string) {
+
+	if difM := math.Ceil(abs / 60); difM < 60 {
+		res = fmt.Sprintf("%d分后", int(difM))
+		return
+	}
+	if difH := math.Ceil(abs / 3600); difH < 24 {
+		res = fmt.Sprintf("%d小时后", int(difH))
+		return
+	}
+	if difD := math.Ceil(abs / 86400); difD < 7 {
+		res = fmt.Sprintf("%d天后", int(difD))
+		return
+	}
+	if difW := math.Ceil(abs / (86400 * 7)); difW < 4 {
+		res = fmt.Sprintf("%d周后", int(difW))
+		return
+	}
+	res = valueTime.Format(format)
+	return
+}
+
+func DateTimeDiff(valueTime, baseTime time.Time, formats ...string) (res string, difTime time.Duration, err error) {
 	if baseTime.IsZero() {
 		baseTime = time.Now()
 	}
+	var format = DateGeneral
+	if len(formats) > 0 {
+		format = formats[0]
+		return
+	}
 	dif := baseTime.Unix() - valueTime.Unix()
 	difTime = time.Duration(baseTime.UnixNano() - valueTime.UnixNano())
-	if dif < 60 {
+	if dif < 60 && dif > 0 {
 		res = "刚刚"
 		return
 	}
-	if difM := math.Floor(float64(dif / 60)); difM < 60 {
+	var (
+		abs = float64(dif)
+	)
+	if dif < 0 {
+		res = getNextTimeDesc(math.Abs(float64(dif)), valueTime, format)
+		return
+	}
+	if difM := math.Floor(abs / 60); difM < 60 {
 		res = fmt.Sprintf("%d分前", int(difM))
 		return
 	}
-	if difH := math.Floor(float64(dif / 3600)); difH < 24 {
+	if difH := math.Floor(abs / 3600); difH < 24 {
 		res = fmt.Sprintf("%d小时前", int(difH))
 		return
 	}
-	if difD := math.Floor(float64(dif / 86400)); difD < 7 {
+	if difD := math.Floor(abs / 86400); difD < 7 {
 		res = fmt.Sprintf("%d天前", int(difD))
 		return
 	}
-	if difW := math.Floor(float64(dif / (86400 * 7))); difW < 4 {
+	if difW := math.Floor(abs / (86400 * 7)); difW < 4 {
 		res = fmt.Sprintf("%d周前", int(difW))
 		return
 	}
-	if len(format) > 0 {
-		res = valueTime.Format(format[0])
-		return
-	}
-	res = valueTime.Format(DateGeneral)
+	res = valueTime.Format(format)
 	return
 }
 
@@ -169,4 +199,4 @@ func TimeZeroToString(timeStamp *time.Time, formats ...string) (res string) {
 		return
 	}
 	return
- }
+}
