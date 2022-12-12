@@ -79,7 +79,6 @@ func DateTimeDiff(valueTime, baseTime time.Time, formats ...string) (res string,
 	var format = DateGeneral
 	if len(formats) > 0 {
 		format = formats[0]
-		return
 	}
 	dif := baseTime.Unix() - valueTime.Unix()
 	difTime = time.Duration(baseTime.UnixNano() - valueTime.UnixNano())
