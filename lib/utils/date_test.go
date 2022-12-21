@@ -74,7 +74,7 @@ func TestDateParse(t *testing.T) {
 func TestDateDuration(t *testing.T) {
 	type args struct {
 		value    string
-		baseTime *time.Time
+		baseTime time.Time
 		format   []string
 	}
 	t1, _ := DateParse("2022-01-08 00:00:00", DateTimeGeneral)
@@ -89,7 +89,7 @@ func TestDateDuration(t *testing.T) {
 			name: "t1",
 			args: args{
 				value:    "2021-01-01 13:50:30",
-				baseTime: &t1,
+				baseTime: t1,
 			},
 			wantRes:      "2021-01-01",
 			WantDiffTime: "8914h9m30s",
@@ -98,7 +98,7 @@ func TestDateDuration(t *testing.T) {
 			name: "t2",
 			args: args{
 				value:    "2022-01-07 23:59:59",
-				baseTime: &t1,
+				baseTime: t1,
 			},
 			wantRes:      "1秒钟前",
 			WantDiffTime: "1s",
@@ -107,7 +107,7 @@ func TestDateDuration(t *testing.T) {
 			name: "t3",
 			args: args{
 				value:    "2022-01-07 23:58:59",
-				baseTime: &t1,
+				baseTime: t1,
 			},
 			wantRes:      "1分钟前",
 			WantDiffTime: "1m1s",
@@ -116,7 +116,7 @@ func TestDateDuration(t *testing.T) {
 			name: "t4",
 			args: args{
 				value:    "2022-01-07 22:58:59",
-				baseTime: &t1,
+				baseTime: t1,
 			},
 			wantRes:      "1小时前",
 			WantDiffTime: "1h1m1s",
@@ -125,7 +125,7 @@ func TestDateDuration(t *testing.T) {
 			name: "t5",
 			args: args{
 				value:    "2022-01-01 00:00:00",
-				baseTime: &t1,
+				baseTime: t1,
 			},
 			wantRes:      "1周前",
 			WantDiffTime: "168h0m0s",

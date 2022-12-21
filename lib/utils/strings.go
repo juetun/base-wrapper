@@ -184,13 +184,13 @@ func RandomString(length ...int) (authCode string, err error) {
 
 // IsIdCard 判断身份证号是否合法
 func IsIdCard(idCard string) (ok bool, err error) {
-	if ok, err = regexp.Match("/^([1-6][1-9]|50)\\d{4}\\d{2}((0[1-9])|10|11|12)(([0-2][1-9])|10|20|30|31)\\d{3}$/", []byte(idCard)); err != nil {
+	if ok, err = regexp.Match(`^[1-9]\d{17}$`, []byte(idCard)); err != nil {
 		return
 	}
 	if ok {
 		return
 	}
-	if ok, err = regexp.Match("/^([1-6][1-9]|50)\\d{4}(18|19|20)\\d{2}((0[1-9])|10|11|12)(([0-2][1-9])|10|20|30|31)\\d{3}[0-9Xx]$/", []byte(idCard)); err != nil {
+	if ok, err = regexp.Match(`^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{4}$`, []byte(idCard)); err != nil {
 		return
 	}
 	return
