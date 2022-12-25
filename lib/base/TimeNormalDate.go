@@ -32,6 +32,9 @@ func (t *TimeNormalDate) Format(layout string) (res string) {
 
 func (t *TimeNormalDate) UnmarshalJSON(b []byte) (err error) {
 	b = bytes.Trim(b, "\"") // 此除需要去掉传入的数据的两端的 ""
+	if b == nil {
+		return
+	}
 	v := string(b)
 	if t == nil {
 		t = &TimeNormalDate{}
