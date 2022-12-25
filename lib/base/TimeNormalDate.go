@@ -26,7 +26,7 @@ func (t *TimeNormalDate) IsZero() (res bool) {
 }
 
 func (t *TimeNormalDate) Format(layout string) (res string) {
-	res = t.Time.Format("2006-01-02")
+	res = t.Time.Format(layout)
 	return
 }
 
