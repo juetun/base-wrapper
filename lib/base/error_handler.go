@@ -17,7 +17,7 @@ const (
 
 type ErrorRuntimeStruct struct {
 	Code int   `json:"code"`
-	err  error `json:"err"`
+	Err  error `json:"err"`
 }
 
 // NewErrorRuntime SQL错误信息
@@ -28,12 +28,12 @@ func NewErrorRuntime(err error, code ...int) (res error) {
 	}
 	res = &ErrorRuntimeStruct{
 		Code: cd,
-		err:  err,
+		Err:  err,
 	}
 	return
 }
 
 func (r *ErrorRuntimeStruct) Error() (res string) {
-	res = r.err.Error()
+	res = r.Err.Error()
 	return
 }
