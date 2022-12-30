@@ -13,6 +13,8 @@ const (
 	ErrorElasticSearchCode                // ElasticSearch错误信息
 	ErrorOssCode                          // Oss错误信息
 	ErrorNotLogin          = 401          //未登录
+	ErrorHasNotPermit      = 403          //未登录
+
 )
 
 type ErrorRuntimeStruct struct {
