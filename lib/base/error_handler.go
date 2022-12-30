@@ -12,6 +12,7 @@ const (
 	ErrorRedisCode                        // Redis错误信息
 	ErrorElasticSearchCode                // ElasticSearch错误信息
 	ErrorOssCode                          // Oss错误信息
+	ErrorNotLogin          = 401          //未登录
 )
 
 type ErrorRuntimeStruct struct {
