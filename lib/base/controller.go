@@ -2,7 +2,6 @@ package base
 
 import (
 	"fmt"
-	"github.com/juetun/base-wrapper/lib/base"
 	"log"
 	"net/http"
 	"strconv"
@@ -210,7 +209,7 @@ func (r *ControllerBase) setCommonHeader(c *gin.Context) {
 func (r *ControllerBase) ResponseError(c *gin.Context, err error, code ...int) {
 	result := NewResult().
 		SetErrorMsg(err)
-	if result.Code == base.SuccessCode && len(code) > 0 {
+	if result.Code == SuccessCode && len(code) > 0 {
 		result.SetCode(code[0])
 	}
 	r.setCommonHeader(c)
