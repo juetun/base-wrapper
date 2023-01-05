@@ -13,6 +13,7 @@ import (
 	"crypto/md5"
 	"crypto/rand" // 真随机
 	"encoding/hex"
+	"fmt"
 	"math/big"
 	"regexp"
 	"strings"
@@ -93,49 +94,56 @@ func IsDigit(str string) (res bool) {
 	return
 }
 
-//type Paginate struct {
-//	Limit   int `json:"limit"`
-//	Count   int `json:"count"`
-//	Total   int `json:"total"`
-//	Last    int `json:"last"`
-//	Current int `json:"current"`
-//	Next    int `json:"next"`
-//}
-//
-//func MyPaginate(count int64, limit int, page int) Paginate {
-//	res := round(int(count), limit)
-//	totalPage := res
-//
-//	lastPage := 0
-//	if page-1 <= 0 {
-//		lastPage = 1
-//	} else {
-//		lastPage = page - 1
-//	}
-//
-//	currentPage := 0
-//	if page >= res {
-//		currentPage = res
-//	} else {
-//		currentPage = page
-//	}
-//
-//	nextPage := 0
-//	if page+1 >= res {
-//		nextPage = res
-//	} else {
-//		nextPage = page + 1
-//	}
-//
-//	return Paginate{
-//		Limit:   limit,
-//		Count:   int(count),
-//		Total:   totalPage,
-//		Last:    lastPage,
-//		Current: currentPage,
-//		Next:    nextPage,
-//	}
-//}
+//手机号加星号
+func HidTel(phone string) (res string, err error) {
+	res = phone
+	if phone == "" {
+		return
+	}
+	var ok bool
+	if ok, err = regexp.Match(`^1[0-9]{10}$`, []byte(phone)); err != nil {
+		return
+	} else if ok {
+		res = phone[:3] + "****" + phone[7:]
+		return
+	}
+	if ok, err = regexp.Match(`^\+861[0-9]{10}$`, []byte(phone)); err != nil {
+		return
+	} else if ok {
+		res = phone[:6] + "****" + phone[10:]
+		return
+	}
+	if ok, err = regexp.Match(`^0[0-9]{2,3}[\-]?[0-9]{3,4}[\-]?[0-9]{4,8}$`, []byte(phone)); err != nil {//^0[0-9]{2,3}[\-]?[0-9]{7,8}[\-]?[0-9]?$
+		return
+	} else if ok {
+		phoneArr := strings.Split(phone, "-")
+
+		switch len(phoneArr) {
+		case 1:
+			res = phone[:6] + "***" + phone[10:]
+			return
+		case 2:
+			phoneArr[1]=phoneArr[1][:2] + "***" + phoneArr[1][6:]
+			res = strings.Join(phoneArr, "-")
+			return
+		case 3:
+			phoneArr[2]=phoneArr[2][:2] + "***" + phoneArr[2][6:]
+			res = strings.Join(phoneArr, "-")
+			return
+		}
+
+
+	}
+
+	return
+}
+func ReplaceStringByRegex(str, rule, replace string) (string, error) {
+	reg, err := regexp.Compile(rule)
+	if reg == nil || err != nil {
+		return "", fmt.Errorf("正则MustCompile错误:%s", err.Error())
+	}
+	return reg.ReplaceAllString(str, replace), nil
+}
 
 // SubString 汉字截取
 func SubString(strValue string, num int, suffix ...string) (res string) {
