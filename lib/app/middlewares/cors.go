@@ -24,6 +24,7 @@ func CrossOriginResourceSharing() gin.HandlerFunc {
 			c.Writer.Header().Set("Access-Control-Allow-Headers", "*")
 			c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length")
 			c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+			c.SetSameSite(http.SameSiteLaxMode)
 		}
 		if c.Request.Method == "OPTIONS" {
 			c.JSON(http.StatusOK, "Options Request!")
