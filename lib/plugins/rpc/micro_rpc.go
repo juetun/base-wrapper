@@ -127,6 +127,10 @@ func (r *httpRpc) beforeSend() {
 	r.Request.Method = strings.ToUpper(r.Request.Method)
 }
 
+func (r *httpRpc) GetResp() (res *http.Response) {
+	return r.resp
+}
+
 // Send 发送请求
 func (r *httpRpc) Send() (res *httpRpc) {
 	res = r
