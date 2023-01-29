@@ -261,9 +261,9 @@ func ScopesDeletedAt(prefix ...string) func(db *gorm.DB) *gorm.DB {
 	}
 	return func(db *gorm.DB) *gorm.DB {
 		if pre != "" {
-			db = db.Where(fmt.Sprintf("%s.deleted_at IS NULL", pre))
+			db = db.Where(fmt.Sprintf("%s.`deleted_at` IS NULL", pre))
 		} else {
-			db = db.Where("deleted_at IS NULL")
+			db = db.Where("`deleted_at` IS NULL")
 		}
 
 		return db
