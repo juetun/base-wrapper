@@ -22,8 +22,14 @@ const (
 	DateTimeChat        = "01月02 15:04" //聊天信息展示的时间格式
 	TimeDay             = 24 * time.Hour
 	TimeWeek            = 7 * 24 * time.Hour
+
+
 )
 
+const (//表示时间为空的字符串
+	DateNullString1       = ""
+	DateNullStringDefault = "2000-01-01 00:00:00"
+)
 // GetMondayDateStamp 获取指定时间的星期一凌晨0时0分0秒
 func GetMondayDateStamp(t time.Time) (mondayStamp time.Time) {
 	var offset int

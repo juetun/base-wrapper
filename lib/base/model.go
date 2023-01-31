@@ -12,6 +12,7 @@ import (
 	"bytes"
 	"database/sql/driver"
 	"fmt"
+	"github.com/juetun/base-wrapper/lib/utils"
 	"time"
 
 	"gorm.io/gorm"
@@ -60,9 +61,15 @@ func (t TimeNormal) MarshalJSON() ([]byte, error) {
 func (t *TimeNormal) IsZero() (res bool) {
 	if t.Time.IsZero() {
 		res = true
+		return
+	}
+	if tFormat := t.Time.Format(utils.DateTimeGeneral); tFormat == utils.DateNullStringDefault || tFormat == utils.DateNullString1 {
+		res = true
+		return
 	}
 	return
 }
+
 func (t *TimeNormal) UnmarshalJSON(b []byte) (err error) {
 	b = bytes.Trim(b, "\"") // 此除需要去掉传入的数据的两端的 ""
 	v := string(b)
