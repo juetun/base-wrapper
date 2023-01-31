@@ -63,7 +63,8 @@ func (t *TimeNormal) IsZero() (res bool) {
 		res = true
 		return
 	}
-	if tFormat := t.Time.Format(utils.DateTimeGeneral); tFormat == utils.DateNullStringDefault || tFormat == utils.DateNullString1 {
+	tFormat := t.Time.Format(utils.DateTimeGeneral);
+	if tFormat == utils.DateNullStringDefault || tFormat == utils.DateNullString1 {
 		res = true
 		return
 	}

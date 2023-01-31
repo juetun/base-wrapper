@@ -27,7 +27,7 @@ const (
 )
 
 const (//表示时间为空的字符串
-	DateNullString1       = ""
+	DateNullString1       = "0001-01-01 00:00:00"
 	DateNullStringDefault = "2000-01-01 00:00:00"
 )
 // GetMondayDateStamp 获取指定时间的星期一凌晨0时0分0秒
