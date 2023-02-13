@@ -2,11 +2,10 @@
 package plugins
 
 import (
+	"github.com/juetun/base-wrapper/lib/base"
 	"sync"
 
 	"github.com/juetun/base-wrapper/lib/app/app_start"
-
-	"github.com/juetun/base-wrapper/lib/app/app_obj"
 )
 
 func PluginJwt(arg *app_start.PluginsOperate) (err error) {
@@ -17,6 +16,6 @@ func PluginJwt(arg *app_start.PluginsOperate) (err error) {
 
 	io.SystemOutPrintln("init JWT config")
 	defer io.SystemOutPrintln("Init JWT finished")
-	err = app_obj.NewJwtParam().JwtInit()
+	err = base.NewJwtParam().JwtInit()
 	return
 }

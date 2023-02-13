@@ -1,4 +1,3 @@
-// Package app_obj
 package app_obj
 
 import (
@@ -7,27 +6,6 @@ import (
 )
 
 var ShortMessageObj = &shortMessage{channelListHandler: map[string]ShortMessageInter{},}
-
-// 短信发送的参数
-type MessageArgument struct {
-	Mobile        string   `json:"mobile"`         // 手机号
-	AreaCode      string   `json:"area"`           // 地区号 默认 86
-	Content       string   `json:"content"`        // 短信内容
-	ExceptChannel []string `json:"except_channel"` // 排除渠道，（此字段主要为当某一渠道发送不成功后，重试发送切换渠道使用）
-	Channel       string   `json:"channel"`        // 短信渠道号 不设置使用默认规则
-}
-
-// 渠道发送需要实现的接口
-type ShortMessageInter interface {
-	Send(param *MessageArgument) (err error)
-}
-
-// 短息发送调用的公共动作
-type shortMessage struct {
-	channelListHandler map[string]ShortMessageInter // 当前支持的短息通道列表
-	shortMessageIndex  int                          // 当前发送短信的序号
-	syncMutex          sync.Mutex
-}
 
 func NewShortMessage(channelMap ...map[string]ShortMessageInter) (res *shortMessage) {
 	res = &shortMessage{
@@ -39,6 +17,29 @@ func NewShortMessage(channelMap ...map[string]ShortMessageInter) (res *shortMess
 		}
 	}
 	return
+}
+
+// 短息发送调用的公共动作
+type shortMessage struct {
+	channelListHandler map[string]ShortMessageInter // 当前支持的短息通道列表
+	shortMessageIndex  int                          // 当前发送短信的序号
+	syncMutex          sync.Mutex
+}
+
+// 短信发送的参数
+type (
+	MessageArgument struct {
+		Mobile        string   `json:"mobile"`         // 手机号
+		AreaCode      string   `json:"area"`           // 地区号 默认 86
+		Content       string   `json:"content"`        // 短信内容
+		ExceptChannel []string `json:"except_channel"` // 排除渠道，（此字段主要为当某一渠道发送不成功后，重试发送切换渠道使用）
+		Channel       string   `json:"channel"`        // 短信渠道号 不设置使用默认规则
+	}
+)
+
+// 渠道发送需要实现的接口
+type ShortMessageInter interface {
+	Send(param *MessageArgument) (err error)
 }
 
 // 添加渠道

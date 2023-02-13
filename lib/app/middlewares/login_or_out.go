@@ -13,14 +13,14 @@ import (
 
 // AuthenticationCallBack 用户身份验证成功
 // err的提示内容会在响应中输出
-type AuthenticationCallBack func(user *app_obj.JwtUser, c *gin.Context) (err error)
+type AuthenticationCallBack func(user *base.JwtUser, c *gin.Context) (err error)
 
 // AuthParse 不用严格判断登录，如果前端传递了令牌那么解析令牌,否则直接跳过
 // notStrictValue=true
 // token=""
 func AuthParse(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var jwtUser app_obj.JwtUser
+		var jwtUser base.JwtUser
 		var err error
 		ctx := base.CreateContext(&base.ControllerBase{Log: app_obj.GetLog()}, c)
 		jwtUser, _ = tokenValidate(ctx, true)
@@ -45,7 +45,7 @@ func AuthParse(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 // Authentication 判断用户是否登录如果未登录则退出
 func Authentication(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var jwtUser app_obj.JwtUser
+		var jwtUser base.JwtUser
 		var exitStatus bool
 		var err error
 		// 验证token是否合法
@@ -75,8 +75,8 @@ func Authentication(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 // 用户登录逻辑处理
 // param  notStrictValue    	true:当token=""时跳过
 // return bool 					true:用户信息获取失败，false:正常操作
-func tokenValidate(c *base.Context, notStrictValue bool) (jwtUser app_obj.JwtUser, exit bool) {
-	jwtUser = app_obj.JwtUser{}
+func tokenValidate(c *base.Context, notStrictValue bool) (jwtUser base.JwtUser, exit bool) {
+	jwtUser = base.JwtUser{}
 	var (
 		token      string
 		userHid    int64
@@ -109,7 +109,7 @@ func tokenValidate(c *base.Context, notStrictValue bool) (jwtUser app_obj.JwtUse
 		logContent["desc"] = "ParseInt"
 		return
 	}
-	if jwtUser, err = common.ParseToken(token, c); err != nil { // 如果解析token失败
+	if err = base.ParseJwtKey(token, c, &jwtUser); err != nil { // 如果解析token失败
 		logContent["desc"] = "ParseToken"
 		logContent["token"] = token
 		c.GinContext.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusForbidden).SetMessage(err.Error()))
@@ -123,8 +123,8 @@ func tokenValidate(c *base.Context, notStrictValue bool) (jwtUser app_obj.JwtUse
 		return
 	}
 	// 解析token成功 将用户信息放进gin 上下文对象context中
-	c.GinContext.Set(app_obj.ContextUserObjectKey, jwtUser)
-	c.GinContext.Set(app_obj.ContextUserTokenKey, token)
+	c.GinContext.Set(base.ContextUserObjectKey, jwtUser)
+	c.GinContext.Set(base.ContextUserTokenKey, token)
 	return
 }
 

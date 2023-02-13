@@ -2,7 +2,7 @@
 // @Copyright (c) 2020.
 // @Author ${USER}
 // @Date ${DATE}
-package signencrypt
+package app_obj
 
 import (
 	"bytes"
@@ -17,7 +17,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/base-wrapper/lib/app/app_obj"
 )
 
 // GolangCharset 签名的字符编码类型
@@ -141,13 +140,13 @@ func (s *SignUtils) SignGinRequest(c *gin.Context, getSecret GetSecretHandler) (
 
 	var t int
 	// 判断签名是否传递了时间
-	if headerT := c.GetHeader("X-Timestamp"); headerT == "" {
+	if headerT := c.GetHeader(HttpTimestamp); headerT == "" {
 		err = fmt.Errorf("the header must be include timestamp parameter(t)")
 		return
 	} else if t, err = strconv.Atoi(headerT); err != nil {
-		err = fmt.Errorf("格式不不正确(时间戳:X-Timestamp)")
+		err = fmt.Errorf("格式不不正确(时间戳:%s)", HttpTimestamp)
 		return
-	} else if app_obj.App.AppEnv != app_obj.EnvProd && int(time.Now().UnixNano()/1e6)-t > 86400000 { // 传递的时间格式必须大于当前时间-一天
+	} else if App.AppEnv != EnvProd && int(time.Now().UnixNano()/1e6)-t > 86400000 { // 传递的时间格式必须大于当前时间-一天
 		err = fmt.Errorf("the header of  parameter(t) must be more than now desc one days")
 		return
 	} else {
@@ -178,7 +177,7 @@ func (s *SignUtils) SignGinRequest(c *gin.Context, getSecret GetSecretHandler) (
 	listenHandlerStruct := ListenHandlerStruct{}
 
 	// 如果不是线上环境,可输出签名格式 (此处代码为调试 签名是否能正常使用准备)
-	if app_obj.App.AppEnv != app_obj.EnvProd && c.GetHeader("debug") != "" {
+	if App.AppEnv != EnvProd && c.GetHeader("debug") != "" {
 		resp := c.Writer.Header()
 		resp.Set("Sign-format", encryptionString)
 		resp.Set("Sign-Base64Code", base64Code)

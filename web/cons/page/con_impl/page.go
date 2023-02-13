@@ -24,7 +24,6 @@ import (
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	. "github.com/juetun/base-wrapper/lib/base"
 	. "github.com/juetun/base-wrapper/lib/base/page_block"
-	"github.com/juetun/base-wrapper/lib/common/signencrypt"
 	"github.com/juetun/base-wrapper/web/cons/page"
 	"github.com/juetun/base-wrapper/web/srvs/srv_impl"
 	"github.com/juetun/base-wrapper/web/wrapper"
@@ -168,7 +167,7 @@ func (r *ConPageImpl) Main(c *gin.Context) {
 
 func (r *ConPageImpl) MainSign(c *gin.Context) {
 	var err error
-	res, sign, err := signencrypt.NewSign().
+	res, sign, err := app_obj.NewSign().
 		SignGinRequest(c, func(appName string) (secret string, err error) {
 			secret = "signxxx"
 			// TODO通过appName获取签名值

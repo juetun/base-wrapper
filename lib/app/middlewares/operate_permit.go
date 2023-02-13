@@ -32,7 +32,7 @@ func Auth(c *base.Context) (exit bool) {
 	token := c.GinContext.Request.Header.Get(app_obj.HttpUserToken)
 	var (
 		err     error
-		jwtUser app_obj.JwtUser
+		jwtUser base.JwtUser
 	)
 	logContent := make(map[string]interface{})
 	defer func() {
@@ -53,14 +53,14 @@ func Auth(c *base.Context) (exit bool) {
 		return
 	}
 
-	if jwtUser, err = common.ParseToken(token, c); err != nil {
+	if err = base.ParseJwtKey(token, c, &jwtUser); err != nil {
 		logContent["desc"] = "ParseToken"
 		c.GinContext.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusForbidden).SetMessage(err.Error()))
 		c.GinContext.Abort()
 		exit = true
 		return
 	}
-	c.GinContext.Set(app_obj.ContextUserObjectKey, jwtUser)
-	c.GinContext.Set(app_obj.ContextUserTokenKey, token)
+	c.GinContext.Set(base.ContextUserObjectKey, jwtUser)
+	c.GinContext.Set(base.ContextUserTokenKey, token)
 	return
 }

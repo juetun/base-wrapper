@@ -9,11 +9,11 @@
 package middlewares
 
 import (
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/base-wrapper/lib/common/signencrypt"
 )
 
 // SignHttp 接口签名验证
@@ -21,7 +21,7 @@ func SignHttp() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var res bool
 		var err error
-		if res, _, err = signencrypt.NewSign().
+		if res, _, err = app_obj.NewSign().
 			SignGinRequest(c, func(appName string) (secret string, err error) {
 				secret = "signxxx"
 				// TODO 通过appName获取签名值
