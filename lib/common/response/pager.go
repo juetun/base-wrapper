@@ -64,7 +64,7 @@ type (
 		PageSize  int         `form:"page_size" json:"page_size"`
 		RequestId string      `form:"request_id" json:"request_id"`
 	}
-	
+
 	PageFetch struct {
 		GetPageTypeListHandler FetchDataHandler //PageType="list"//时使用// 按照第一页 第二页分页
 		GetPageTypeNextHandler FetchDataHandler //PageType="next"//时使用// 按照是否有最后一页分页
