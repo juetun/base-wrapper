@@ -64,6 +64,12 @@ type (
 		PageSize  int         `form:"page_size" json:"page_size"`
 		RequestId string      `form:"request_id" json:"request_id"`
 	}
+	
+	PageFetch struct {
+		GetPageTypeListHandler FetchDataHandler //PageType="list"//时使用// 按照第一页 第二页分页
+		GetPageTypeNextHandler FetchDataHandler //PageType="next"//时使用// 按照是否有最后一页分页
+	}
+	FetchDataHandler func(pager *Pager) (err error)
 )
 
 func (r *PagerParameter) GetOffset() (offset int) {
@@ -175,6 +181,21 @@ func NewPager(option ...PageOption) Pager {
 	return r
 }
 
+func (p *Pager) FetchData(PageFetch PageFetch) (err error) {
+	switch p.PageType {
+	case DefaultPageTypeList:
+		if err = PageFetch.GetPageTypeListHandler(p); err != nil {
+			return
+		}
+	case DefaultPageTypeNext:
+		if err = PageFetch.GetPageTypeNextHandler(p); err != nil {
+			return
+		}
+	default:
+		err = fmt.Errorf("当前暂不支持你选择的分页类型")
+	}
+	return
+}
 func (p *Pager) InitPager(arg *PageQuery) *Pager {
 	if arg.PageNo == 0 {
 		arg.PageNo = 1
