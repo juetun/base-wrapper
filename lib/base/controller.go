@@ -80,12 +80,12 @@ func (r *ControllerBase) ParametersAccept(ctx *Context, parameter ParameterInter
 	}
 	if err != nil {
 		haveError = true
-		r.ResponseError(ctx.GinContext, err, ErrorParameterCode)
+		r.ResponseParametersError(ctx.GinContext, err, ErrorParameterCode)
 		return
 	}
 	if err = parameter.Default(ctx); err != nil {
 		haveError = true
-		r.ResponseError(ctx.GinContext, err, ErrorParameterCode)
+		r.ResponseParametersError(ctx.GinContext, err, ErrorParameterCode)
 		return
 	}
 	return
@@ -217,6 +217,16 @@ func (r *ControllerBase) ResponseError(c *gin.Context, err error, code ...int) {
 	return
 }
 
+//注: 参数错误提示，框架调用请不要直接使用
+func (r *ControllerBase) ResponseParametersError(c *gin.Context, err error, code ...int) {
+	result := NewResult().
+		SetErrorMsg(err)
+	if result.Code == SuccessCode && len(code) > 0 {
+		result.SetCode(code[0])
+	}
+	r.setCommonHeader(c)
+	return
+}
 func (r *ControllerBase) ResponseCommonHtml(c *gin.Context, code int, data gin.H, extName ...string) {
 	defaultExt := "tmpl"
 	if len(extName) > 0 {
