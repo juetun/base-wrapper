@@ -46,6 +46,35 @@ func TaskTimerCron(c *cron.Cron) TaskTimerOption {
 	}
 }
 
+//立即执行定时任务(用于只执行一次的任务执行)
+// taskName 任务名称唯一key 用于记录日志和定时任务唯一集群单例执行使用
+// callBack 任务执行逻辑
+func (r *TaskTimer) ExecuteImmediately(taskName string, callBack TaskCallBack) (err error) {
+	lockKey := fmt.Sprintf("%s:%s", app_obj.App.AppName, taskName)
+	r.logIo.SetInfoType(base.LogLevelInfo).
+		SystemOutPrintf("【TASK】Name:%s,format:%s PK:%s",
+			taskName,
+			lockKey,
+		)
+	contextBase, guid := base.CreateCrontabContext(r.ControllerBase)
+	//分布式锁 防止重复执行定时任务
+	_, _ = anvil_redis.NewRedisLock(
+		anvil_redis.RedisLockDuration(10*time.Second),
+		anvil_redis.RedisLockContext(contextBase),
+		anvil_redis.RedisLockCtx(r.Ctx),
+		anvil_redis.RedisLockAttemptsTime(100), //尝试获取锁的次数
+		anvil_redis.RedisLockAttemptsInterval(30*time.Millisecond),
+		anvil_redis.RedisLockUniqueKey(lockKey),
+		anvil_redis.RedisLockLockKey(lockKey),
+		anvil_redis.RedisLockOkHandler(func(ctx context.Context) (err error) {
+			//执行定时任务
+			callBack(contextBase, guid)
+			return
+		}),
+	).Run()
+	return
+}
+
 //配置定时任务启动
 func (r *TaskTimer) ConfigTaskCall(format, taskName string, callBack TaskCallBack) (entryID cron.EntryID, err error) {
 
