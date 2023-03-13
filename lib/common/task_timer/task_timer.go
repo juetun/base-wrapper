@@ -52,7 +52,7 @@ func TaskTimerCron(c *cron.Cron) TaskTimerOption {
 func (r *TaskTimer) ExecuteImmediately(taskName string, callBack TaskCallBack) (err error) {
 	lockKey := fmt.Sprintf("%s:%s", app_obj.App.AppName, taskName)
 	r.logIo.SetInfoType(base.LogLevelInfo).
-		SystemOutPrintf("【TASK】Name:%s,format:%s PK:%s",
+		SystemOutPrintf("【TASK】Name:%v, PK:%v",
 			taskName,
 			lockKey,
 		)
