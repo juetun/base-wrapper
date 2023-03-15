@@ -1,6 +1,7 @@
 package base
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -177,6 +178,14 @@ func (r *Result) SetErrorMsg(err error) (res *Result) {
 	return r
 }
 
+func (r *Result) ToJsonByte() (res []byte) {
+	if r == nil {
+		return
+	}
+	res, _ = json.Marshal(r)
+	return
+}
+
 func NewResult() *Result {
 	return &Result{
 		Code: 0,
@@ -225,6 +234,7 @@ func (r *ControllerBase) ResponseParametersError(c *gin.Context, err error, code
 		result.SetCode(code[0])
 	}
 	r.setCommonHeader(c)
+	c.Writer.Write(result.ToJsonByte())
 	return
 }
 func (r *ControllerBase) ResponseCommonHtml(c *gin.Context, code int, data gin.H, extName ...string) {
