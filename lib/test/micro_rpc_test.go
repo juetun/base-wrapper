@@ -14,15 +14,15 @@ import (
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/app/app_start"
-	"github.com/juetun/base-wrapper/lib/base"
 	_ "github.com/juetun/base-wrapper/lib/app/init" // 加载公共插件项
-	. "github.com/juetun/base-wrapper/lib/plugins"  // 加载路由信息
+	"github.com/juetun/base-wrapper/lib/base"
+	. "github.com/juetun/base-wrapper/lib/plugins" // 加载路由信息
 	"github.com/juetun/base-wrapper/lib/plugins/rpc"
 )
 
 func TestMicroRpcGet(t *testing.T) {
 	app_obj.BaseDirect, _ = filepath.Abs("../")
-	app_start.NewPluginsOperate().Use(
+	app_start.NewPlugins().Use(
 		// PluginJwt, // 加载用户验证插件,必须放在Redis插件后
 		// PluginElasticSearchV7,
 		PluginShortMessage,
