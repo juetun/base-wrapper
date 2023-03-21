@@ -71,17 +71,30 @@ type (
 
 		TableNameString(tableIndex int64) (tableName string)
 	}
+	DataParameterOptions func(arg *ActErrorHandlerResult)
 )
 
-func (r *FetchDataParameter) ParseActErrorHandlerResult() (res *ActErrorHandlerResult) {
+func DataParameterActErrorHandlerResult(modelBase ModelBase) (res DataParameterOptions) {
+	return func(arg *ActErrorHandlerResult) {
+		arg.Model = modelBase
+	}
+}
+
+func (r *FetchDataParameter) ParseActErrorHandlerResult(options ...DataParameterOptions) (res *ActErrorHandlerResult) {
 	res = &ActErrorHandlerResult{}
 	res.CommonDb = r.CommonDb
+	for _, item := range options {
+		item(res)
+	}
 	return
 }
 
-func (r *FetchDataParameterBatch) ParseActErrorHandlerResult() (res *ActErrorHandlerResult) {
+func (r *FetchDataParameterBatch) ParseActErrorHandlerResult(options ...DataParameterOptions) (res *ActErrorHandlerResult) {
 	res = &ActErrorHandlerResult{}
 	res.CommonDb = r.CommonDb
+	for _, item := range options {
+		item(res)
+	}
 	return
 }
 func (r *FetchDataParameterTimesBatch) ParseActErrorHandlerResult() (res *ActErrorHandlerResult) {
