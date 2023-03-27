@@ -319,9 +319,11 @@ func (r *RedisLock) addTimeout() (ok bool, err error) {
 
 	if _, err = r.Context.
 		CacheClient.SetEX(r.Ctx, r.LockKey, r.UniqueKey, r.Duration).
-		Result(); err != nil && err != redis.Nil {
+		Result(); err != nil {
+		if err == redis.Nil {
+			err = nil
+		}
 		return
 	}
-	err = nil
 	return
 }
