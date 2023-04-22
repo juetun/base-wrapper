@@ -34,7 +34,7 @@ type (
 		Content       string   `json:"content"`        // 短信内容
 		ExceptChannel []string `json:"except_channel"` // 排除渠道，（此字段主要为当某一渠道发送不成功后，重试发送切换渠道使用）
 		Channel       string   `json:"channel"`        // 短信渠道号 不设置使用默认规则
-		TypeLocation  string   `json:"type_location"`  //验证码发送的位置的KEY
+		Type          int      `json:"type"`           //验证码发送的位置的KEY
 	}
 )
 
