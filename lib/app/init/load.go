@@ -14,7 +14,6 @@ func init() {
 		PluginsHashId,   // 用于生成数据表唯一数据ID
 		PluginMysql,     // 加载数据库插件
 		PluginRedis,     // 加载Redis插件
-		PluginTimerTask, // 加载定时任务逻辑
 	)
 
 }

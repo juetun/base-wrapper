@@ -2,6 +2,7 @@
 package app_start
 
 import (
+	"github.com/juetun/base-wrapper/lib/plugins"
 	stytemLog "log"
 	"strings"
 
@@ -69,6 +70,13 @@ func (r *PluginsOperate) LoadPlugins() (res *PluginsOperate) {
 			panic(err)
 		}
 	}
+
+	//加载执行定时任务
+	if err = plugins.PluginTimerTask(res); err != nil {
+		stytemLog.Printf("----加载定时任务失败 %v----", err.Error())
+		return
+	}
+
 	io.SystemOutPrintf("Start load plugins finished \n")
 	stytemLog.Printf("")
 	stytemLog.Printf("----插件加载完成----")
