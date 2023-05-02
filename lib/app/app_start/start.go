@@ -2,7 +2,7 @@
 package app_start
 
 import (
-	"github.com/juetun/base-wrapper/lib/plugins"
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	stytemLog "log"
 	"strings"
 
@@ -52,6 +52,24 @@ func Authorization(authorization AuthorizationStruct) (handler PluginsOperateOpt
 	}
 }
 
+//定时任务调度器
+func PluginTimerTask(arg *PluginsOperate) (err error) {
+	if !app_obj.App.AppRunTimerTask {
+		stytemLog.Println("当前服务将不会执行定时任务")
+		return
+	}
+
+	defer func() {
+		stytemLog.Println("Start timer task running")
+	}()
+	for _, handler := range TimerTaskHandler {
+		handler(arg)
+	}
+	stytemLog.Println("Load timer task")
+
+	return
+}
+
 // LoadPlugins 执行加载插件过程
 func (r *PluginsOperate) LoadPlugins() (res *PluginsOperate) {
 	res = r
@@ -72,7 +90,7 @@ func (r *PluginsOperate) LoadPlugins() (res *PluginsOperate) {
 	}
 
 	//加载执行定时任务
-	if err = plugins.PluginTimerTask(res); err != nil {
+	if err = PluginTimerTask(res); err != nil {
 		stytemLog.Printf("----加载定时任务失败 %v----", err.Error())
 		return
 	}
