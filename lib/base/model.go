@@ -88,13 +88,25 @@ func (t TimeNormal) Value() (driver.Value, error) {
 	return t.Time, nil
 }
 
-func (t *TimeNormal) Scan(v interface{}) error {
-	value, ok := v.(time.Time)
-	if ok {
-		*t = TimeNormal{Time: value}
-		return nil
+func (t *TimeNormal) Scan(v interface{}) (err error) {
+	if v == nil {
+		return
 	}
-	return fmt.Errorf("can not convert %v to timestamp", v)
+	switch v.(type) {
+	case time.Time:
+		value, ok := v.(time.Time)
+		if ok && !value.IsZero() {
+			if t == nil {
+				t = &TimeNormal{}
+			}
+			t.Time = value
+			return
+		}
+		err = fmt.Errorf("can not convert %v to timestamp", v)
+	default:
+		err = fmt.Errorf("can not convert %v to timestamp", v)
+	}
+	return
 }
 
 func (t *TimeNormal) BeforeCreate(scope *gorm.DB) error {
