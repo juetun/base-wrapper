@@ -48,7 +48,7 @@ type JwtUser struct {
 	UserId int64  `json:"user_hid"` // 用户ID
 	Name   string `json:"name"`     // 用户昵称
 	// Portrait string `json:"portrait"` // 头像
-	Status int `json:"status"` // '用户状态 0创建,1正常',
+	Status int8 `json:"status"` // '用户状态 0创建,1正常',
 }
 
 func (jp *JwtParam) SetTokenKey(tk string) func(jp *JwtParam) interface{} {
