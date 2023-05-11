@@ -150,9 +150,28 @@ func (r *SubTreasuryBase) GetHashDbAndTableById(id int64) (commonDb CommonDb, er
 	return
 }
 
+//id去重
+func (r *SubTreasuryBase) uniqueIds(idsArray []int64) (res []int64) {
+	res = make([]int64, 0, len(idsArray))
+	var mapId = make(map[int64]bool, len(idsArray))
+	for _, id := range idsArray {
+		if _, ok := mapId[id]; ok {
+			continue
+		}
+		mapId[id] = true
+		res = append(res, id)
+	}
+	return
+}
+
 // GetDataByIntegerIds mapNumString 有值表示Id为字符串格式的数据调用
-func (r *SubTreasuryBase) GetDataByIntegerIds(ids []int64, fetchDataHandler FetchDataHandlerBatch, mapNumString ...map[int64][]string) (err error) {
-	l := len(ids)
+func (r *SubTreasuryBase) GetDataByIntegerIds(idsArray []int64, fetchDataHandler FetchDataHandlerBatch, mapNumString ...map[int64][]string) (err error) {
+	//去重ids
+	var (
+		ids = r.uniqueIds(idsArray)
+		l   = len(ids)
+	)
+
 	if l == 0 {
 		return
 	}
@@ -203,10 +222,27 @@ func (r *SubTreasuryBase) GetDataByIntegerIds(ids []int64, fetchDataHandler Fetc
 
 	return
 }
-func (r *SubTreasuryBase) GetDataByStringIds(ids []string, fetchDataHandler FetchDataHandlerBatch) (err error) {
+
+func (r *SubTreasuryBase) uniqueStringIds(idsString []string) (res []string) {
+	res = make([]string, 0, len(idsString))
+	var mapId = make(map[string]bool, len(idsString))
+	for _, id := range idsString {
+		if _, ok := mapId[id]; ok {
+			continue
+		}
+		mapId[id] = true
+		res = append(res, id)
+	}
+	return
+}
+
+func (r *SubTreasuryBase) GetDataByStringIds(idsString []string, fetchDataHandler FetchDataHandlerBatch) (err error) {
+
 	var (
-		ok bool
-		l  = len(ids)
+		//去重ID
+		ids = r.uniqueStringIds(idsString)
+		ok  bool
+		l   = len(ids)
 	)
 	idInt := make([]int64, 0, l)
 	var mapId = make(map[int64][]string, l)
