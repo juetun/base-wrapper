@@ -71,6 +71,12 @@ func (t *TimeNormal) IsZero() (res bool) {
 	return
 }
 
+func (t TimeNormal) Add(d time.Duration) (res TimeNormal) {
+	t.Time = t.Time.Add(d)
+	res = t
+	return
+}
+
 func (t *TimeNormal) UnmarshalJSON(b []byte) (err error) {
 	b = bytes.Trim(b, "\"") // 此除需要去掉传入的数据的两端的 ""
 	v := string(b)
