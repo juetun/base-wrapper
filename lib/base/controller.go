@@ -216,9 +216,9 @@ func (r *ControllerBase) setCommonHeader(c *gin.Context) {
 
 // ResponseError 处理错误信息句柄
 func (r *ControllerBase) ResponseError(c *gin.Context, err error, code ...int) {
-	result := NewResult().
-		SetErrorMsg(err)
-	if result.Code == SuccessCode && len(code) > 0 {
+	var result *Result
+	if result = NewResult().
+		SetErrorMsg(err); result.Code == SuccessCode && len(code) > 0 {
 		result.SetCode(code[0])
 	}
 	r.setCommonHeader(c)
