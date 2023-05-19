@@ -20,6 +20,7 @@ const (
 	HttpTraceId    = "X-Trace-Id" // 页面请求时的 传参或者nginx生成的trace_id的key
 	HttpUserHid    = "X-User-Hid" // 页面请求时的 用户ID
 	HttpTimestamp  = "X-Timestamp"
+	HttpSign= "X-Sign"
 	HttpShopId     = "X-Shop-Id" // 店铺ID
 	HttpHeaderInfo = "X-Info"    // 用户其他信息预埋参数
 

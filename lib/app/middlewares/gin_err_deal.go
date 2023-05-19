@@ -11,10 +11,11 @@ import (
 func ErrorHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
-			if e := recover(); e != nil {
-				switch e.(type) { // 系统级错误屏蔽
+			var err interface{}
+			if err = recover(); nil != err {
+				switch err.(type) { // 系统级错误屏蔽
 				case *base.ErrorRuntimeStruct:
-					structContent := e.(*base.ErrorRuntimeStruct)
+					structContent := err.(*base.ErrorRuntimeStruct)
 					result := base.NewResult().
 						SetErrorMsg(structContent)
 					if structContent.Code > 0 {
@@ -23,7 +24,7 @@ func ErrorHandler() gin.HandlerFunc {
 					c.AbortWithStatusJSON(http.StatusOK, result)
 					return
 				case base.ErrorRuntimeStruct:
-					structContent := e.(base.ErrorRuntimeStruct)
+					structContent := err.(base.ErrorRuntimeStruct)
 					result := base.NewResult().
 						SetErrorMsg(&structContent)
 					if structContent.Code > 0 {
@@ -31,7 +32,7 @@ func ErrorHandler() gin.HandlerFunc {
 					}
 					c.AbortWithStatusJSON(http.StatusOK, result)
 				default:
-					err := e.(error)
+					err := err.(error)
 					result := base.NewResult().
 						SetErrorMsg(err)
 					result.SetCode(base.ErrorSystem)

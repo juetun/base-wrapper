@@ -45,7 +45,7 @@ var (
 func GinLogCollect() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
-		c.Set(app_obj.TraceId, c.GetHeader(app_obj.HttpTraceId)) // 日志对象获取,最先执行的中间件
+		c.Set(app_obj.TraceId, c.Request.Header.Get(app_obj.HttpTraceId)) // 日志对象获取,最先执行的中间件
 		start := time.Now()
 		defer func() { // 异步操作写日志
 			logger := app_obj.GetLog()

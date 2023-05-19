@@ -21,7 +21,7 @@ func HttpHeaderInfo() gin.HandlerFunc {
 			infoByte                 []byte
 		)
 
-		if headerInfoString = c.GetHeader(app_obj.HttpHeaderInfo); headerInfoString == "" {
+		if headerInfoString = c.Request.Header.Get(app_obj.HttpHeaderInfo); headerInfoString == "" {
 			c.AbortWithStatusJSON(http.StatusOK, base.Result{
 				Code: http.StatusUnauthorized,
 				Msg:  fmt.Sprintf("%s is null", app_obj.HttpHeaderInfo),

@@ -136,7 +136,7 @@ func (s *SignUtils) SignGinRequest(c *gin.Context) (validateResult bool, signRes
 
 	var t int
 	// 判断签名是否传递了时间
-	if headerT := c.GetHeader(HttpTimestamp); headerT == "" {
+	if headerT := c.Request.Header.Get(HttpTimestamp); headerT == "" {
 		err = fmt.Errorf("the header must be include timestamp parameter(t)")
 		return
 	} else if t, err = strconv.Atoi(headerT); err != nil {
@@ -186,7 +186,7 @@ func (s *SignUtils) SignGinRequest(c *gin.Context) (validateResult bool, signRes
 		}
 	}
 	signResult = s.Encrypt(base64Code, secret, listenHandlerStruct)
-	if signResult == c.GetHeader("X-Sign") {
+	if signResult == c.Request.Header.Get(HttpSign) {
 		validateResult = true
 	}
 	return
