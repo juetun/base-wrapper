@@ -17,7 +17,7 @@ func HttpHeaderInfo() gin.HandlerFunc {
 		var (
 			err                      error
 			secret, headerInfoString string
-			HttpHeaderInformation    app_obj.HeaderInfo //http请求头预埋的其他信息
+			HttpHeaderInformation    common.HeaderInfo //http请求头预埋的其他信息
 			infoByte                 []byte
 		)
 

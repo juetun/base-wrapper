@@ -10,7 +10,7 @@ import (
 	"crypto/sha1"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"sort"
 	"strconv"
 	"strings"
@@ -146,18 +146,20 @@ func (s *SignUtils) SignGinRequest(c *gin.Context) (validateResult bool, signRes
 		err = fmt.Errorf("the header of  parameter(t) must be more than now desc one days")
 		return
 	} else {
-		bt.WriteString(headerT)
+		if _, err = bt.WriteString(headerT); err != nil {
+			return
+		}
 	}
 
 	var body []byte
 	// 如果传JSON 单独处理
 	if strings.Contains(c.GetHeader("Content-Type"), "application/json") {
 		bt.WriteString(secret)
-		if body, err = ioutil.ReadAll(c.Request.Body); err != nil {
+		if body, err = io.ReadAll(c.Request.Body); err != nil {
 			return
 		}
 		// 读完body参数一定要回写，不然后边取不到参数
-		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+		c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 	} else { // 如果是非JSON 传参
 		// 如果不是JSON 则直接过去FORM表单参数
 		if encryptionCode, err = s.sortParamsAndJoinData(s.getRequestParams(c), secret); err != nil {
