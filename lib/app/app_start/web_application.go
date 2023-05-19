@@ -68,10 +68,10 @@ func NewWebApplication(privateMiddleWares ...gin.HandlerFunc) *WebApplication {
 	}
 
 	// 加载GIN框架 中间件
-	middlewares.LoadMiddleWare()
+	middlewares.LoadMiddleWare(privateMiddleWares...)
 
 	// gin加载中间件
-	webApp.GinEngine.Use(middlewares.MiddleWareComponent...)
+	webApp.GinEngine.Use(middlewares.MiddleWareComponent...,)
 
 	return webApp
 }
