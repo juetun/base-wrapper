@@ -23,13 +23,12 @@ const (
 	HttpShopId     = "X-Shop-Id" // 店铺ID
 	HttpHeaderInfo = "X-Info"    // 用户其他信息预埋参数
 
-	HttpUserToken             = "X-Auth-Token"  // 页面请求时用户token
+	HttpUserToken = "X-Auth-Token" // 页面请求时用户token
 
-
-	//HttpHeaderApp             = "X-App"         // 接口请求头信息
-	//HttpHeaderVersion         = "X-App-version" // 接口请求版本信息
 	//HttpHeaderTerminal        = "X-Terminal"    // 终端类型 android ,ios ,web weixin
 	//HttpHeaderChannel         = "X-Channel"     // 渠道
+	HttpHeaderApp             = "X-App"         // 接口请求头信息
+	HttpHeaderVersion         = "X-App-version" // 接口请求版本信息
 	HttpHeaderAdminToken      = "X-Console"     // 客服后台接口多的key值
 	HttpResponseAdministrator = "X-Admin"       // 程序负责人、管理员
 
