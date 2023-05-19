@@ -191,12 +191,14 @@ func CreateToken(s string, ctx *Context) (tokenString string, err error) {
 }
 
 func ParseToken(myToken string, ctx *Context) (sub string, err error) {
+	if myToken == "" {
+		return
+	}
 	var (
 		logContent = make(map[string]interface{}, 6)
 		jwtParam   = GetJwtParam()
 		token      *jwt.Token
 		ok         bool
-		claims     = token.Claims.(jwt.MapClaims)
 		res        string
 	)
 	defer func() {
@@ -227,7 +229,9 @@ func ParseToken(myToken string, ctx *Context) (sub string, err error) {
 		logContent["content"] = fmt.Sprintf("token is invalid(%s)", myToken)
 		return
 	}
-
+	var (
+		claims = token.Claims.(jwt.MapClaims)
+	)
 	if sub, ok = claims["sub"].(string); !ok {
 		logContent["content"] = "claimsSub"
 		err = fmt.Errorf("claims duan yan is error")
