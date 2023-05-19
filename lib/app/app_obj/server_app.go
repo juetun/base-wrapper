@@ -3,6 +3,8 @@ package app_obj
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
+	"github.com/juetun/base-wrapper/lib/base"
 	"strings"
 )
 
@@ -23,7 +25,26 @@ type (
 	}
 )
 
-
+func (r *HeaderInfo) Init(ctx *base.Context) (err error) {
+	var (
+		data interface{}
+		ok   bool
+	)
+	if data, ok = ctx.GinContext.Get(app_obj.HttpHeaderInfo); !ok || data == nil {
+		err = fmt.Errorf("%v info is not exists", app_obj.HttpHeaderInfo)
+		return
+	}
+	switch data.(type) {
+	case HeaderInfo:
+		tmp := data.(HeaderInfo)
+		r = &tmp
+	case *HeaderInfo:
+		r = data.(*HeaderInfo)
+	default:
+		err = fmt.Errorf("系统异常,%v信息错误", app_obj.HttpHeaderInfo)
+	}
+	return
+}
 
 func (r *HeaderInfo) Validate() (err error) {
 	if r.App == "" {
