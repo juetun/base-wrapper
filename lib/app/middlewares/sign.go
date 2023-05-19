@@ -22,11 +22,7 @@ func SignHttp() gin.HandlerFunc {
 		var res bool
 		var err error
 		if res, _, err = app_obj.NewSign().
-			SignGinRequest(c, func(appName string) (secret string, err error) {
-				secret = "signxxx"
-				// TODO 通过appName获取签名值
-				return
-			}); err != nil {
+			SignGinRequest(c); err != nil {
 			c.AbortWithStatusJSON(http.StatusOK, base.Result{
 				Code: http.StatusUnauthorized,
 				Msg:  "sign err",

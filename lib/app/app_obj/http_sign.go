@@ -121,18 +121,14 @@ func (s *SignUtils) Encrypt(argJoin string, secret string, listenHandlerStruct L
 	return
 }
 
-type GetSecretHandler func(appName string) (secret string, err error)
-
 // SignGinRequest http请求加密算法
 // c *gin.Context,
-func (s *SignUtils) SignGinRequest(c *gin.Context, getSecret GetSecretHandler) (validateResult bool, signResult string, err error) {
-	var appName, secret string
-	if appName, err = s.getHeaderAppName(c); err != nil {
+func (s *SignUtils) SignGinRequest(c *gin.Context) (validateResult bool, signResult string, err error) {
+	var secret string
+	if _, secret, err = GetHeaderAppName(c); err != nil {
 		return
 	}
-	if secret, err = getSecret(appName); err != nil {
-		return
-	}
+
 	var bt bytes.Buffer
 	var encryptionCode bytes.Buffer
 	bt.WriteString(c.Request.Method)
@@ -177,7 +173,7 @@ func (s *SignUtils) SignGinRequest(c *gin.Context, getSecret GetSecretHandler) (
 	listenHandlerStruct := ListenHandlerStruct{}
 
 	// 如果不是线上环境,可输出签名格式 (此处代码为调试 签名是否能正常使用准备)
-	if App.AppEnv != EnvProd && c.GetHeader("debug") != "" {
+	if App.AppEnv != EnvProd && c.GetHeader("Debug") != "" {
 		resp := c.Writer.Header()
 		resp.Set("Sign-format", encryptionString)
 		resp.Set("Sign-Base64Code", base64Code)
@@ -208,17 +204,6 @@ func (s *SignUtils) getRequestParams(c *gin.Context) (valueMap map[string]string
 	for k, v := range c.Request.Form {
 		valueMap[k] = strings.Join(v, ";")
 	}
-	return
-}
-
-func (s *SignUtils) getHeaderAppName(c *gin.Context) (appName string, err error) {
-	URI := strings.TrimPrefix(c.Request.URL.Path, "/")
-	if URI == "" {
-		err = fmt.Errorf("get app name failure")
-		return
-	}
-	urlString := strings.Split(URI, "/")
-	appName = urlString[0]
 	return
 }
 

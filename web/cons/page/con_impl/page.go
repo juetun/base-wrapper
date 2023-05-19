@@ -168,11 +168,7 @@ func (r *ConPageImpl) Main(c *gin.Context) {
 func (r *ConPageImpl) MainSign(c *gin.Context) {
 	var err error
 	res, sign, err := app_obj.NewSign().
-		SignGinRequest(c, func(appName string) (secret string, err error) {
-			secret = "signxxx"
-			// TODO通过appName获取签名值
-			return
-		})
+		SignGinRequest(c)
 	var msg string
 	if err != nil {
 		msg = err.Error()

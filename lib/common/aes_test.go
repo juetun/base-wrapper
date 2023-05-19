@@ -6,10 +6,6 @@ import (
 	"github.com/juetun/base-wrapper/lib/base"
 )
 
-const (
-	ChatEncryptionKey = "wumansgygoaesctr" // 秘钥长度为16的倍数
-
-)
 
 func TestAes_Encryption(t *testing.T) {
 	type fields struct {
@@ -28,10 +24,10 @@ func TestAes_Encryption(t *testing.T) {
 	}{
 		{
 			args: args{
-				text:   "asdfasdf",
-				aesKey: ChatEncryptionKey,
+				text:   "eyJhcHAiOiJ3ZWJzaXRlIiwiY2giOiJzaG9wIiwidiI6IjEuMCIsImRlYnVnIjp0cnVlfQ==",
+				aesKey: "jueTungygoaesctr",
 			},
-			wantRes: "b0pM44LPTAc=",
+			wantRes: "vPXu51n6dH5afcOSefKqrOnnZ2m0dH5EBNN5w/n8j8p4s430Yaewd91Yhy1Jdti5jZWBxkrweoClYl0zbTLLSQHGgpP43QuE",
 		},
 	}
 	for _, tt := range tests {
@@ -44,6 +40,7 @@ func TestAes_Encryption(t *testing.T) {
 				t.Errorf("Encryption() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+			t.Logf("%v",gotRes)
 			if gotRes != tt.wantRes {
 				t.Errorf("Encryption() gotRes = %v, want %v", gotRes, tt.wantRes)
 			}
@@ -68,11 +65,19 @@ func TestAes_Decrypt(t *testing.T) {
 	}{
 		{
 			args: args{
-				encrypted: "b0pM44LPTAc=",
-				aesKey:    ChatEncryptionKey,
+				//encrypted: "vPXu51n6dH5afcOSefKqrOnnZ2m0dH5EBNN5w/n8j8p4s430Yaewd91Yhy1Jdti5jZWBxkrweoClYl0zbTLLSQHGgpP43QuE",
+				encrypted: "vPXu51n6dH5afcOSefKqrOnnZ2m0dH5EBNN5w/n8j8p4s430Yaewd91Yhy1Jdti5jZWBxkrweoClYl0zbTLLSQHGgpP43QuERyYL/eu0gqY=",
+				aesKey:    "jueTungygoaesctr",
 			},
-			wantRes: "asdfasdf",
+			wantRes: "eyJhcHAiOiJ3ZWJzaXRlIiwiY2giOiJzaG9wIiwidiI6IjEuMCIsImRlYnVnIjp0cnVlfQ==",
 		},
+		//{
+		//	args: args{
+		//		encrypted: "b0pM44LPTAc=",
+		//		aesKey:    ChatEncryptionKey,
+		//	},
+		//	wantRes: "asdfasdf",
+		//},
 	}
 
 	for _, tt := range tests {
@@ -85,6 +90,7 @@ func TestAes_Decrypt(t *testing.T) {
 				t.Errorf("Decrypt() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+			t.Logf("%v",gotRes)
 			if gotRes != tt.wantRes {
 				t.Errorf("Decrypt() gotRes = %v, want %v", gotRes, tt.wantRes)
 			}
