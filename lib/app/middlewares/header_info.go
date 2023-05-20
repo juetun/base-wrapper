@@ -80,7 +80,7 @@ func HttpHeaderInfo() gin.HandlerFunc {
 			})
 			return
 		}
-		c.Set(app_obj.HttpHeaderInfo, headerInfoString)
+		c.Set(app_obj.HttpHeaderInfo, HttpHeaderInformation)
 		c.Next()
 	}
 }
