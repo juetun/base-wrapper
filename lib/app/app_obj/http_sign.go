@@ -9,6 +9,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"sort"
@@ -94,21 +95,17 @@ type ListenHandlerStruct struct {
 
 func (s *SignUtils) Encrypt(argJoin string, secret string, listenHandlerStruct ListenHandlerStruct) (res string) {
 
-	var bb bytes.Buffer
-	bb.WriteString(argJoin)
+	// Crypto by HMAC-SHA1
+	mac := hmac.New(sha1.New, []byte(secret))
+	mac.Write([]byte(argJoin))
 
-	// 第三步：使用MD5/HMAC加密
-	b := make([]byte, 0)
-
-	h := hmac.New(sha1.New, []byte(secret))
-	h.Write(bb.Bytes())
-	b = h.Sum(nil)
-	b = []byte(base64.StdEncoding.EncodeToString(b))
+	//进行base64编码
+	res = hex.EncodeToString(mac.Sum([]byte(nil)))
 
 	// 返回签名完成的字符串
-	res = strings.ToLower(string(b))
+	res = strings.ToLower(string(res))
 	if listenHandlerStruct.MD5HMAC != nil {
-		listenHandlerStruct.MD5HMAC(string(b))
+		listenHandlerStruct.MD5HMAC(res)
 	}
 	// 第四步：把二进制转化为大写的十六进制
 	if listenHandlerStruct.ByteTo16After != nil {
@@ -118,6 +115,8 @@ func (s *SignUtils) Encrypt(argJoin string, secret string, listenHandlerStruct L
 	if listenHandlerStruct.FinishHandler != nil {
 		listenHandlerStruct.FinishHandler(res)
 	}
+	return
+
 	return
 }
 
