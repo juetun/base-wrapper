@@ -1,14 +1,11 @@
 package middlewares
 
 import (
-	"fmt"
-	"github.com/juetun/base-wrapper/lib/base"
-	"net/http"
-	"strconv"
-
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
+	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
+	"net/http"
 )
 
 // AuthenticationCallBack 用户身份验证成功
@@ -23,7 +20,7 @@ func AuthParse(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 		var jwtUser base.JwtUser
 		var err error
 		ctx := base.CreateContext(&base.ControllerBase{Log: app_obj.GetLog()}, c)
-		jwtUser, _ = TokenValidate(ctx, true)
+		jwtUser, _ = common.TokenValidate(ctx, true)
 
 		if callBacks == nil && len(callBacks) == 0 { // 如果没配置回调 则直接结束
 			c.Abort()
@@ -49,7 +46,7 @@ func Authentication(callBacks ...AuthenticationCallBack) gin.HandlerFunc {
 		var exitStatus bool
 		var err error
 		// 验证token是否合法
-		if jwtUser, exitStatus = TokenValidate(base.CreateContext(&base.ControllerBase{Log: app_obj.GetLog()}, c), false); exitStatus {
+		if jwtUser, exitStatus = common.TokenValidate(base.CreateContext(&base.ControllerBase{Log: app_obj.GetLog()}, c), false); exitStatus {
 			c.Abort()
 			return
 		}

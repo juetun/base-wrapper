@@ -1,9 +1,9 @@
-package base
+package common
 
 import (
 	"fmt"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
-	"github.com/juetun/base-wrapper/lib/common"
+	"github.com/juetun/base-wrapper/lib/base"
 	"net/http"
 	"strconv"
 )
@@ -11,8 +11,8 @@ import (
 // 用户登录逻辑处理
 // param  notStrictValue    	true:当token=""时跳过
 // return bool 					true:用户信息获取失败，false:正常操作
-func TokenValidate(c *Context, notStrictValue bool) (jwtUser JwtUser, exit bool) {
-	jwtUser = JwtUser{}
+func TokenValidate(c *base.Context, notStrictValue bool) (jwtUser base.JwtUser, exit bool) {
+	jwtUser = base.JwtUser{}
 	var (
 		token      string
 		userHid    int64
@@ -35,7 +35,7 @@ func TokenValidate(c *Context, notStrictValue bool) (jwtUser JwtUser, exit bool)
 		logContent["desc"] = "getHeader"
 		msg := "token is null"
 		err = fmt.Errorf(msg)
-		c.GinContext.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusUnauthorized).SetMessage(msg))
+		c.GinContext.JSON(http.StatusOK, NewHttpResult().SetCode(http.StatusUnauthorized).SetMessage(msg))
 		exit = true
 		return
 	}
@@ -45,21 +45,21 @@ func TokenValidate(c *Context, notStrictValue bool) (jwtUser JwtUser, exit bool)
 		logContent["desc"] = "ParseInt"
 		return
 	}
-	if err = ParseJwtKey(token, c, &jwtUser); err != nil { // 如果解析token失败
+	if err = base.ParseJwtKey(token, c, &jwtUser); err != nil { // 如果解析token失败
 		logContent["desc"] = "ParseToken"
 		logContent["token"] = token
-		c.GinContext.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusForbidden).SetMessage(err.Error()))
+		c.GinContext.JSON(http.StatusOK, NewHttpResult().SetCode(http.StatusForbidden).SetMessage(err.Error()))
 		exit = true
 		return
 	}
 	if jwtUser.UserId != userHid {
 		err = fmt.Errorf("用户信息(token uid)不匹配")
-		c.GinContext.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusForbidden).SetMessage(err.Error()))
+		c.GinContext.JSON(http.StatusOK, NewHttpResult().SetCode(http.StatusForbidden).SetMessage(err.Error()))
 		exit = true
 		return
 	}
 	// 解析token成功 将用户信息放进gin 上下文对象context中
-	c.GinContext.Set(ContextUserObjectKey, jwtUser)
-	c.GinContext.Set(ContextUserTokenKey, token)
+	c.GinContext.Set(base.ContextUserObjectKey, jwtUser)
+	c.GinContext.Set(base.ContextUserTokenKey, token)
 	return
 }
