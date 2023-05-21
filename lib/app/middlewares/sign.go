@@ -19,7 +19,14 @@ import (
 // SignHttp 接口签名验证
 func SignHttp() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
+		switch c.Request.Method {
+		case http.MethodOptions:
+			c.Next()
+			return
+		case http.MethodHead:
+			c.Next()
+			return
+		}
 		var res bool
 		var err error
 		if res, _, err = app_obj.NewSign().

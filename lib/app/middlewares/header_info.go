@@ -14,6 +14,14 @@ import (
 // 请求头info信息处理
 func HttpHeaderInfo() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		switch c.Request.Method {
+		case http.MethodOptions:
+			c.Next()
+			return
+		case http.MethodHead:
+			c.Next()
+			return
+		}
 		var (
 			err                      error
 			secret, headerInfoString string
