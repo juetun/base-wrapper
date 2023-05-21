@@ -41,10 +41,19 @@ func TokenValidate(c *base.Context, notStrictValue bool) (jwtUser base.JwtUser, 
 	}
 
 	userHidString := c.GinContext.Request.Header.Get(app_obj.HttpUserHid)
-	if userHid, err = strconv.ParseInt(userHidString, 10, 64); err != nil {
-		logContent["desc"] = "ParseInt"
+
+	if !notStrictValue && userHidString == "" {
+		logContent["desc"] = "header user_hid is null"
 		return
 	}
+
+	if userHidString != "" {
+		if userHid, err = strconv.ParseInt(userHidString, 10, 64); err != nil {
+			logContent["desc"] = "ParseInt"
+			return
+		}
+	}
+
 	if err = base.ParseJwtKey(token, c, &jwtUser); err != nil { // 如果解析token失败
 		logContent["desc"] = "ParseToken"
 		logContent["token"] = token
@@ -52,7 +61,7 @@ func TokenValidate(c *base.Context, notStrictValue bool) (jwtUser base.JwtUser, 
 		exit = true
 		return
 	}
-	if jwtUser.UserId != userHid {
+	if userHid != 0 && jwtUser.UserId != userHid {
 		err = fmt.Errorf("用户信息(token uid)不匹配")
 		c.GinContext.JSON(http.StatusOK, NewHttpResult().SetCode(http.StatusForbidden).SetMessage(err.Error()))
 		exit = true
