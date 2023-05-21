@@ -88,7 +88,9 @@ func HttpHeaderInfo() gin.HandlerFunc {
 			})
 			return
 		}
-		c.Set(app_obj.DebugFlag, HttpHeaderInformation.Debug)
+		if !c.GetBool(app_obj.DebugFlag) { //DebugFlag只要不为true 可重复赋值
+			c.Set(app_obj.DebugFlag, HttpHeaderInformation.Debug)
+		}
 		c.Set(app_obj.HttpHeaderInfo, HttpHeaderInformation)
 		c.Next()
 	}
