@@ -242,9 +242,9 @@ func ParseToken(myToken string, ctx *Context) (sub string, err error) {
 		err = fmt.Errorf("Redis connect is null ")
 		return
 	}
-
+	cacheKey := jwtParam.TokenKey + myToken
 	if res, err = jwtParam.RedisCache.
-		Get(ctx.GinContext.Request.Context(), jwtParam.TokenKey+sub).
+		Get(ctx.GinContext.Request.Context(), cacheKey).
 		Result(); err != redis.Nil && err != nil {
 		logContent["content"] = "get token from redis error"
 		return
@@ -258,7 +258,7 @@ func ParseToken(myToken string, ctx *Context) (sub string, err error) {
 	}
 
 	// refresh the token life time
-	if err = jwtParam.RedisCache.Set(ctx.GinContext.Request.Context(), jwtParam.TokenKey+sub, myToken, jwtParam.TokenLife).Err(); err != nil {
+	if err = jwtParam.RedisCache.Set(ctx.GinContext.Request.Context(), cacheKey, myToken, jwtParam.TokenLife).Err(); err != nil {
 		logContent["content"] = "token create error"
 		return
 	}
