@@ -184,7 +184,7 @@ func (s *SignUtils) SignGinRequest(c *gin.Context) (validateResult bool, signRes
 	listenHandlerStruct := ListenHandlerStruct{}
 
 	// 如果不是线上环境,可输出签名格式 (此处代码为调试 签名是否能正常使用准备)
-	if App.AppEnv != EnvProd && c.GetHeader("Debug") != "" {
+	if App.AppEnv != EnvProd && c.GetBool(DebugFlag) {
 		resp := c.Writer.Header()
 		resp.Set("Sign-format", encryptionString)
 		resp.Set("Sign-Base64Code", base64Code)

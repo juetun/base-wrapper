@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	DebugFlag      = "req_debug"  // 当前请求是否为调试
 	TraceId        = "trace_id"   // 请求上下文传递时 的唯一ID （日志链路追踪使用）
 	AppLogKey      = "app"        // 当前操作所属的代码库微服务应用名（日志链路追踪使用）
 	AppFieldKey    = "type"       // 日志类型字段KEY的值
@@ -20,7 +21,7 @@ const (
 	HttpTraceId    = "X-Trace-Id" // 页面请求时的 传参或者nginx生成的trace_id的key
 	HttpUserHid    = "X-User-Hid" // 页面请求时的 用户ID
 	HttpTimestamp  = "X-Timestamp"
-	HttpSign= "X-Sign"
+	HttpSign       = "X-Sign"
 	HttpShopId     = "X-Shop-Id" // 店铺ID
 	HttpHeaderInfo = "X-Info"    // 用户其他信息预埋参数
 
