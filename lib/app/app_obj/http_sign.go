@@ -124,14 +124,15 @@ func (s *SignUtils) Encrypt(argJoin string, secret string, listenHandlerStruct L
 // SignGinRequest http请求加密算法
 // c *gin.Context,
 func (s *SignUtils) SignGinRequest(c *gin.Context) (validateResult bool, signResult string, err error) {
-	paths := strings.Split(c.Request.URL.Path, "/")
 
 	//如果是内网访问接口
-	if len(paths) > 1 && paths[1] == RouteTypeDefaultIntranet {
+	paths := strings.Split(c.Request.URL.Path, "/")
+	if len(paths) > 2 && paths[2] == RouteTypeDefaultIntranet {
 		signResult = c.Request.Header.Get(HttpSign)
 		validateResult = true
 		return
 	}
+
 	var secret string
 	if _, secret, err = GetHeaderAppName(c); err != nil {
 		return
