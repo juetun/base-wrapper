@@ -167,7 +167,7 @@ func (r *ConPageImpl) Main(c *gin.Context) {
 
 func (r *ConPageImpl) MainSign(c *gin.Context) {
 	var err error
-	res, sign, err := app_obj.NewSign().
+	res, sign, err := NewSign().
 		SignGinRequest(c)
 	var msg string
 	if err != nil {

@@ -9,7 +9,6 @@
 package middlewares
 
 import (
-	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -29,7 +28,7 @@ func SignHttp() gin.HandlerFunc {
 		}
 		var res bool
 		var err error
-		if res, _, err = app_obj.NewSign().
+		if res, _, err = base.NewSign().
 			SignGinRequest(c); err != nil {
 			c.AbortWithStatusJSON(http.StatusOK, base.Result{
 				Code: http.StatusUnauthorized,

@@ -2,7 +2,7 @@
 // @Copyright (c) 2020.
 // @Author ${USER}
 // @Date ${DATE}
-package app_obj
+package base
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"io"
 	"sort"
 	"strconv"
@@ -117,8 +117,6 @@ func (s *SignUtils) Encrypt(argJoin string, secret string, listenHandlerStruct L
 		listenHandlerStruct.FinishHandler(res)
 	}
 	return
-
-	return
 }
 
 // SignGinRequest http请求加密算法
@@ -126,14 +124,14 @@ func (s *SignUtils) Encrypt(argJoin string, secret string, listenHandlerStruct L
 func (s *SignUtils) SignGinRequest(c *gin.Context) (validateResult bool, signResult string, err error) {
 
 	//如果是内网访问接口
-	if ok := base.InterPath(c); ok {
-		signResult = c.Request.Header.Get(HttpSign)
+	if ok := InterPath(c); ok {
+		signResult = c.Request.Header.Get(app_obj.HttpSign)
 		validateResult = true
 		return
 	}
 
 	var secret string
-	if _, secret, err = GetHeaderAppName(c); err != nil {
+	if _, secret, err = app_obj.GetHeaderAppName(c); err != nil {
 		return
 	}
 
@@ -144,13 +142,13 @@ func (s *SignUtils) SignGinRequest(c *gin.Context) (validateResult bool, signRes
 
 	var t int
 	// 判断签名是否传递了时间
-	if headerT := c.Request.Header.Get(HttpTimestamp); headerT == "" {
+	if headerT := c.Request.Header.Get(app_obj.HttpTimestamp); headerT == "" {
 		err = fmt.Errorf("the header must be include timestamp parameter(t)")
 		return
 	} else if t, err = strconv.Atoi(headerT); err != nil {
-		err = fmt.Errorf("格式不不正确(时间戳:%s)", HttpTimestamp)
+		err = fmt.Errorf("格式不不正确(时间戳:%s)", app_obj.HttpTimestamp)
 		return
-	} else if App.AppEnv != EnvProd && int(time.Now().UnixNano()/1e6)-t > 86400000 { // 传递的时间格式必须大于当前时间-一天
+	} else if app_obj.App.AppEnv != app_obj.EnvProd && int(time.Now().UnixNano()/1e6)-t > 86400000 { // 传递的时间格式必须大于当前时间-一天
 		err = fmt.Errorf("the header of  parameter(t) must be more than now desc one days")
 		return
 	} else {
@@ -183,7 +181,7 @@ func (s *SignUtils) SignGinRequest(c *gin.Context) (validateResult bool, signRes
 	listenHandlerStruct := ListenHandlerStruct{}
 
 	// 如果不是线上环境,可输出签名格式 (此处代码为调试 签名是否能正常使用准备)
-	if App.AppEnv != EnvProd && c.GetBool(DebugFlag) {
+	if app_obj.App.AppEnv != app_obj.EnvProd && c.GetBool(app_obj.DebugFlag) {
 		resp := c.Writer.Header()
 		resp.Set("Sign-format", encryptionString)
 		resp.Set("Sign-Base64Code", base64Code)
@@ -194,7 +192,7 @@ func (s *SignUtils) SignGinRequest(c *gin.Context) (validateResult bool, signRes
 		}
 	}
 	signResult = s.Encrypt(base64Code, secret, listenHandlerStruct)
-	if signResult == c.Request.Header.Get(HttpSign) {
+	if signResult == c.Request.Header.Get(app_obj.HttpSign) {
 		validateResult = true
 	}
 	return
