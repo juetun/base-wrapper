@@ -23,18 +23,24 @@ func HttpHeaderInfo() gin.HandlerFunc {
 			return
 		}
 		var (
-			err                      error
-			secret, headerInfoString string
-			HttpHeaderInformation    common.HeaderInfo //http请求头预埋的其他信息
-			infoByte                 []byte
+			err                   error
+			secret                string
+			headerInfoString      = c.Request.Header.Get(app_obj.HttpHeaderInfo)
+			HttpHeaderInformation common.HeaderInfo //http请求头预埋的其他信息
+			infoByte              []byte
 		)
 
-		if headerInfoString = c.Request.Header.Get(app_obj.HttpHeaderInfo); headerInfoString == "" {
-			c.AbortWithStatusJSON(http.StatusOK, base.Result{
-				Code: http.StatusUnauthorized,
-				Msg:  fmt.Sprintf("%s is null", app_obj.HttpHeaderInfo),
-			})
-			return
+		if headerInfoString == "" {
+			if ok := base.InterPath(c); !ok { //如果不是内网访问，切没传headerinfo 报错
+				c.AbortWithStatusJSON(http.StatusOK, base.Result{
+					Code: http.StatusUnauthorized,
+					Msg:  fmt.Sprintf("%s is null", app_obj.HttpHeaderInfo),
+				})
+				return
+			} else {
+				c.Next()
+				return
+			}
 		}
 
 		//app_obj.HttpHeaderInformation

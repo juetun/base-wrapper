@@ -11,6 +11,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"github.com/juetun/base-wrapper/lib/base"
 	"io"
 	"sort"
 	"strconv"
@@ -125,8 +126,7 @@ func (s *SignUtils) Encrypt(argJoin string, secret string, listenHandlerStruct L
 func (s *SignUtils) SignGinRequest(c *gin.Context) (validateResult bool, signResult string, err error) {
 
 	//如果是内网访问接口
-	paths := strings.Split(c.Request.URL.Path, "/")
-	if len(paths) > 2 && paths[2] == RouteTypeDefaultIntranet {
+	if ok := base.InterPath(c); ok {
 		signResult = c.Request.Header.Get(HttpSign)
 		validateResult = true
 		return
