@@ -8,32 +8,32 @@ import (
 
 type (
 	HeaderInfo struct {
-		App      string      `json:"app,omitempty"`      //App类型
-		Terminal string      `json:"terminal,omitempty"` //终端
-		Channel  string      `json:"channel,omitempty"`  //渠道
-		Version  string      `json:"version,omitempty"`  //版本
-		Debug    bool        `json:"debug,omitempty"`    //是否调试模式
-		Lng      string      `json:"lng,omitempty"`      //经度
-		Lat      string      `json:"lat,omitempty"`      //纬度
-		Province string      `json:"pro,omitempty"`      //省
-		CityId   string      `json:"city,omitempty"`     //市
-		AreaId   string      `json:"area,omitempty"`     //
-		Ext      interface{} `json:"ext,omitempty"`
+		HApp      string      `json:"app,omitempty"`      //App类型
+		HTerminal string      `json:"terminal,omitempty"` //终端
+		HChannel  string      `json:"channel,omitempty"`  //渠道
+		HVersion  string      `json:"version,omitempty"`  //版本
+		HDebug    bool        `json:"debug,omitempty"`    //是否调试模式
+		HLng      string      `json:"lng,omitempty"`      //经度
+		HLat      string      `json:"lat,omitempty"`      //纬度
+		HProvince string      `json:"pro,omitempty"`      //省
+		HCityId   string      `json:"city,omitempty"`     //市
+		HAreaId   string      `json:"area,omitempty"`     //
+		HExt      interface{} `json:"ext,omitempty"`
 	}
 )
 
 func (r *HeaderInfo) setData(tmp *HeaderInfo) {
-	r.App = tmp.App
-	r.Terminal = tmp.Terminal
-	r.Channel = tmp.Channel
-	r.Version = tmp.Version
-	r.Debug = tmp.Debug
-	r.Lng = tmp.Lng
-	r.Lat = tmp.Lat
-	r.Province = tmp.Province
-	r.CityId = tmp.CityId
-	r.AreaId = tmp.AreaId
-	r.Ext = tmp.Ext
+	r.HApp = tmp.HApp
+	r.HTerminal = tmp.HTerminal
+	r.HChannel = tmp.HChannel
+	r.HVersion = tmp.HVersion
+	r.HDebug = tmp.HDebug
+	r.HLng = tmp.HLng
+	r.HLat = tmp.HLat
+	r.HProvince = tmp.HProvince
+	r.HCityId = tmp.HCityId
+	r.HAreaId = tmp.HAreaId
+	r.HExt = tmp.HExt
 	return
 }
 
@@ -63,15 +63,15 @@ func (r *HeaderInfo) InitHeaderInfo(ctx *gin.Context) (err error) {
 }
 
 func (r *HeaderInfo) Validate() (err error) {
-	if r.App == "" {
+	if r.HApp == "" {
 		err = fmt.Errorf("please set app value")
 		return
 	}
-	if r.App == "all" {
+	if r.HApp == "all" {
 		err = fmt.Errorf("app can not is all")
 		return
 	}
-	if r.Terminal == "" {
+	if r.HTerminal == "" {
 		err = fmt.Errorf("please set terminal value")
 		return
 	}
