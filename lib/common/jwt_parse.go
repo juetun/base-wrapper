@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
-	"net/http"
 	"strconv"
 )
 
@@ -35,7 +34,7 @@ func TokenValidate(c *base.Context, notStrictValue bool) (jwtUser base.JwtUser, 
 		logContent["desc"] = "getHeader"
 		msg := "token is null"
 		err = fmt.Errorf(msg)
-		c.GinContext.JSON(http.StatusOK, NewHttpResult().SetCode(http.StatusUnauthorized).SetMessage(msg))
+		//c.GinContext.JSON(http.StatusOK, NewHttpResult().SetCode(http.StatusUnauthorized).SetMessage(msg))
 		exit = true
 		return
 	}
@@ -57,13 +56,13 @@ func TokenValidate(c *base.Context, notStrictValue bool) (jwtUser base.JwtUser, 
 	if err = base.ParseJwtKey(token, c, &jwtUser); err != nil { // 如果解析token失败
 		logContent["desc"] = "ParseToken"
 		logContent["token"] = token
-		c.GinContext.JSON(http.StatusOK, NewHttpResult().SetCode(http.StatusForbidden).SetMessage(err.Error()))
+		//c.GinContext.JSON(http.StatusOK, NewHttpResult().SetCode(http.StatusForbidden).SetMessage(err.Error()))
 		exit = true
 		return
 	}
 	if userHid != 0 && jwtUser.UserId != userHid {
 		err = fmt.Errorf("用户信息(token uid)不匹配")
-		c.GinContext.JSON(http.StatusOK, NewHttpResult().SetCode(http.StatusForbidden).SetMessage(err.Error()))
+		//c.GinContext.JSON(http.StatusOK, NewHttpResult().SetCode(http.StatusForbidden).SetMessage(err.Error()))
 		exit = true
 		return
 	}

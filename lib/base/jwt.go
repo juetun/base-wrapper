@@ -115,7 +115,7 @@ func (jp *JwtParam) JwtInit(options ...func(jp *JwtParam) interface{}) error {
 		DefaultIss:      "juetun",
 		SecretKey:       "juetun",
 		TokenLife:       time.Hour * time.Duration(72),
-		TokenKey:        "login:token:",
+		TokenKey:        "log_tk:",
 		RedisCache:      cacheClient,
 	}
 	for _, option := range options {
@@ -178,7 +178,7 @@ func CreateToken(s string, ctx *Context) (tokenString string, err error) {
 		return
 	}
 	err = jwtParam.RedisCache.
-		Set(ctx.GinContext.Request.Context(), jwtParam.TokenKey+s, tokenString, jwtParam.TokenLife).
+		Set(ctx.GinContext.Request.Context(), jwtParam.TokenKey+tokenString, s, jwtParam.TokenLife).
 		Err()
 	if err != nil {
 		err = fmt.Errorf("redis connect is not exists")
