@@ -43,6 +43,8 @@ func (r *Aes) DecryptCtr(text, aesKey string) (res string, err error) {
 		return
 	}
 	res = string(resBt)
+
+	res = strings.ReplaceAll(res, "", "")
 	res = strings.ReplaceAll(res, "\b", "")
 	return
 }

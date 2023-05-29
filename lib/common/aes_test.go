@@ -66,7 +66,8 @@ func TestAes_Decrypt(t *testing.T) {
 		{
 			args: args{
 				//encrypted: "vPXu51n6dH5afcOSefKqrOnnZ2m0dH5EBNN5w/n8j8p4s430Yaewd91Yhy1Jdti5jZWBxkrweoClYl0zbTLLSQHGgpP43QuE",
-				encrypted: "vPXu51n6dH5afcOSefKqrOnnZ2m0dH5EBNN5w/n8j8p4s430Yaewd91Yhy1Jdti5jZWBxkrweoClYl0zbTLLSQHGgpP43QuERyYL/eu0gqY=",
+				//encrypted: "vPXu51n6dH5afcOSefKqrOnnZ2m0dH5EBNN5w/n8j8p4s430Yaewd91Yhy1Jdti5jZWBxkrweoClYl0zbTLLSQHGgpP43QuERyYL/eu0gqY=",
+				encrypted: "vPXu4GKAc2B2V8CXasiQ59LnZzSfdEBeFIx2zNLSk8l7o9j2cZmwd/ZYhChaS9e2oY6a2Ur0X4WdSjI3RR/9DADFgozX5lnQK3ZNjKrV/cdwl1ENdBrtp/9E5mFYe9SXQAC51I0RImimZfr7W9B/C7cP6CA/07NBE/U1YcuPsZ8=",
 				aesKey:    "jueTungygoaesctr",
 			},
 			wantRes: "eyJhcHAiOiJ3ZWJzaXRlIiwiY2giOiJzaG9wIiwidiI6IjEuMCIsImRlYnVnIjp0cnVlfQ==",
