@@ -8,17 +8,17 @@ import (
 
 type (
 	HeaderInfo struct {
-		HApp      string      `json:"app,omitempty"`      //App类型
-		HTerminal string      `json:"terminal,omitempty"` //终端
-		HChannel  string      `json:"channel,omitempty"`  //渠道
-		HVersion  string      `json:"version,omitempty"`  //版本
-		HDebug    bool        `json:"debug,omitempty"`    //是否调试模式
-		HLng      string      `json:"lng,omitempty"`      //经度
-		HLat      string      `json:"lat,omitempty"`      //纬度
-		HProvince string      `json:"pro,omitempty"`      //省
-		HCityId   string      `json:"city,omitempty"`     //市
-		HAreaId   string      `json:"area,omitempty"`     //
-		HExt      interface{} `json:"ext,omitempty"`
+		HApp      string      `json:"h_app,omitempty"`      //App类型
+		HTerminal string      `json:"h_terminal,omitempty"` //终端
+		HChannel  string      `json:"h_channel,omitempty"`  //渠道
+		HVersion  string      `json:"h_version,omitempty"`  //版本
+		HDebug    bool        `json:"h_debug,omitempty"`    //是否调试模式
+		HLng      string      `json:"h_lng,omitempty"`      //经度
+		HLat      string      `json:"h_lat,omitempty"`      //纬度
+		HProvince string      `json:"h_pro,omitempty"`      //省
+		HCityId   string      `json:"h_city,omitempty"`     //市
+		HAreaId   string      `json:"h_area,omitempty"`     //
+		HExt      interface{} `json:"h_ext,omitempty"`
 	}
 )
 
