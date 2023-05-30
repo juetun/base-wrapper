@@ -157,23 +157,30 @@ func (s *SignUtils) SignGinRequest(c *gin.Context) (validateResult bool, signRes
 		}
 	}
 
-	var body []byte
 	// 如果传JSON 单独处理
 	if strings.Contains(c.GetHeader("Content-Type"), "application/json") {
+		var body []byte
 		bt.WriteString(secret)
 		if body, err = io.ReadAll(c.Request.Body); err != nil {
 			return
 		}
 		// 读完body参数一定要回写，不然后边取不到参数
 		c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
+		if len(body)>0{
+			bt.WriteString(strconv.Quote(string(body)))
+		}
+
 	} else { // 如果是非JSON 传参
+		var body []byte
 		// 如果不是JSON 则直接过去FORM表单参数
 		if encryptionCode, err = s.sortParamsAndJoinData(s.getRequestParams(c), secret); err != nil {
 			return
 		}
 		body = encryptionCode.Bytes()
+		if len(body)>0{
+			bt.WriteString(strconv.Quote(string(body)))
+		}
 	}
-	bt.WriteString(strconv.Quote(string(body)))
 	encryptionString := strings.ToLower(bt.String())
 	base64Code := base64.StdEncoding.EncodeToString([]byte(encryptionString))
 
