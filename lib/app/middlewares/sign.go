@@ -31,14 +31,14 @@ func SignHttp() gin.HandlerFunc {
 		if res, _, err = base.NewSign().
 			SignGinRequest(c); err != nil {
 			c.AbortWithStatusJSON(http.StatusOK, base.Result{
-				Code: http.StatusUnauthorized,
+				Code: http.StatusForbidden,
 				Msg:  "sign err",
 			})
 			return
 		}
 		if !res {
 			c.AbortWithStatusJSON(http.StatusOK, base.Result{
-				Code: http.StatusUnauthorized,
+				Code: http.StatusForbidden,
 				Msg:  "sign validate failure",
 			})
 		}
