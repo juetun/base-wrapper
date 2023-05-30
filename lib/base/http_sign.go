@@ -166,7 +166,7 @@ func (s *SignUtils) SignGinRequest(c *gin.Context) (validateResult bool, signRes
 		}
 		// 读完body参数一定要回写，不然后边取不到参数
 		c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
-		if len(body)>0{
+		if len(body) > 0 {
 			bt.WriteString(strconv.Quote(string(body)))
 		}
 
@@ -177,9 +177,7 @@ func (s *SignUtils) SignGinRequest(c *gin.Context) (validateResult bool, signRes
 			return
 		}
 		body = encryptionCode.Bytes()
-		if len(body)>0{
-			bt.WriteString(strconv.Quote(string(body)))
-		}
+		bt.Write(body)
 	}
 	encryptionString := strings.ToLower(bt.String())
 	base64Code := base64.StdEncoding.EncodeToString([]byte(encryptionString))
