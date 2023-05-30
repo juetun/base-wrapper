@@ -173,7 +173,7 @@ func (s *SignUtils) SignGinRequest(c *gin.Context) (validateResult bool, signRes
 		}
 		body = encryptionCode.Bytes()
 	}
-	bt.Write(body)
+	bt.WriteString(strconv.Quote(string(body)))
 	encryptionString := strings.ToLower(bt.String())
 	base64Code := base64.StdEncoding.EncodeToString([]byte(encryptionString))
 
