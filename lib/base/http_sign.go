@@ -166,9 +166,10 @@ func (s *SignUtils) SignGinRequest(c *gin.Context) (validateResult bool, signRes
 		}
 		// 读完body参数一定要回写，不然后边取不到参数
 		c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
-		if len(body) > 0 {
-			bt.WriteString(strconv.Quote(string(body)))
-		}
+		bt.Write(body)
+		//if len(body) > 0 {
+		//	bt.WriteString(strconv.Quote(string(body)))
+		//}
 
 	} else { // 如果是非JSON 传参
 		var body []byte
