@@ -250,7 +250,7 @@ func ParseToken(myToken string, ctx *Context) (sub string, err error) {
 		return
 	}
 
-	if res == "" || res != myToken {
+	if res == "" {
 		desc := "token is invalid"
 		logContent["content"] = desc
 		err = fmt.Errorf(desc)
