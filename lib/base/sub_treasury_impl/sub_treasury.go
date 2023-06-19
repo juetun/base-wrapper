@@ -294,7 +294,7 @@ func (r *SubTreasuryBase) GetDbByDbName(dbNameString string) (db *gorm.DB, dbNam
 	dbName = dbNameString
 	s := ""
 	var ctx = context.TODO()
-	if nil != r.Context.GinContext {
+	if r.Context != nil && nil != r.Context.GinContext {
 		if tp, ok := r.Context.GinContext.Get(app_obj.TraceId); ok {
 			s = fmt.Sprintf("%v", tp)
 		}
