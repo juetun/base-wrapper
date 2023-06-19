@@ -44,6 +44,7 @@ func GetLog() (res *AppLog) {
 	res = logApp
 	return
 }
+
 func (r *AppLog) GetFields(data map[string]interface{}, defaultLoc ...int) (res logrus.Fields) {
 	var file = "-" // 获取当前日志写入时的代码位置 （文件名称，函数名称）
 	var loc = 4
@@ -71,12 +72,19 @@ func (r *AppLog) GetFields(data map[string]interface{}, defaultLoc ...int) (res 
 }
 
 func (r *AppLog) Error(context *gin.Context, data map[string]interface{}, message ...interface{}) {
+	if context == nil {
+		return
+	}
 	r.Logger.WithFields(r.orgFields(context, data)).Error(message...)
 }
-func (r *AppLog) Info(context *gin.Context, data map[string]interface{}, message ...interface{}) {
 
+func (r *AppLog) Info(context *gin.Context, data map[string]interface{}, message ...interface{}) {
+	if context == nil {
+		return
+	}
 	r.Logger.WithFields(r.orgFields(context, data)).Info(message...)
 }
+
 func (r *AppLog) orgFields(context *gin.Context, data map[string]interface{}) (fields logrus.Fields) {
 	fields = r.GetFields(data)
 	if _, ok := fields[TraceId]; !ok {
@@ -91,15 +99,25 @@ func (r *AppLog) orgFields(context *gin.Context, data map[string]interface{}) (f
 	}
 	return
 }
-func (r *AppLog) Debug(context *gin.Context, data map[string]interface{}, message ...interface{}) {
 
+func (r *AppLog) Debug(context *gin.Context, data map[string]interface{}, message ...interface{}) {
+	if context == nil {
+		return
+	}
 	r.Logger.WithFields(r.orgFields(context, data)).Debug(message...)
 }
-func (r *AppLog) Fatal(context *gin.Context, data map[string]interface{}, message ...interface{}) {
 
+func (r *AppLog) Fatal(context *gin.Context, data map[string]interface{}, message ...interface{}) {
+	if context == nil {
+		return
+	}
 	r.Logger.WithFields(r.orgFields(context, data)).Fatal(message...)
 }
+
 func (r *AppLog) Warn(context *gin.Context, data map[string]interface{}, message ...interface{}) {
+	if context == nil {
+		return
+	}
 	r.Logger.WithFields(r.orgFields(context, data)).Warn(message...)
 }
 
