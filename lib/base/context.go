@@ -141,17 +141,36 @@ func (r *Context) initDb(s string, ctx context.Context) (err error) {
 }
 
 func (r *Context) Error(data map[string]interface{}, message ...interface{}) {
+	if r == nil {
+		return
+	}
 	r.log.Error(r.GinContext, data, message...)
 }
+
 func (r *Context) Info(data map[string]interface{}, message ...interface{}) {
+	if r == nil {
+		return
+	}
 	r.log.Info(r.GinContext, data, message...)
 }
+
 func (r *Context) Debug(data map[string]interface{}, message ...interface{}) {
+	if r == nil {
+		return
+	}
 	r.log.Debug(r.GinContext, data, message...)
 }
+
 func (r *Context) Fatal(data map[string]interface{}, message ...interface{}) {
+	if r == nil {
+		return
+	}
 	r.log.Fatal(r.GinContext, data, message...)
 }
+
 func (r *Context) Warn(data map[string]interface{}, message ...interface{}) {
+	if r == nil {
+		return
+	}
 	r.log.Warn(r.GinContext, data, message...)
 }
