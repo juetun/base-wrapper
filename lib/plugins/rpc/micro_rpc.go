@@ -376,6 +376,9 @@ func (r *httpRpc) GetBody() (res *httpRpc) {
 		logContent["reqBody"] = string(r.Request.BodyJson)
 	}
 	defer func() {
+		if r.Request == nil || r.Request.Context == nil {
+			return
+		}
 		if r.Error != nil {
 			logContent["err"] = r.Error.Error()
 			r.Request.Context.Error(logContent, "httpRpcGetBody")
