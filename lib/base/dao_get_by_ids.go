@@ -167,10 +167,12 @@ func (r *GetDataTypeCommon) validateRefreshCacheValue() (err error) {
 
 func (r *GetDataTypeCommon) Default() (err error) {
 
-	if r.RefreshCache == RefreshCacheYes { //如果要求刷新缓存,则直接从数据库中取
-		r.GetType = GetDataTypeFromDb
-	} else if r.GetType == "" { // 默认是从缓存拿，如果拿不到，则从数据库拿
-		r.GetType = DefaultGetDataType
+	if r.GetType == "" { //如果没有设置获取数据的类型
+		if r.RefreshCache == RefreshCacheYes { //如果要求刷新缓存,则直接从数据库中取
+			r.GetType = GetDataTypeFromDb
+		} else if r.GetType == "" { // 默认是从缓存拿，如果拿不到，则从数据库拿
+			r.GetType = DefaultGetDataType
+		}
 	}
 
 	if err = r.validateExpireTimeRandValue(); err != nil {
