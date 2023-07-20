@@ -30,7 +30,6 @@ func NewRedisLock(options ...RedisLockOption) (res *RedisLock) {
 	for _, option := range options {
 		option(res)
 	}
-	res.taskOver = false
 	if res.Ctx == nil {
 		res.Ctx = context.TODO()
 	}
@@ -46,10 +45,10 @@ type (
 		UniqueKey        string               `json:"unique_key"`        // 锁的值 （用于释放锁时，只能指定线程才可释放锁）
 		expiration       time.Duration        `json:"duration"`          // 锁的时长 （单位秒）
 		TTlDuration      time.Duration        `json:"ttl_duration"`      // 锁续时的时长 （单位秒）
+		maxExecDuration  time.Duration        `json:"max_exec_duration"` //最大执行时长 0表示无限制
 		OkHandler        DistributedOkHandler `json:"-"`
 		Context          *base.Context        `json:"-"`
-		Ctx              context.Context
-		taskOver         bool `json:"-"`
+		Ctx              context.Context      `json:"-"`
 	}
 
 	DistributedOkHandler func(ctx context.Context) (err error)
@@ -106,6 +105,13 @@ func RedisLockDuration(Duration time.Duration) RedisLockOption {
 	}
 }
 
+//
+func RedisLockMaxExecDuration(maxExecDuration time.Duration) RedisLockOption {
+	return func(RedisLock *RedisLock) {
+		RedisLock.maxExecDuration = maxExecDuration
+	}
+}
+
 // RedisLock Redis 分布式锁
 
 // RunWithGetLock 多次尝试获取锁实现逻辑
@@ -159,28 +165,29 @@ func (r *RedisLock) Run() (getLock bool, err error) {
 		logContent["desc"] = "获取锁失败"
 		return
 	}
-	if r.Ctx == nil {
-		r.Ctx = context.TODO()
+	var cancel context.CancelFunc
+	if r.maxExecDuration > 0 { //如果设置了最大执行时长
+		// 如果是当前操作锁定的数据
+		r.Ctx, cancel = context.WithTimeout(r.Ctx, r.maxExecDuration)
+	} else {
+		// 如果是当前操作锁定的数据
+		r.Ctx, cancel = context.WithCancel(r.Ctx)
 	}
-	// 如果是当前操作锁定的数据
-	ctx, cancel := context.WithCancel(r.Ctx)
-	defer func() {
-		cancel()
+
+	go func() {
+		defer cancel()
+		// 执行锁逻辑
+		if err = r.OkHandler(r.Ctx); err != nil {
+			r.Context.Error(map[string]interface{}{
+				"err": err.Error(),
+			}, "RedisLockRun2")
+			return
+		}
+
 	}()
 
-	{ //续租锁
-		go r.unLockWithCancel(ctx, r.unLockAct)
-		go r.ttlRun(ctx)
-	}
-
-	// 执行锁逻辑
-	if err = r.OkHandler(ctx); err != nil {
-		r.Context.Error(map[string]interface{}{
-			"err": err.Error(),
-		}, "RedisLockRun2")
-		return
-	}
-
+	//续租锁
+	r.ttlRun(r.Ctx, r.unLockAct)
 	return
 }
 
@@ -253,13 +260,15 @@ func (r *RedisLock) validateParameters() (err error) {
 	return
 }
 
-func (r *RedisLock) ttlRun(ctx context.Context) () {
+func (r *RedisLock) ttlRun(ctx context.Context, unLockAct unLockAct) () {
 	var err error
 	// 如果加锁成功
 	// 创建协程,定时延期锁的过期时间
 	for {
 		select {
 		case <-ctx.Done():
+			// log.Printf("结束")
+			_ = unLockAct()
 			goto BreakLogic
 		case <-time.After(r.TTlDuration):
 			// log.Printf("续租数据\n")
@@ -269,25 +278,7 @@ func (r *RedisLock) ttlRun(ctx context.Context) () {
 					"err":     err.Error(),
 				}, "RedisLockRun0")
 			}
-			if r.taskOver {
-				goto BreakLogic
-			}
-		}
-	}
-BreakLogic:
-	return
-}
 
-func (r *RedisLock) unLockWithCancel(ctx context.Context, unLockAct unLockAct) {
-	// 如果加锁成功
-	// 创建协程,定时延期锁的过期时间
-	for {
-		select {
-		case <-ctx.Done():
-			// log.Printf("结束")
-			_ = unLockAct()
-			r.taskOver = true
-			goto BreakLogic
 		}
 	}
 BreakLogic:
