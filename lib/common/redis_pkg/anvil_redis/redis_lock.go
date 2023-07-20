@@ -213,7 +213,7 @@ func (r *RedisLock) lock() (ok bool, err error) {
 	}
 
 	if ok, err = r.Context.CacheClient.
-		SetNX(r.Ctx,
+		SetNX(context.Background(),
 			r.LockKey,
 			r.UniqueKey,
 			r.expiration).
@@ -233,7 +233,7 @@ func (r *RedisLock) unLock() (ok bool, err error) {
 	end
 	`)
 
-	result, err := script.Run(r.Ctx, r.Context.CacheClient, []string{r.LockKey}, r.UniqueKey).Int64()
+	result, err := script.Run(context.Background(), r.Context.CacheClient, []string{r.LockKey}, r.UniqueKey).Int64()
 	if err != nil {
 		return
 	}
@@ -309,7 +309,7 @@ func (r *RedisLock) refreshLock() (ok bool, err error) {
 	end
 	`)
 	var result int64
-	if result, err = script.Run(r.Ctx, r.Context.CacheClient, []string{r.LockKey}, r.UniqueKey, r.expiration/time.Second).Int64(); err != nil {
+	if result, err = script.Run(context.Background(), r.Context.CacheClient, []string{r.LockKey}, r.UniqueKey, r.expiration/time.Second).Int64(); err != nil {
 		return
 	} else {
 		ok = result > 0
