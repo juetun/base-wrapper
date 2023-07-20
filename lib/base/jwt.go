@@ -244,14 +244,15 @@ func ParseToken(myToken string, ctx *Context) (sub string, err error) {
 	}
 	cacheKey := jwtParam.TokenKey + myToken
 
+	var e error
 	//检测缓存中是否有token
-	res, err = jwtParam.RedisCache.
+	res, e = jwtParam.RedisCache.
 		Get(ctx.GinContext.Request.Context(), cacheKey).
 		Result()
-	if err == redis.Nil { //如果缓存中没有数据
+	if e == redis.Nil { //如果缓存中没有数据
 		return
 	}
-	if err != nil {
+	if err = e; err != nil {
 		logContent["content"] = "get token from redis error"
 		return
 	}
