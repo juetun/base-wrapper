@@ -30,7 +30,7 @@ func NewRedisLock(options ...RedisLockOption) (res *RedisLock) {
 	for _, option := range options {
 		option(res)
 	}
-
+	res.taskOver = false
 	if res.Ctx == nil {
 		res.Ctx = context.TODO()
 	}
@@ -44,11 +44,12 @@ type (
 		AttemptsInterval time.Duration        `json:"attempts_interval"` // 尝试获取锁时间间隔
 		LockKey          string               `json:"lock_key"`          // 业务key
 		UniqueKey        string               `json:"unique_key"`        // 锁的值 （用于释放锁时，只能指定线程才可释放锁）
-		Duration         time.Duration        `json:"duration"`          // 锁的时长 （单位秒）
+		expiration       time.Duration        `json:"duration"`          // 锁的时长 （单位秒）
 		TTlDuration      time.Duration        `json:"ttl_duration"`      // 锁续时的时长 （单位秒）
 		OkHandler        DistributedOkHandler `json:"-"`
 		Context          *base.Context        `json:"-"`
 		Ctx              context.Context
+		taskOver         bool `json:"-"`
 	}
 
 	DistributedOkHandler func(ctx context.Context) (err error)
@@ -98,9 +99,10 @@ func RedisLockCtx(Ctx context.Context) RedisLockOption {
 	}
 }
 
+//key的生命周期
 func RedisLockDuration(Duration time.Duration) RedisLockOption {
 	return func(RedisLock *RedisLock) {
-		RedisLock.Duration = Duration
+		RedisLock.expiration = Duration
 	}
 }
 
@@ -166,10 +168,10 @@ func (r *RedisLock) Run() (getLock bool, err error) {
 		cancel()
 	}()
 
-	go func() {
-		//续租锁
-		_ = r.tTlTime(ctx, r.unLockAct)
-	}()
+	{ //续租锁
+		go r.unLockWithCancel(ctx, r.unLockAct)
+		go r.ttlRun(ctx)
+	}
 
 	// 执行锁逻辑
 	if err = r.OkHandler(ctx); err != nil {
@@ -188,17 +190,17 @@ func (r *RedisLock) lock() (ok bool, err error) {
 			return
 		}
 		r.Context.Debug(map[string]interface{}{
-			"err":       err.Error(),
-			"LockKey":   r.LockKey,
-			"UniqueKey": r.UniqueKey,
-			"Duration":  r.Duration,
+			"err":        err.Error(),
+			"LockKey":    r.LockKey,
+			"UniqueKey":  r.UniqueKey,
+			"expiration": r.expiration,
 		}, "RedisLock")
 	}()
 	if r.LockKey == "" || r.UniqueKey == "" {
 		err = fmt.Errorf("lockKey or UniqueKey must be not null")
 		return
 	}
-	if r.Duration == 0 {
+	if r.expiration == 0 {
 		err = fmt.Errorf("duration is zero")
 		return
 	}
@@ -207,7 +209,7 @@ func (r *RedisLock) lock() (ok bool, err error) {
 		SetNX(r.Ctx,
 			r.LockKey,
 			r.UniqueKey,
-			r.Duration).
+			r.expiration).
 		Result(); err != nil {
 		return
 	}
@@ -216,37 +218,33 @@ func (r *RedisLock) lock() (ok bool, err error) {
 
 func (r *RedisLock) unLock() (ok bool, err error) {
 
-	uniqueKey := r.Context.CacheClient.Get(r.Ctx, r.LockKey).String()
-	if uniqueKey == "" {
+	script := redis.NewScript(`
+	if redis.call("get", KEYS[1]) == ARGV[1] then
+		return redis.call("del", KEYS[1])
+	else
+		return 0
+	end
+	`)
+
+	result, err := script.Run(r.Ctx, r.Context.CacheClient, []string{r.LockKey}, r.UniqueKey).Int64()
+	if err != nil {
 		return
 	}
-	// 当前数据才能释放对应的锁
-	if uniqueKey != r.UniqueKey {
-		err = fmt.Errorf("不是当前操作锁定数据(lock:%s,now:%s),没权限解锁", uniqueKey, r.UniqueKey)
-		return
-	}
-	if err = r.Context.CacheClient.Del(r.Ctx, r.LockKey).Err(); err != nil {
-		r.Context.Debug(map[string]interface{}{
-			"err":            err.Error(),
-			"LockKey":        r.LockKey,
-			"redisUniqueKey": uniqueKey,
-			"UniqueKey":      r.UniqueKey,
-			"Duration":       r.Duration,
-		}, "RedisDistributedUnLock")
-	}
+	ok = result > 0
 	return
 }
+
 func (r *RedisLock) validateParameters() (err error) {
-	if r.Duration == 0 { //锁的有效期
+	if r.expiration == 0 { //锁的有效期
 		err = fmt.Errorf("请设置Duration")
 		return
 	}
-	if r.TTlDuration >= r.Duration {
+	if r.TTlDuration >= r.expiration {
 		err = fmt.Errorf("Duration必须大于TTlDuration")
 		return
 	}
 	if r.TTlDuration == 0 {
-		r.TTlDuration = r.Duration - 1
+		r.TTlDuration = r.expiration - 1
 		if r.TTlDuration <= 0 {
 			err = fmt.Errorf("请设置TTlDuration的值")
 			return
@@ -255,7 +253,32 @@ func (r *RedisLock) validateParameters() (err error) {
 	return
 }
 
-func (r *RedisLock) tTlTime(ctx context.Context, unLockAct unLockAct) (err error) {
+func (r *RedisLock) ttlRun(ctx context.Context) () {
+	var err error
+	// 如果加锁成功
+	// 创建协程,定时延期锁的过期时间
+	for {
+		select {
+		case <-ctx.Done():
+			goto BreakLogic
+		case <-time.After(r.TTlDuration):
+			// log.Printf("续租数据\n")
+			if _, err = r.refreshLock(); err != nil {
+				r.Context.Debug(map[string]interface{}{
+					"LockKey": "续租数据",
+					"err":     err.Error(),
+				}, "RedisLockRun0")
+			}
+			if r.taskOver {
+				goto BreakLogic
+			}
+		}
+	}
+BreakLogic:
+	return
+}
+
+func (r *RedisLock) unLockWithCancel(ctx context.Context, unLockAct unLockAct) {
 	// 如果加锁成功
 	// 创建协程,定时延期锁的过期时间
 	for {
@@ -263,15 +286,8 @@ func (r *RedisLock) tTlTime(ctx context.Context, unLockAct unLockAct) (err error
 		case <-ctx.Done():
 			// log.Printf("结束")
 			_ = unLockAct()
+			r.taskOver = true
 			goto BreakLogic
-		case <-time.After(r.TTlDuration):
-			// log.Printf("续租数据\n")
-			if _, err = r.addTimeout(); err != nil {
-				r.Context.Debug(map[string]interface{}{
-					"LockKey": "续租数据",
-					"err":     err.Error(),
-				}, "RedisLockRun0")
-			}
 		}
 	}
 BreakLogic:
@@ -288,42 +304,24 @@ func (r *RedisLock) unLockAct() (e1 error) {
 	return
 }
 
-// addTimeout 延期,应该判断value后再延期
-func (r *RedisLock) addTimeout() (ok bool, err error) {
-
-	logContent := map[string]interface{}{
-		"LockKey": r.LockKey,
-	}
-	defer func() {
-		if err != nil {
-			r.Context.Error(logContent, "RedisLockAddTimeout")
-			return
-		}
-		r.Context.Info(logContent, "RedisLockAddTimeout")
-
-	}()
-	// 获取key的剩余有效时间 当key不存在时返回-2 当未设置过期时间的返回-1
-	var ttlTime int64
-	if ttlTime, err = r.Context.CacheClient.Do(r.Ctx, "TTL", r.LockKey).Int64(); err != nil {
-		logContent["desc"] = "CacheClientDo"
+// RefreshLock 存在则更新过期时间,不存在则创建key
+func (r *RedisLock) refreshLock() (ok bool, err error) {
+	script := redis.NewScript(`
+	local val = redis.call("GET", KEYS[1])
+	if not val then
+		redis.call("setex", KEYS[1], ARGV[2], ARGV[1])
+		return 2
+	elseif val == ARGV[1] then
+		return redis.call("expire", KEYS[1], ARGV[2])
+	else
+		return 0
+	end
+	`)
+	var result int64
+	if result, err = script.Run(r.Ctx, r.Context.CacheClient, []string{r.LockKey}, r.UniqueKey, r.expiration/time.Second).Int64(); err != nil {
 		return
-	}
-	logContent["ttlTime"] = ttlTime
-
-	if ttlTime <= 0 {
-		ok = true
-		return
-	}
-	logContent["UniqueKey"] = r.UniqueKey
-	logContent["Duration"] = r.Duration
-
-	if _, err = r.Context.
-		CacheClient.SetEX(r.Ctx, r.LockKey, r.UniqueKey, r.Duration).
-		Result(); err != nil {
-		if err == redis.Nil {
-			err = nil
-		}
-		return
+	} else {
+		ok = result > 0
 	}
 	return
 }
