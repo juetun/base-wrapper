@@ -57,6 +57,22 @@ func NewArgGetByStringIds(options ...ArgGetByStringIdsOption) (res *ArgGetByStri
 	return
 }
 
+func (r *ArgGetByNumberIds) GetIdMap() (res map[int64]bool) {
+	res = make(map[int64]bool, len(r.Ids))
+	for _, item := range r.Ids {
+		res[item] = true
+	}
+	return
+}
+
+func (r *ArgGetByStringIds) GetIdMap() (res map[string]bool) {
+	res = make(map[string]bool, len(r.Ids))
+	for _, item := range r.Ids {
+		res[item] = true
+	}
+	return
+}
+
 // ArgGetByStringIdsOptionGetDataTypeCommon
 func ArgGetByStringIdsOptionGetDataTypeCommon(getDataTypeCommon GetDataTypeCommon) ArgGetByStringIdsOption {
 	return func(arg *ArgGetByStringIds) {
