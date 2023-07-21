@@ -15,6 +15,9 @@ type (
 	ModelBase interface {
 		TableName() string
 		GetTableComment() (res string)
+
+		UnmarshalBinary(data []byte) (err error) //缓存时使用
+		MarshalBinary() (data []byte, err error) //缓存时使用
 	}
 
 	DaoBatchAdd interface {
@@ -103,7 +106,6 @@ func BatchAddDataParameterData(data []ModelBase) BatchAddDataParameterOption {
 		batchAddDataParameter.Data = data
 	}
 }
-
 
 func BatchAddDataParameterRuleOutColumn(ruleOutColumn []string) BatchAddDataParameterOption {
 	return func(batchAddDataParameter *BatchAddDataParameter) {
