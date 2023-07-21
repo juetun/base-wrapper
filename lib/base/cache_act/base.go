@@ -64,6 +64,90 @@ func (r *CacheActionBase) SetToCache(id interface{}, data interface{}, expireTim
 	return
 }
 
+func (r *CacheActionBase) RemoveCacheByStringId(ids ...string) (err error) {
+	var (
+		l        = len(ids)
+		keys     = make([]string, 0, l)
+		key      string
+		duration time.Duration
+	)
+	if l == 0 {
+		return
+	}
+	for _, id := range ids {
+		if key, _, err = r.GetCacheKey(id); err != nil {
+			return
+		}
+		keys = append(keys, key)
+	}
+
+	if err = r.Context.CacheClient.Del(r.Ctx, keys...).Err(); err != nil {
+		r.Context.Info(map[string]interface{}{
+			"ids":      ids,
+			"keys":     keys,
+			"duration": duration,
+		}, "CacheActionBaseRemoveCacheByStringId")
+		return
+	}
+	return
+}
+
+func (r *CacheActionBase) RemoveCacheByInterfaceId(ids ...interface{}) (err error) {
+	var (
+		l        = len(ids)
+		keys     = make([]string, 0, l)
+		key      string
+		duration time.Duration
+	)
+	if l == 0 {
+		return
+	}
+	for _, id := range ids {
+		if key, _, err = r.GetCacheKey(id); err != nil {
+			return
+		}
+		keys = append(keys, key)
+	}
+
+	if err = r.Context.CacheClient.Del(r.Ctx, keys...).Err(); err != nil {
+		r.Context.Info(map[string]interface{}{
+			"ids":      ids,
+			"keys":     keys,
+			"duration": duration,
+		}, "CacheActionBaseRemoveCacheByInterfaceId")
+		return
+	}
+	return
+}
+
+func (r *CacheActionBase) RemoveCacheByNumberId(ids ...int64) (err error) {
+	var (
+		l        = len(ids)
+		keys     = make([]string, 0, l)
+		key      string
+		duration time.Duration
+	)
+	if l == 0 {
+		return
+	}
+	for _, id := range ids {
+		if key, _, err = r.GetCacheKey(id); err != nil {
+			return
+		}
+		keys = append(keys, key)
+	}
+
+	if err = r.Context.CacheClient.Del(r.Ctx, keys...).Err(); err != nil {
+		r.Context.Info(map[string]interface{}{
+			"ids":      ids,
+			"keys":     keys,
+			"duration": duration,
+		}, "CacheActionBaseRemoveCacheByNumberId")
+		return
+	}
+	return
+}
+
 func CacheActionBaseGetCacheKey(getCacheKey GetCacheKey) CacheActionBaseOption {
 	return func(cacheFreightAction *CacheActionBase) {
 		cacheFreightAction.GetCacheKey = getCacheKey
