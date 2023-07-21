@@ -191,7 +191,7 @@ func CreateToken(s string, ctx *Context) (tokenString string, err error) {
 }
 
 func ParseToken(myToken string, ctx *Context) (sub string, err error) {
-	if myToken == "" {
+	if myToken == "" || myToken == "null" {
 		return
 	}
 	var (
@@ -202,7 +202,7 @@ func ParseToken(myToken string, ctx *Context) (sub string, err error) {
 		res        string
 	)
 	defer func() {
-		if err == nil {
+		if err == nil || ctx == nil {
 			return
 		}
 		ctx.Error(logContent, "jwtParseToken")

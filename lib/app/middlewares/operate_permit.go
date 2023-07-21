@@ -55,6 +55,8 @@ func Auth(c *base.Context) (exit bool) {
 
 	if err = base.ParseJwtKey(token, c, &jwtUser); err != nil {
 		logContent["desc"] = "ParseToken"
+		logContent["token"] = token
+
 		c.GinContext.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusForbidden).SetMessage(err.Error()))
 		c.GinContext.Abort()
 		exit = true
