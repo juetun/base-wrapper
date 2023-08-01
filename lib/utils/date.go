@@ -15,13 +15,14 @@ import (
 )
 
 const (
-	DateTimeGeneral     = "2006-01-02 15:04:05"
-	DateTimeGeneralNano = "2006-01-02 15:04:05.999999999" //纳秒时间格式
-	DateTimeDashboard   = "2006.01.02 15:04"
-	DateGeneral         = "2006-01-02"
-	DateTimeChat        = "01月02 15:04" //聊天信息展示的时间格式
-	TimeDay             = 24 * time.Hour
-	TimeWeek            = 7 * 24 * time.Hour
+	DateTimeGeneral       = "2006-01-02 15:04:05"
+	DateTimeGeneralNano   = "2006-01-02 15:04:05.999999999" //纳秒时间格式
+	DateTimeDashboard     = "2006.01.02 15:04"
+	DateTimeDashboardShow = "2006.01.02 15:04:05"
+	DateGeneral           = "2006-01-02"
+	DateTimeChat          = "01月02 15:04" //聊天信息展示的时间格式
+	TimeDay               = 24 * time.Hour
+	TimeWeek              = 7 * 24 * time.Hour
 )
 
 const ( //表示时间为空的字符串
