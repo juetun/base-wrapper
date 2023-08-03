@@ -25,7 +25,7 @@ func TokenValidate(c *base.Context, notStrictValue bool) (jwtUser base.JwtUser, 
 		}
 	}()
 	c.GinContext.Set(app_obj.TraceId, c.GinContext.GetHeader(app_obj.HttpTraceId))
-	if token = c.GinContext.Request.Header.Get(app_obj.HttpUserToken); token == "" { // 如果token为空
+	if token = c.GinContext.Request.Header.Get(app_obj.HttpUserToken); token == "" || token == "null" { // 如果token为空
 
 		// 如果token为空且设置了空跳过，则直接退出
 		if notStrictValue == true {
