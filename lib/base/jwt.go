@@ -285,10 +285,14 @@ func ParseJwtKey(myToken string, ctx *Context, data interface{}) (err error) {
 		}
 		ctx.Error(logContent, "jwtParseUser")
 	}()
-	if err = json.Unmarshal([]byte(sub), data); err != nil {
-		logContent["content"] = "sub is error may be is not a json string"
-		return
+	if sub != "" {
+		if err = json.Unmarshal([]byte(sub), data); err != nil {
+			logContent["content"] = "sub is error may be is not a json string"
+			logContent["sub"] = sub
+			return
+		}
 	}
+
 	return
 }
 
