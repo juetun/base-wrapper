@@ -77,9 +77,7 @@ func (r *ServiceDao) GetDefaultAddOneDataParameter(modelBase ModelBase) (res *Ad
 	return
 }
 
-//真随机数生成
-//生成规则参考，https://blog.csdn.net/study_in/article/details/102919019
-func (r *ServiceDao) RealRandomNumber(maxWeight int64) (result int64, err error) {
+func RealRandomNumber(maxWeight int64) (result int64, err error) {
 	if maxWeight == 0 {
 		result = 0
 		return
@@ -94,6 +92,13 @@ func (r *ServiceDao) RealRandomNumber(maxWeight int64) (result int64, err error)
 	//fmt.Printf("随机数 maxWeight:%d result:%d",maxWeight,result)
 	return
 }
+
+//真随机数生成
+//生成规则参考，https://blog.csdn.net/study_in/article/details/102919019
+func (r *ServiceDao) RealRandomNumber(maxWeight int64) (result int64, err error) {
+	return RealRandomNumber(maxWeight)
+}
+
 func (r *ServiceDao) GetDefaultBatchAddDataParameter(modelBase ...ModelBase) (res *BatchAddDataParameter, err error) {
 	if len(modelBase) == 0 {
 		err = fmt.Errorf("您没有选择要添加的数据")
