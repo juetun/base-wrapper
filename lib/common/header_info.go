@@ -39,7 +39,8 @@ func (r *HeaderInfo) setData(tmp *HeaderInfo) {
 
 func (r *HeaderInfo) InitHeaderInfo(ctx *gin.Context) (err error) {
 	if r == nil {
-		*r = HeaderInfo{}
+		err = fmt.Errorf("HeaderInfo 对象未初始化")
+		return
 	}
 	var (
 		data interface{}
