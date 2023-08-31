@@ -39,7 +39,7 @@ func (r *HeaderInfo) setData(tmp *HeaderInfo) {
 
 func (r *HeaderInfo) InitHeaderInfo(ctx *gin.Context) (err error) {
 	if r == nil {
-		r = &HeaderInfo{}
+		*r = HeaderInfo{}
 	}
 	var (
 		data interface{}
