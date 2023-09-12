@@ -318,8 +318,8 @@ func (r *ServiceDao) CreateTableWithError(db *gorm.DB, tableName string, e, mode
 	defer func() {
 		if err != nil {
 			logContent["err"] = err.Error()
+			r.Context.Error(logContent, "ServiceDaoCreateTableWithError")
 		}
-		r.Context.Error(logContent, "ServiceDaoCreateTableWithError")
 	}()
 	// 延迟处理的函数
 	switch e.(type) {
