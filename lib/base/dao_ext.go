@@ -15,7 +15,7 @@ type (
 	ModelBase interface {
 		TableName() string
 		GetTableComment() (res string)
-
+		Default() (err error)
 		UnmarshalBinary(data []byte) (err error) //缓存时使用
 		MarshalBinary() (data []byte, err error) //缓存时使用
 	}
