@@ -64,7 +64,7 @@ func (r *AppLog) GetFields(data map[string]interface{}, defaultLoc ...int) (res 
 		return
 	}
 	if r.GoPath != "" {
-		res[AppLogLoc] = "$GOPATH" + strings.TrimPrefix(file, r.GoPath)
+		res[AppLogLoc] = "$GOPATH " + strings.TrimPrefix(file, r.GoPath)
 		return
 	}
 	res[AppLogLoc] = file

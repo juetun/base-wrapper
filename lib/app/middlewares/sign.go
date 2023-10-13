@@ -26,6 +26,11 @@ func SignHttp() gin.HandlerFunc {
 			c.Next()
 			return
 		}
+		//websocket的参数验证跳过
+		if c.Request.Header.Get("Upgrade") == "websocket" {
+			c.Next()
+			return
+		}
 		var res bool
 		var err error
 		if res, _, err = base.NewSign().

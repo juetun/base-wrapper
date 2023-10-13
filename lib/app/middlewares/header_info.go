@@ -22,6 +22,13 @@ func HttpHeaderInfo() gin.HandlerFunc {
 			c.Next()
 			return
 		}
+
+		//websocket的参数验证跳过
+		if c.Request.Header.Get("Upgrade") == "websocket" {
+			c.Next()
+			return
+		}
+
 		var (
 			err                   error
 			secret                string

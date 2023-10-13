@@ -46,7 +46,7 @@ func (r GOrmLog) Print(v ...interface{}) () {
 		app_obj.AppLogLoc:   v[1].(string),
 	}
 	if r.GoPath != "" {
-		fields[app_obj.AppLogLoc] = "$GOPATH" + strings.TrimPrefix(v[1].(string), r.GoPath)
+		fields[app_obj.AppLogLoc] = "$GOPATH " + strings.TrimPrefix(v[1].(string), r.GoPath)
 	}
 
 	switch v[0] {
