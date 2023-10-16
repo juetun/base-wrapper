@@ -20,12 +20,11 @@ type (
 		Ctx         context.Context // 上下文参数 用于停止监听动作
 		cancel      context.CancelFunc
 		Context     *base.Context // 上下文参数用于记录日志使用
-		ChannelList []string `json:"channel_list"`
+		ChannelList []string      `json:"channel_list"`
 
 		client *redis.Client
 		pb     *redis.PubSub
 	}
-
 
 	// RedisMqOption RedisMQ赋值属性参数
 	RedisMqOption func(mq *RedisMQ)
@@ -129,24 +128,22 @@ func (r *RedisMQ) Close() {
 
 // AcceptMsg 监听数据
 func (r *RedisMQ) AcceptMsg(actionHandler ActionHandler) {
-	for {
-		select {
-		case msg := <-r.pb.Channel():
-			// 等待从 channel 中发布 close 关闭服务
-			switch msg.Payload {
-			case RedisMQBaseValue: // 如果监听到了退出指令
-				r.Context.Info(map[string]interface{}{
-					"desc": "收到监听消息指令",
-				}, "RedisMQAcceptMsg")
-				r.Close()
-				break
-			default:
-				_ = actionHandler(msg.Payload, msg.Channel)
-			}
+
+	select {
+	case msg := <-r.pb.Channel():
+		// 等待从 channel 中发布 close 关闭服务
+		switch msg.Payload {
+		case RedisMQBaseValue: // 如果监听到了退出指令
+			r.Context.Info(map[string]interface{}{
+				"desc": "收到监听消息指令",
+			}, "RedisMQAcceptMsg")
+			r.Close()
+			break
 		default:
-
+			_ = actionHandler(msg.Payload, msg.Channel)
 		}
+	default:
+
 	}
+
 }
-
-
