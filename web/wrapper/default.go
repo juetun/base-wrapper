@@ -18,12 +18,26 @@ const (
 	ChatMsgTypeRoomChart   = "room"   // 群聊
 )
 
+var (
+	SliceChatMsgType = base.ModelItemOptions{
+		{
+			Label: "单聊",
+			Value: ChatMsgTypeSingleChart,
+		},
+		{
+			Label: "群聊",
+			Value: ChatMsgTypeRoomChart,
+		},
+	}
+)
+
 type (
 	ArgWebSocket struct {
-		UserHid int64  `json:"uid" form:"uid"`
-		ToId    int64  `json:"to_id" form:"to_id"`
-		MsgType string `json:"msg_type" form:"msg_type"`
-		Pk      string `json:"pk"` //websocket的key
+		FromType uint8  `json:"from_type" form:"from_type"`
+		FromId   int64  `json:"from_id" form:"from_id"`
+		ToId     int64  `json:"to_id" form:"to_id"`
+		ToType   uint8  `json:"msg_type" form:"msg_type"`
+		Pk       string `json:"pk"` //websocket的key
 		base.ArgWebSocketBase
 	}
 	ArgumentDefault struct {
