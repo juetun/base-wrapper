@@ -33,6 +33,7 @@ var (
 
 type (
 	ArgWebSocket struct {
+		App      string `json:"app" form:"app"` //来源APP
 		FromType uint8  `json:"from_type" form:"from_type"`
 		FromId   int64  `json:"from_id" form:"from_id"`
 		ToId     int64  `json:"to_id" form:"to_id"`
@@ -47,6 +48,11 @@ type (
 		Users []models.User
 	}
 )
+
+func (r *ArgumentDefault) Default(ctx *base.Context) (err error) {
+
+	return
+}
 
 func (r *ArgumentDefault) SetPathParam(hid string) {
 
