@@ -33,13 +33,14 @@ var (
 
 type (
 	ArgWebSocket struct {
-		App        string `json:"app" form:"app"` //来源APP
-		FromType   uint8  `json:"from_type" form:"from_type"`
-		FromId     int64  `json:"from_id" form:"from_id"`
-		ToId       int64  `json:"to_id" form:"to_id"`
-		ToType     uint8  `json:"msg_type" form:"msg_type"`
-		Pk         string `json:"pk"` //websocket的key
-		XAuthToken string `json:"x_auth_token" form:"x_auth_token"`
+		App             string `json:"app" form:"app"` //来源APP
+		FromType        uint8  `json:"from_type" form:"from_type"`
+		FromId          int64  `json:"from_id" form:"from_id"`
+		ToId            int64  `json:"to_id" form:"to_id"`
+		ToType          uint8  `json:"msg_type" form:"msg_type"`
+		Pk              string `json:"pk"` //websocket的key
+		XAuthToken      string `json:"x_auth_token" form:"x_auth_token"`
+		CurrentUserRole string `json:"current_user_role" form:"current_user_role"` //当前用户聊天中的角色 customer-客服;user-普通用户
 		base.ArgWebSocketBase
 	}
 	ArgumentDefault struct {
