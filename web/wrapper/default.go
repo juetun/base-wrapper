@@ -56,6 +56,15 @@ func (r *ArgumentDefault) Default(ctx *base.Context) (err error) {
 	return
 }
 
+func (r *ArgWebSocket) Default(ctx *base.Context) (err error) {
+	r.Pk = ctx.GinContext.DefaultQuery("token", "")
+	r.App = ctx.GinContext.DefaultQuery("app", "")
+	r.XAuthToken = ctx.GinContext.DefaultQuery("x_auth_token", "")
+	r.CurrentUserRole = ctx.GinContext.DefaultQuery("current_user_role", "")
+	r.WebsocketKey = ctx.GinContext.Request.Header.Get("Sec-Websocket-Key")
+	return
+}
+
 func (r *ArgumentDefault) SetPathParam(hid string) {
 
 	return
