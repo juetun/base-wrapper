@@ -40,6 +40,7 @@ type (
 		ToType          uint8  `json:"msg_type" form:"msg_type"`
 		Pk              string `json:"pk"` //websocket的key
 		XAuthToken      string `json:"x_auth_token" form:"x_auth_token"`
+		CurrentUserHId  int64  `json:"current_user_hid" form:"current_user_hid"`
 		CurrentUserRole string `json:"current_user_role" form:"current_user_role"` //当前用户聊天中的角色 customer-客服;user-普通用户
 		base.ArgWebSocketBase
 	}
