@@ -6,7 +6,6 @@ import (
 	"github.com/juetun/base-wrapper/lib/base"
 )
 
-
 func TestAes_Encryption(t *testing.T) {
 	type fields struct {
 		Context *base.Context
@@ -40,7 +39,7 @@ func TestAes_Encryption(t *testing.T) {
 				t.Errorf("Encryption() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			t.Logf("%v",gotRes)
+			t.Logf("%v", gotRes)
 			if gotRes != tt.wantRes {
 				t.Errorf("Encryption() gotRes = %v, want %v", gotRes, tt.wantRes)
 			}
@@ -70,7 +69,7 @@ func TestAes_Decrypt(t *testing.T) {
 				encrypted: "vPXu4GKAc2B2V8CXasiQ59LnZzSfdEBeFIx2zNLSk8l7o9j2cZmwd/ZYhChaS9e2oY6a2Ur0X4WdSjI3RR/9DADFgozX5lnQK3ZNjKrV/cdwl1ENdBrtp/9E5mFYe9SXQAC51I0RImimZfr7W9B/C7cP6CA/07NBE/U1YcuPsZ8=",
 				//encrypted: "vPXu4GKAc2B2V8CXasiQ59LnZzSfdEBeFIx2zNLSk8l7o9j2cZmwd/ZYhChaS9e2oY6a2Ur0X4WdSjI3RR/9DADFgozX5lnQFnlRgYLrvsddkiJQdnH9sf19kWRzI4+XQjrE24gSFGiLYIn/WbVnVrQY93gS8YlAKsNTMKnaiKbA/QH/kHwkcTWD77j2u0tr",
 				//encrypted: "vPXu4GKAc2B2V8CXasiQ59LnZzSfdEBeFIx2zNLSk8l7o9j2cZmwd/ZYhChaS9e2oY6a2Ur0X4WdSjI3RR/9DADFgozX5lnQFnlRgYLrvsddkiJQdnH9sf19kWRzI4+XQjrE24gSFGiLYIn/WbVnVrQY93gS8YlAKsNTMKnaiKbA/QH/kHwkcTWD77j2u0tr",
-				aesKey:    "jueTungygoaesctr",
+				aesKey: "jueTungygoaesctr",
 			},
 			wantRes: "eyJoX2FwcCI6Imp1ZXR1biIsImhfdGVybWluYWwiOiJ3ZWJzaXRlIiwiaF9jaGFubmVsIjoidXNyIiwiaF92ZXJzaW9uIjoiMS4wIiwiaF9kZWJ1ZyI6dHJ1ZX0=",
 		},
@@ -93,7 +92,7 @@ func TestAes_Decrypt(t *testing.T) {
 				t.Errorf("Decrypt() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			t.Logf("%v",gotRes)
+			t.Logf("%v", gotRes)
 			if gotRes != tt.wantRes {
 				t.Errorf("Decrypt() gotRes = %v, want %v", gotRes, tt.wantRes)
 			}

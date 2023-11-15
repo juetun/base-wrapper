@@ -17,13 +17,14 @@ func TestSignUtils_Encrypt(t *testing.T) {
 		args    args
 		wantRes string
 	}{
-		 {
-		 	args:args{
+		{
+			args: args{
 				argJoin:             "Z2V0L2FwaS11c2VyL291dC91c2VyL2dldF91c2VyX2luZm8xNjg0NjM3NTg3NTYyanVldHVuZ3lnb2Flc2N0cnVzZXJfaGlkMA==",
 				secret:              "jueTungygoaesctr",
 				listenHandlerStruct: ListenHandlerStruct{},
 			},
-		 },
+			wantRes: "c47a7fd1d3ef9e893d1f7117e264ad8bb7eb9b89",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
