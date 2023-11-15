@@ -59,14 +59,22 @@ func pkcs7Padding(data []byte, blockSize int) []byte {
 	return append(data, padText...)
 }
 
-func pkcs7UnPadding(data []byte) ([]byte, error) {
+func pkcs7UnPadding(data []byte) (res []byte, err error) {
 	length := len(data)
 	if length == 0 {
-		return nil, fmt.Errorf("加密字符串错误！")
+		err = fmt.Errorf("加密字符串错误！")
+		return
 	}
+
 	//获取填充的个数
 	unPadding := int(data[length-1])
-	return data[:(length - unPadding)], nil
+	index := length - unPadding
+	if index < 0 || index > len(data) {
+		err = fmt.Errorf("加密字符串(参数:%v越界)错误", unPadding)
+		return
+	}
+	res = data[:(index)]
+	return
 }
 
 func (r *Aes) DecryptCtr(text, aesKey string) (res string, err error) {
