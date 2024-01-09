@@ -113,7 +113,7 @@ func HidTel(phone string) (res string, err error) {
 		res = phone[:6] + "****" + phone[10:]
 		return
 	}
-	if ok, err = regexp.Match(`^0[0-9]{2,3}[\-]?[0-9]{3,4}[\-]?[0-9]{4,8}$`, []byte(phone)); err != nil {//^0[0-9]{2,3}[\-]?[0-9]{7,8}[\-]?[0-9]?$
+	if ok, err = regexp.Match(`^0[0-9]{2,3}[\-]?[0-9]{3,4}[\-]?[0-9]{4,8}$`, []byte(phone)); err != nil { //^0[0-9]{2,3}[\-]?[0-9]{7,8}[\-]?[0-9]?$
 		return
 	} else if ok {
 		phoneArr := strings.Split(phone, "-")
@@ -123,15 +123,14 @@ func HidTel(phone string) (res string, err error) {
 			res = phone[:6] + "***" + phone[10:]
 			return
 		case 2:
-			phoneArr[1]=phoneArr[1][:2] + "***" + phoneArr[1][6:]
+			phoneArr[1] = phoneArr[1][:2] + "***" + phoneArr[1][6:]
 			res = strings.Join(phoneArr, "-")
 			return
 		case 3:
-			phoneArr[2]=phoneArr[2][:2] + "***" + phoneArr[2][6:]
+			phoneArr[2] = phoneArr[2][:2] + "***" + phoneArr[2][6:]
 			res = strings.Join(phoneArr, "-")
 			return
 		}
-
 
 	}
 
@@ -178,7 +177,6 @@ func RandomString(length ...int) (authCode string, err error) {
 	var lengthNumber = 6
 	if len(length) > 0 {
 		lengthNumber = length[0]
-		return
 	}
 	var buff bytes.Buffer
 
