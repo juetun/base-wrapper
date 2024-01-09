@@ -18,6 +18,7 @@ type (
 		HProvince string      `json:"h_pro,omitempty"`      //省
 		HCityId   string      `json:"h_city,omitempty"`     //市
 		HAreaId   string      `json:"h_area,omitempty"`     //
+		HPk       string      `json:"h_pk,omitempty"`       //终端唯一号 如：设备ID 或其他区分设备唯一的号
 		HExt      interface{} `json:"h_ext,omitempty"`
 	}
 )
