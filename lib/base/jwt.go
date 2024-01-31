@@ -32,6 +32,9 @@ func NewJwtParam() *JwtParam {
 }
 
 func GetJwtParam() *JwtParam {
+	if jwtParam == nil {
+		return &JwtParam{}
+	}
 	return jwtParam
 }
 
