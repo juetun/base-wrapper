@@ -43,6 +43,7 @@ type (
 		PageNo    int    `form:"page_no" json:"page_no,omitempty"`
 		PageSize  int    `form:"page_size" json:"page_size,omitempty"`
 		RequestId string `form:"request_id" json:"request_id,omitempty"`
+		UponReqId string `json:"upon_req_id,omitempty" form:"upon_req_id"`
 	}
 
 	PageQuery struct {
