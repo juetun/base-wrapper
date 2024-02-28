@@ -34,6 +34,7 @@ func (r *HeaderInfo) setData(tmp *HeaderInfo) {
 	r.HProvince = tmp.HProvince
 	r.HCityId = tmp.HCityId
 	r.HAreaId = tmp.HAreaId
+	r.HPk = tmp.HPk
 	r.HExt = tmp.HExt
 	return
 }
