@@ -13,7 +13,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"net/url"
@@ -408,7 +408,7 @@ func (r *httpRpc) GetBody() (res *httpRpc) {
 		return
 	}
 	// 失败，返回状态
-	if r.Body, r.Error = ioutil.ReadAll(r.resp.Body); r.Error != nil {
+	if r.Body, r.Error = io.ReadAll(r.resp.Body); r.Error != nil {
 		// 读取错误,返回异常
 		r.Error = fmt.Errorf("读取请求返回失败(%s)", r.Error.Error())
 		return
