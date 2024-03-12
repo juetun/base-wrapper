@@ -27,6 +27,7 @@ const (
 
 const ( //表示时间为空的字符串
 	DateNullString1       = "0001-01-01 00:00:00"
+	DateNullString2       = "0001-01-02 00:00:00"
 	DateNullStringDefault = "2000-01-01 00:00:00"
 )
 
