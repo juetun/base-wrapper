@@ -182,14 +182,12 @@ func (s *SignUtils) SignGinRequest(c *gin.Context) (validateResult bool, signRes
 	}
 	var (
 		encryptionString = strings.ToLower(bt.String())
-		btEncryption     = []byte(encryptionString)
 	)
 
-	if len([]byte(encryptionString)) > 400 {
-		btEncryption = []byte(encryptionString)[0:400]
+	base64Code := base64.StdEncoding.EncodeToString([]byte(encryptionString))
+	if len([]byte(base64Code)) > 400 {
+		base64Code = base64Code[0:400]
 	}
-	base64Code := base64.StdEncoding.EncodeToString(btEncryption)
-
 	// 配置回调输出
 	listenHandlerStruct := ListenHandlerStruct{}
 
