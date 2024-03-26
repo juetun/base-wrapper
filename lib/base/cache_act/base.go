@@ -2,7 +2,9 @@ package cache_act
 
 import (
 	"context"
+	"fmt"
 	"github.com/juetun/base-wrapper/lib/base"
+	"runtime"
 	"time"
 )
 
@@ -52,12 +54,17 @@ func (r *CacheActionBase) SetToCache(id interface{}, data interface{}, expireTim
 	if key, duration, err = r.GetCacheKey(id, expireTimeRand...); err != nil {
 		return
 	}
+
+	pc, file, line, ok := runtime.Caller(1)
+	pcName := runtime.FuncForPC(pc).Name() //获取函数名
 	if err = r.Context.CacheClient.Set(r.Ctx, key, data, duration).Err(); err != nil {
 		r.Context.Info(map[string]interface{}{
 			"id":       id,
 			"data":     data,
 			"key":      key,
+			"err":      err.Error(),
 			"duration": duration,
+			"loc":      fmt.Sprintf("%v   %s   %d   %t   %s", pc, file, line, ok, pcName),
 		}, "CacheActionSetToCache")
 		return
 	}
