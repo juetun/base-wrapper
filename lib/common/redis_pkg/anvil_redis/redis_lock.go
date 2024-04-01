@@ -148,7 +148,10 @@ func (r *RedisLock) Run() (getLock bool, err error) {
 	if err = r.validateParameters(); err != nil {
 		return
 	}
-	logContent := map[string]interface{}{}
+	logContent := map[string]interface{}{
+		"lock_key":   r.LockKey,
+		"unique_key": r.UniqueKey,
+	}
 	defer func() {
 		if err == nil {
 			return
