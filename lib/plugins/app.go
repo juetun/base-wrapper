@@ -5,7 +5,7 @@
 package plugins
 
 import (
-	"io/ioutil"
+	"os"
 	"sync"
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
@@ -41,7 +41,7 @@ func PluginsApp(arg *app_start.PluginsOperate) (err error) {
 	data.App.AppTemplateDirectory = common.DefaultAppTemplateDirectory(io)
 	var yamlFile []byte
 	filePath := common.GetConfigFilePath("app.yaml", true)
-	if yamlFile, err = ioutil.ReadFile(filePath); err != nil {
+	if yamlFile, err = os.ReadFile(filePath); err != nil {
 		io.SystemOutFatalf("yamlFile.Get err(%s)  #%v \n", filePath, err)
 	}
 	if err = yaml.Unmarshal(yamlFile, &data); err != nil {

@@ -9,3 +9,13 @@ app:
   app_need_p_prof: false
   administrator: "zhaocj2009@126.com"
   app_run_timer_task: false
+  not_validate_sign:
+    - uri: "/upload/call_back"
+      method:
+        "GET": true
+        "POST": true
+  not_send_header:
+    - uri: "/upload/call_back"
+      method:
+        "GET": true
+        "POST": true

@@ -22,10 +22,10 @@ func (r *SrvWebSocketImpl) WebsocketSrv(conn *websocket.Conn, arg *wrapper.ArgWe
 		ext.WebSocketAnvilOptionCommonParams(&arg.ArgWebSocketBase),
 		ext.WebSocketAnvilOptionContext(r.Context),
 		ext.WebSocketAnvilOptionUser(func() (user ext.UserInterface, err error) {
-			if arg.UserHid == 0 {
+			if arg.CurrentUserHId == 0 {
 				return
 			}
-			user, err = r.getCurrentUserByUid(arg.UserHid)
+			user, err = r.getCurrentUserByUid(arg.CurrentUserHId)
 			return
 		}),
 		ext.WebSocketAnvilOptionConn(conn),

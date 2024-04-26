@@ -79,10 +79,16 @@ type (
 		AppNeedPProf         bool            `json:"app_need_p_prof" yaml:"app_need_p_prof"`           // 是否需要内存分析
 		AppTemplateDirectory string          `json:"app_template_directory" yaml:"template_directory"` // temp模板默认目录
 		AppRouterPrefix      AppRouterPrefix `json:"app_router_prefix" yaml:"app_router_prefix"`       // 路由前缀
+		NotValidateSign      []UrlFormat     `json:"not_validate_sign"  yaml:"not_validate_sign"`      //不需要签名验证的Uri
+		NotSendHeader        []UrlFormat     `json:"not_send_header"  yaml:"not_send_header"`          //不需要设置headerInfo的Uri
 		AppAdminToken        string          `json:"app_admin_token" yaml:"app_admin_token"`           // 客服后台接口多的token值
 		Administrator        string          `json:"administrator" yaml:"administrator"`               //代码管理员信息
 		AppRunTimerTask      bool            `json:"app_run_timer_task" yaml:"app_run_timer_task"`     //是否支持定时任务
 		UseDefaultShopId     bool            `json:"use_default_shop_id" yaml:"use_default_shop_id"`   //测试环境调试数据使用的默认店铺ID
+	}
+	UrlFormat struct {
+		Uri    string          `json:"uri" yaml:"uri"`
+		Method map[string]bool `json:"method" yaml:"method"`
 	}
 	AppRouterPrefix struct {
 		Intranet string `json:"intranet"` // 内网地址
