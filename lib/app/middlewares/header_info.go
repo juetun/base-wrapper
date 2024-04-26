@@ -11,6 +11,32 @@ import (
 	"net/http"
 )
 
+func GetRequestURIAndMethod(request *http.Request) (uri, method string) {
+	if request == nil {
+		return
+	}
+	uri = request.URL.Path
+	method = request.Method
+	return
+}
+func INConfigUrl(uri, method string, uriList []app_obj.UrlFormat) (res bool) {
+	if uriList == nil {
+		return
+	}
+	var (
+		ok bool
+	)
+	for _, item := range uriList {
+		if item.Uri == uri {
+			if _, ok = item.Method[method]; ok {
+				res = true
+				return
+			}
+		}
+	}
+	return
+}
+
 // 请求头info信息处理
 func HttpHeaderInfo() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -28,6 +54,22 @@ func HttpHeaderInfo() gin.HandlerFunc {
 			c.Next()
 			return
 		}
+
+		uri, method := GetRequestURIAndMethod(c.Request)
+		//如果当前请求在配置的请求范围内
+		if INConfigUrl(uri, method, app_obj.App.NotSendHeader) {
+			c.Next()
+			return
+		}
+
+		//如果网页请求 则不调用签名验证
+		//if app_obj.App != nil && app_obj.App.AppRouterPrefix.Page != "" {
+		//	//如果网页请求 则不调用签名验证
+		//	if strings.Index(uri, "/"+app_obj.App.AppRouterPrefix.Page) == 0 {
+		//		c.Next()
+		//		return
+		//	}
+		//}
 
 		var (
 			err                   error

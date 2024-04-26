@@ -9,10 +9,11 @@
 package middlewares
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
+	"net/http"
+	"strings"
 )
 
 // SignHttp 接口签名验证
@@ -31,6 +32,22 @@ func SignHttp() gin.HandlerFunc {
 			c.Next()
 			return
 		}
+
+		uri, method := GetRequestURIAndMethod(c.Request)
+		//如果当前请求在配置的请求范围内
+		if INConfigUrl(uri, method, app_obj.App.NotValidateSign) {
+			c.Next()
+			return
+		}
+
+		if app_obj.App != nil && app_obj.App.AppRouterPrefix.Page != "" {
+			//如果网页请求 则不调用签名验证
+			if strings.Index(uri, "/"+app_obj.App.AppRouterPrefix.Page) == 0 {
+				c.Next()
+				return
+			}
+		}
+
 		var res bool
 		var err error
 		if res, _, err = base.NewSign().
