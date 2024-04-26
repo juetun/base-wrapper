@@ -9,6 +9,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
 	"net/http"
+	"strings"
 )
 
 func GetRequestURIAndMethod(request *http.Request) (uri, method string) {
@@ -19,6 +20,7 @@ func GetRequestURIAndMethod(request *http.Request) (uri, method string) {
 	method = request.Method
 	return
 }
+
 func INConfigUrl(uri, method string, uriList []app_obj.UrlFormat) (res bool) {
 	if uriList == nil {
 		return
@@ -33,6 +35,13 @@ func INConfigUrl(uri, method string, uriList []app_obj.UrlFormat) (res bool) {
 				return
 			}
 		}
+		if item.IsPrefix { //如果是以前缀开始匹配
+			if strings.Index(uri, item.Uri) == 0 {
+				res = true
+				return
+			}
+		}
+
 	}
 	return
 }

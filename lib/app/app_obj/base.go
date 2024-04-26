@@ -87,8 +87,9 @@ type (
 		UseDefaultShopId     bool            `json:"use_default_shop_id" yaml:"use_default_shop_id"`   //测试环境调试数据使用的默认店铺ID
 	}
 	UrlFormat struct {
-		Uri    string          `json:"uri" yaml:"uri"`
-		Method map[string]bool `json:"method" yaml:"method"`
+		IsPrefix bool            `json:"is_prefix" yaml:"is_prefix"`
+		Uri      string          `json:"uri" yaml:"uri"`
+		Method   map[string]bool `json:"method" yaml:"method"`
 	}
 	AppRouterPrefix struct {
 		Intranet string `json:"intranet"` // 内网地址
