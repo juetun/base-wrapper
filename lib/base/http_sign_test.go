@@ -1,6 +1,9 @@
 package base
 
-import "testing"
+import (
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
+	"testing"
+)
 
 func TestSignUtils_Encrypt(t *testing.T) {
 	type fields struct {
@@ -20,7 +23,7 @@ func TestSignUtils_Encrypt(t *testing.T) {
 		{
 			args: args{
 				argJoin:             "Z2V0L2FwaS11c2VyL291dC91c2VyL2dldF91c2VyX2luZm8xNjg0NjM3NTg3NTYyanVldHVuZ3lnb2Flc2N0cnVzZXJfaGlkMA==",
-				secret:              "jueTungygoaesctr",
+				secret:              app_obj.TmpSignKey,
 				listenHandlerStruct: ListenHandlerStruct{},
 			},
 			wantRes: "c47a7fd1d3ef9e893d1f7117e264ad8bb7eb9b89",
