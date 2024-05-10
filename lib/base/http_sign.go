@@ -13,6 +13,8 @@ import (
 	"fmt"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"io"
+	"net/http"
+	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -119,6 +121,52 @@ func (s *SignUtils) Encrypt(argJoin string, secret string, listenHandlerStruct L
 	return
 }
 
+func (s *SignUtils) getHeaderTimeStamp(header http.Header) (headerT string, err error) {
+	var t int
+	// 判断签名是否传递了时间
+	if headerT = header.Get(app_obj.HttpTimestamp); headerT == "" {
+		err = fmt.Errorf("the header must be include timestamp parameter(t)")
+		return
+	} else if t, err = strconv.Atoi(headerT); err != nil {
+		err = fmt.Errorf("格式不不正确(时间戳:%s)", app_obj.HttpTimestamp)
+		return
+	} else if app_obj.App.AppEnv != app_obj.EnvProd && int(time.Now().UnixNano()/1e6)-t > 86400000 { // 传递的时间格式必须大于当前时间-一天
+		err = fmt.Errorf("the header of  parameter(t) must be more than now desc one days")
+		return
+	}
+
+	return
+
+}
+
+type SignParams struct {
+	Method            string `json:"method"`
+	Path              string `json:"path"`
+	HeaderTimeStamp   string `json:"header_time_stamp"`
+	HeaderContentType string `json:"header_content_type"`
+	RequestBody       []byte `json:"request_body"`
+}
+
+func ConcatString(signParams *SignParams) (base64Code, encryptionString string, err error) {
+	var (
+		bt bytes.Buffer
+	)
+	bt.WriteString(signParams.Method)
+	bt.WriteString(signParams.Path)
+	if _, err = bt.WriteString(signParams.HeaderTimeStamp); err != nil {
+		return
+	}
+	bt.Write(signParams.RequestBody)
+
+	encryptionString = strings.ToLower(bt.String())
+
+	base64Code = base64.StdEncoding.EncodeToString([]byte(encryptionString))
+	if len([]byte(base64Code)) > 400 {
+		base64Code = base64Code[0:400]
+	}
+	return
+}
+
 // SignGinRequest http请求加密算法
 // c *gin.Context,
 func (s *SignUtils) SignGinRequest(c *gin.Context) (validateResult bool, signResult string, err error) {
@@ -129,68 +177,62 @@ func (s *SignUtils) SignGinRequest(c *gin.Context) (validateResult bool, signRes
 		validateResult = true
 		return
 	}
-
-	var secret string
+	var (
+		headerT                      string
+		encryptionCode               bytes.Buffer
+		secret                       string
+		requestBody                  []byte
+		base64Code, encryptionString string
+	)
 	if _, secret, err = app_obj.GetHeaderAppName(c); err != nil {
 		return
 	}
 
-	var bt bytes.Buffer
-	var encryptionCode bytes.Buffer
-	bt.WriteString(c.Request.Method)
-	bt.WriteString(c.Request.URL.Path)
-
-	var t int
-	// 判断签名是否传递了时间
-	if headerT := c.Request.Header.Get(app_obj.HttpTimestamp); headerT == "" {
-		err = fmt.Errorf("the header must be include timestamp parameter(t)")
+	if headerT, err = s.getHeaderTimeStamp(c.Request.Header); err != nil {
 		return
-	} else if t, err = strconv.Atoi(headerT); err != nil {
-		err = fmt.Errorf("格式不不正确(时间戳:%s)", app_obj.HttpTimestamp)
-		return
-	} else if app_obj.App.AppEnv != app_obj.EnvProd && int(time.Now().UnixNano()/1e6)-t > 86400000 { // 传递的时间格式必须大于当前时间-一天
-		err = fmt.Errorf("the header of  parameter(t) must be more than now desc one days")
-		return
-	} else {
-		if _, err = bt.WriteString(headerT); err != nil {
-			return
-		}
 	}
 
 	// 如果传JSON 单独处理
 	if strings.Contains(c.GetHeader("Content-Type"), "application/json") {
-		var body []byte
-		bt.WriteString(secret)
-		if body, err = io.ReadAll(c.Request.Body); err != nil {
+		if requestBody, err = io.ReadAll(c.Request.Body); err != nil {
 			return
 		}
 		// 读完body参数一定要回写，不然后边取不到参数
-		c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
-		bt.Write(body)
-		//if len(body) > 0 {
-		//	bt.WriteString(strconv.Quote(string(body)))
-		//}
-
+		c.Request.Body = io.NopCloser(bytes.NewBuffer(requestBody))
+		requestBody = append([]byte(secret), requestBody...)
 	} else { // 如果是非JSON 传参
-		var body []byte
 		// 如果不是JSON 则直接过去FORM表单参数
-		if encryptionCode, err = s.sortParamsAndJoinData(s.getRequestParams(c), secret); err != nil {
+		if encryptionCode, err = s.SortParamsAndJoinData(s.GetRequestParams(c), secret); err != nil {
 			return
 		}
-		body = encryptionCode.Bytes()
-		bt.Write(body)
+		requestBody = encryptionCode.Bytes()
 	}
 	var (
-		encryptionString = strings.ToLower(bt.String())
+		signParams = &SignParams{
+			Method:            c.Request.Method,
+			Path:              c.Request.URL.Path,
+			HeaderTimeStamp:   headerT,
+			HeaderContentType: c.GetHeader("Content-Type"),
+			RequestBody:       requestBody,
+		}
+		listenHandlerStruct ListenHandlerStruct
 	)
-
-	base64Code := base64.StdEncoding.EncodeToString([]byte(encryptionString))
-	if len([]byte(base64Code)) > 400 {
-		base64Code = base64Code[0:400]
+	if base64Code, encryptionString, err = ConcatString(signParams); err != nil {
+		return
 	}
-	// 配置回调输出
-	listenHandlerStruct := ListenHandlerStruct{}
 
+	listenHandlerStruct = s.testAddHeader(c, base64Code, encryptionString)
+
+	signResult = s.Encrypt(base64Code, secret, listenHandlerStruct)
+	if signResult == c.Request.Header.Get(app_obj.HttpSign) {
+		validateResult = true
+	}
+	return
+}
+
+func (s *SignUtils) testAddHeader(c *gin.Context, base64Code, encryptionString string) (listenHandlerStruct ListenHandlerStruct) {
+	// 配置回调输出
+	listenHandlerStruct = ListenHandlerStruct{}
 	// 如果不是线上环境,可输出签名格式 (此处代码为调试 签名是否能正常使用准备)
 	if app_obj.App.AppEnv != app_obj.EnvProd && c.GetBool(app_obj.DebugFlag) {
 		resp := c.Writer.Header()
@@ -202,32 +244,26 @@ func (s *SignUtils) SignGinRequest(c *gin.Context) (validateResult bool, signRes
 			FinishHandler: func(s string) { resp.Set("Sign-f", s) },
 		}
 	}
-	signResult = s.Encrypt(base64Code, secret, listenHandlerStruct)
-	if signResult == c.Request.Header.Get(app_obj.HttpSign) {
-		validateResult = true
-	}
 	return
 }
 
 // 加密字符串
-func (s *SignUtils) sortParamsAndJoinData(data map[string]string, secret string) (res bytes.Buffer, err error) {
+func (s *SignUtils) SortParamsAndJoinData(data map[string]string, secret string) (res bytes.Buffer, err error) {
 	if res, err = s.SignTopRequest(data, secret); err != nil {
 		return
 	}
 	return
 }
-
-func (s *SignUtils) getRequestParams(c *gin.Context) (valueMap map[string]string) {
-	valueMap = make(map[string]string, len(c.Request.PostForm))
-	_ = c.Request.ParseMultipartForm(128) // 保存表单缓存的内存大小128M
-	for k, v := range c.Request.Form {
+func (s *SignUtils) ParamsConcat(params url.Values) (valueMap map[string]string) {
+	valueMap = make(map[string]string, len(params))
+	for k, v := range params {
 		valueMap[k] = strings.Join(v, ";")
 	}
 	return
 }
-
-// 默认utf8字符串
-// func (s *SignUtils) GetUtf8Bytes(str string) []byte {
-//	b := []byte(str)
-//	return b
-// }
+func (s *SignUtils) GetRequestParams(c *gin.Context) (valueMap map[string]string) {
+	valueMap = make(map[string]string, len(c.Request.PostForm))
+	_ = c.Request.ParseMultipartForm(128) // 保存表单缓存的内存大小128M
+	valueMap = s.ParamsConcat(c.Request.Form)
+	return
+}
