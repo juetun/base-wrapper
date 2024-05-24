@@ -34,11 +34,9 @@ func newAppLog() (res *AppLog) {
 
 // GetLog 获取日志操作对象
 func GetLog() (res *AppLog) {
-	var err error
 	if logApp == nil {
-		err = fmt.Errorf("【%s】Log object is nil", "ERROR")
 		systemLog.Printf("【%s】Log object is nil", "ERROR")
-		panic(err)
+		res = newAppLog()
 		return
 	}
 	res = logApp
@@ -166,7 +164,7 @@ func outputWriter(config *OptionLog, log *logrus.Logger) {
 				ioWriter = append(ioWriter, file)
 			}
 		default:
-			panic(fmt.Sprintf("当前不支持您配置的日志文件格式(%s)输出", value))
+			ioWriter = append(ioWriter, os.Stdout)
 		}
 	}
 
