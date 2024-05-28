@@ -16,4 +16,8 @@ const (
 	DefaultDbNameSpace = "default"
 )
 
-var DbMysql = make(map[string]*gorm.DB, 2)
+var (
+	DbMysql                  = make(map[string]*gorm.DB, 2)
+	DistributedMysqlConnects = make([]string, 0) //当前应用支持的分布式数据库连接名
+	DistributedRedisConnects = make([]string, 0) //当前应用支持的分布式缓存库连接名
+)

@@ -83,7 +83,7 @@ func loadMysqlConfig() (err error) {
 	if err = yaml.Unmarshal(yamlFile, &mysqlConfig); err != nil {
 		io.SystemOutFatalf("load database config err(%+v) \n", err)
 	}
-
+	app_obj.DistributedMysqlConnects = append(app_obj.DistributedMysqlConnects, mysqlConfig.DistributedConnects...)
 	//读取common_config配置文件中的信息
 	filePath = common.GetCommonConfigFilePath("database.yaml", true)
 	if yamlFile, err = os.ReadFile(filePath); err != nil {

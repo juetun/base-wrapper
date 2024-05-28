@@ -41,6 +41,9 @@ func loadRedisConfig() (err error) {
 	if err = yaml.Unmarshal(yamlFile, &redisAppConfig); err != nil {
 		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Load redis config config err(%#v) \n", err)
 	}
+	
+	app_obj.DistributedRedisConnects = append(app_obj.DistributedRedisConnects, redisAppConfig.DistributedConnects...)
+
 	//读取common_config配置文件中的信息
 	filePath = common.GetCommonConfigFilePath("redis.yaml", true)
 	if yamlFile, err = os.ReadFile(filePath); err != nil {
