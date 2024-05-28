@@ -1,8 +1,8 @@
 package plugins
 
 import (
+	"database/sql"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"sync"
@@ -19,12 +19,19 @@ import (
 	"gorm.io/gorm"
 )
 
-type Mysql struct {
-	NameSpace    string `json:"name_space" yaml:"name_space"`
-	Addr         string `json:"addr" yaml:"addr"`
-	MaxIdleConns int    `json:"max_idle_conns" yaml:"maxidleconns"`
-	MaxOpenConns int    `json:"max_open_conns" yaml:"maxopenconns"`
-}
+type (
+	MysqlAppConfig struct {
+		Connects            []string `json:"connects" yaml:"connects"`                         //当前应用使用了的数据库连接
+		Default             string   `json:"default"  yaml:"default"`                          //默认数据库
+		DistributedConnects []string `json:"distributed_connects" yaml:"distributed_connects"` //需要使用的分布式数据库连接
+	}
+	Mysql struct {
+		NameSpace    string `json:"name_space" yaml:"name_space"`
+		Addr         string `json:"addr" yaml:"addr"`
+		MaxIdleConns int    `json:"max_idle_conns" yaml:"maxidleconns"`
+		MaxOpenConns int    `json:"max_open_conns" yaml:"maxopenconns"`
+	}
+)
 
 func (r *Mysql) ToString() (res string) {
 	res = fmt.Sprintf("name_space:%s ,addr:%s ,max_idle_conns:%d ,max_open_conns:%d", r.NameSpace, r.getHiddenPwd(), r.MaxIdleConns, r.MaxOpenConns)
@@ -61,19 +68,42 @@ var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
 func loadMysqlConfig() (err error) {
 
 	io.SystemOutPrintln("Load database start")
-	var mysqlConfig map[string]Mysql
-	var yamlFile []byte
-	filePath := common.GetConfigFilePath("database.yaml")
+	var (
+		yamlFile              []byte
+		mysqlConfig           MysqlAppConfig
+		itemMysqlConfig       Mysql
+		mapMysqlConfig        map[string]Mysql
+		filePath, connectName string
+		ok                    bool
+	)
+	filePath = common.GetConfigFilePath("database.yaml")
 	if yamlFile, err = os.ReadFile(filePath); err != nil {
 		io.SystemOutFatalf("yamlFile.Get err(%s)  #%v \n", filePath, err)
 	}
 	if err = yaml.Unmarshal(yamlFile, &mysqlConfig); err != nil {
 		io.SystemOutFatalf("load database config err(%+v) \n", err)
 	}
-	for key, value := range mysqlConfig {
 
-		io.SystemOutPrintf("【 %s 】%+v \n", key, value.ToString())
-		initMysql(key, &value)
+	//读取common_config配置文件中的信息
+	filePath = common.GetCommonConfigFilePath("database.yaml")
+	if yamlFile, err = os.ReadFile(filePath); err != nil {
+		io.SystemOutFatalf("yamlFile.Get err(%s)  #%v \n", filePath, err)
+	}
+	if err = yaml.Unmarshal(yamlFile, &mysqlConfig); err != nil {
+		io.SystemOutFatalf("load database config err(%+v) \n", err)
+	}
+
+	for _, connectName = range mysqlConfig.Connects {
+		if connectName == "" {
+			continue
+		}
+		if itemMysqlConfig, ok = mapMysqlConfig[connectName]; !ok {
+			err = fmt.Errorf("当前common_config中不支持您要使用的数据库连接(%v)", connectName)
+			io.SystemOutFatalf("load database config err(%+v) \n", err)
+			return
+		}
+		io.SystemOutPrintf("【 %s 】%+v \n", connectName, itemMysqlConfig.ToString())
+		initMysql(connectName, &itemMysqlConfig, mysqlConfig.Default)
 	}
 
 	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("Database load config finished \n"))
@@ -86,10 +116,14 @@ func databaseFileChange(e fsnotify.Event) { // 热加载
 	// 重新加载数据库配置
 	loadMysqlConfig()
 }
-func initMysql(nameSpace string, config *Mysql) {
-	db := getMysql(nameSpace, config)
-	sqlDB, err := db.DB()
-	if err != nil {
+
+func initMysql(nameSpace string, config *Mysql, defaultNameString string) {
+	db := getMysql(nameSpace, defaultNameString, config)
+	var (
+		err   error
+		sqlDB *sql.DB
+	)
+	if sqlDB, err = db.DB(); err != nil {
 		panic(err)
 	}
 
@@ -106,18 +140,7 @@ func initMysql(nameSpace string, config *Mysql) {
 	sqlDB.SetConnMaxLifetime(time.Hour)
 }
 
-// func getLogger() logger.Interface {
-//   	return logger.New(
-// 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
-// 		logger.Config{
-// 			SlowThreshold:             time.Second,   // Slow SQL threshold
-// 			LogLevel:                  logger.Silent, // Log level
-// 			IgnoreRecordNotFoundError: true,          // Ignore ErrRecordNotFound error for logger
-// 			Colorful:                  true,         // Disable color
-// 		},
-// 	)
-// }
-func getMysql(nameSpace string, addr *Mysql) *gorm.DB {
+func getMysql(nameSpace, defaultNameString string, addr *Mysql) *gorm.DB {
 	var db *gorm.DB
 	var err error
 	// 数据库连接不可用会自动报错
@@ -135,6 +158,9 @@ func getMysql(nameSpace string, addr *Mysql) *gorm.DB {
 		panic(err)
 	}
 	app_obj.DbMysql[nameSpace] = db
+	if nameSpace == defaultNameString && defaultNameString != "" {
+		app_obj.DbMysql[app_obj.DefaultDbNameSpace] = db
+	}
 	return app_obj.DbMysql[nameSpace]
 }
 func createTable(dbc *gorm.DB) error {

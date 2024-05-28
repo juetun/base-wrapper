@@ -29,7 +29,7 @@ func NewDaoUserImpl(ctx ...*base.Context) (res daos.DaoUser) {
 }
 
 func (r *DaoUserImpl) BatchData() (err error) {
-	data := []base.ModelBase{}
+	data := make([]base.ModelBase, 0, 1)
 	dt := &models.DataChildren{}
 	dt.UserId = "1"
 	dt.UserHid = "user_id"
