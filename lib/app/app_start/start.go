@@ -60,12 +60,12 @@ func PluginTimerTask(arg *PluginsOperate) (err error) {
 	}
 
 	defer func() {
-		stytemLog.Println("Start timer task running")
+		stytemLog.Println("【INFO】Start timer task running")
 	}()
 	for _, handler := range TimerTaskHandler {
 		handler(arg)
 	}
-	stytemLog.Println("Load timer task")
+	stytemLog.Println("【INFO】Load timer task")
 
 	return
 }
