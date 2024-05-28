@@ -42,7 +42,7 @@ func loadRedisConfig() (err error) {
 		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Load redis config config err(%#v) \n", err)
 	}
 	//读取common_config配置文件中的信息
-	filePath = common.GetCommonConfigFilePath("database.yaml", true)
+	filePath = common.GetCommonConfigFilePath("redis.yaml", true)
 	if yamlFile, err = os.ReadFile(filePath); err != nil {
 		io.SystemOutFatalf("yamlFile.Get err(%s)  #%v \n", filePath, err)
 	}
@@ -56,7 +56,7 @@ func loadRedisConfig() (err error) {
 			continue
 		}
 		if itemConfig, ok = mapRedisConfig[connectName]; !ok {
-			err = fmt.Errorf("当前common_config中不支持您要使用的数据库连接(%v)", connectName)
+			err = fmt.Errorf("当前common_config中不支持您要使用的Redis连接(%v)", connectName)
 			io.SystemOutFatalf("load database config err(%+v) \n", err)
 			return
 		}
