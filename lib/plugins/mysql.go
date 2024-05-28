@@ -85,7 +85,7 @@ func loadMysqlConfig() (err error) {
 	}
 
 	//读取common_config配置文件中的信息
-	filePath = common.GetCommonConfigFilePath("database.yaml")
+	filePath = common.GetCommonConfigFilePath("database.yaml", true)
 	if yamlFile, err = os.ReadFile(filePath); err != nil {
 		io.SystemOutFatalf("yamlFile.Get err(%s)  #%v \n", filePath, err)
 	}
