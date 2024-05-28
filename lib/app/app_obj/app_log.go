@@ -122,9 +122,8 @@ func (r *AppLog) Warn(context *gin.Context, data map[string]interface{}, message
 // InitAppLog 初始化日志操作对象
 func InitAppLog() {
 	systemLog.Printf("【INFO】初始化日志操作对象")
-	defer systemLog.Printf("【INFO】初始化日志操作对象操作完成 对象内容为:%#v \n", logApp)
 	logApp = newAppLog()
-
+	defer systemLog.Printf("【INFO】初始化日志操作对象操作完成 对象内容为:%#v \n", logApp)
 	// 获取日志配置
 	logConfig := GetLogConfig()
 
