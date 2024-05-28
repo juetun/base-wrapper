@@ -2,7 +2,6 @@ package plugins
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"sync"
 
@@ -51,7 +50,8 @@ func initShortMessage(nameSpace string, shortMessageConfig *ShortMessageConfig) 
 	case "feige":
 		res = short_message_impl.NewFeiGe()
 	default:
-		panic(fmt.Sprintf("当前不支持此短信通道(%s)", nameSpace))
+		var err = fmt.Errorf("当前不支持此短信通道(%s)", nameSpace)
+		panic(err)
 	}
 	return
 }

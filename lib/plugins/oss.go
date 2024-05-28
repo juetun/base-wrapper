@@ -4,7 +4,6 @@ package plugins
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	systemLog "log"
 	"os"
 	"sync"
@@ -59,7 +58,7 @@ func PluginOss(arg *app_start.PluginsOperate) (err error) {
 
 	var yamlFile []byte
 	var v map[string]Oss
-	if yamlFile, err = os.ReadFile(common.GetConfigFilePath("oss.yaml")); err != nil {
+	if yamlFile, err = os.ReadFile(common.GetCommonConfigFilePath("oss.yaml")); err != nil {
 		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   %#v \n", err)
 	}
 	if err = yaml.Unmarshal(yamlFile, &v); err != nil {
