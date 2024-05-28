@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
@@ -32,7 +33,7 @@ func PluginElasticSearchV7(arg *app_start.PluginsOperate) (err error) {
 		SystemOutPrintf(fmt.Sprintf("ElasticSearch load config finished \n"))
 
 	var yamlFile []byte
-	if yamlFile, err = ioutil.ReadFile(common.GetConfigFilePath("elasticsearch.yaml")); err != nil {
+	if yamlFile, err = os.ReadFile(common.GetConfigFilePath("elasticsearch.yaml")); err != nil {
 		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   #%v \n", err)
 	}
 	// 数据库配置信息存储对象

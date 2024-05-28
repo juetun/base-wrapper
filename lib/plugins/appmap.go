@@ -3,7 +3,7 @@ package plugins
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"sync"
 
 	"github.com/juetun/base-wrapper/lib/app/app_start"
@@ -24,7 +24,7 @@ func PluginAppMap(arg *app_start.PluginsOperate) (err error) {
 		SystemOutPrintf(fmt.Sprintf("Load appMap config finished \n"))
 
 	var yamlFile []byte
-	if yamlFile, err = ioutil.ReadFile(common.GetConfigFilePath("appmap.yaml")); err != nil {
+	if yamlFile, err = os.ReadFile(common.GetConfigFilePath("appmap.yaml")); err != nil {
 		io.SystemOutFatalf("yamlFile.Get err #%v \n", err)
 	}
 	if err = yaml.Unmarshal(yamlFile, &app_obj.AppMap); err != nil {

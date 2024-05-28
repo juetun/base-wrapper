@@ -3,6 +3,7 @@ package plugins
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"sync"
 
 	"github.com/juetun/base-wrapper/lib/app/app_start"
@@ -25,7 +26,7 @@ func PluginShortMessage(arg *app_start.PluginsOperate) (err error) {
 	// 数据库配置信息存储对象
 	var configs = make(map[string]ShortMessageConfig)
 	var yamlFile []byte
-	if yamlFile, err = ioutil.ReadFile(common.GetConfigFilePath("message.yaml")); err != nil {
+	if yamlFile, err = os.ReadFile(common.GetConfigFilePath("message.yaml")); err != nil {
 		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   #%v \n", err)
 	}
 	if err = yaml.Unmarshal(yamlFile, &configs); err != nil {

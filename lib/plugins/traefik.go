@@ -6,7 +6,7 @@ package plugins
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"sync"
 
 	"github.com/juetun/base-wrapper/lib/app/app_start"
@@ -30,7 +30,7 @@ func loadRegistryConfig() (err error) {
 
 	// 数据库配置信息存储对象
 	var yamlFile []byte
-	if yamlFile, err = ioutil.ReadFile(common.GetConfigFilePath("registry.yaml")); err != nil {
+	if yamlFile, err = os.ReadFile(common.GetConfigFilePath("registry.yaml")); err != nil {
 		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   #%v \n", err)
 		return
 	}

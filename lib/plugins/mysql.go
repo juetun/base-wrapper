@@ -3,6 +3,7 @@ package plugins
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -63,7 +64,7 @@ func loadMysqlConfig() (err error) {
 	var mysqlConfig map[string]Mysql
 	var yamlFile []byte
 	filePath := common.GetConfigFilePath("database.yaml")
-	if yamlFile, err = ioutil.ReadFile(filePath); err != nil {
+	if yamlFile, err = os.ReadFile(filePath); err != nil {
 		io.SystemOutFatalf("yamlFile.Get err(%s)  #%v \n", filePath, err)
 	}
 	if err = yaml.Unmarshal(yamlFile, &mysqlConfig); err != nil {

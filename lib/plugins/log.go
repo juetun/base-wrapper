@@ -2,7 +2,7 @@ package plugins
 
 import (
 	"github.com/juetun/base-wrapper/lib/app/app_start"
-	"io/ioutil"
+	"os"
 	"sync"
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
@@ -37,7 +37,7 @@ func loadLogConfig() (mysqlConfig app_obj.OptionLog, err error) {
 	io.SetInfoType(base.LogLevelInfo).SystemOutPrintln("Load log start")
 
 	var yamlFile []byte
-	if yamlFile, err = ioutil.ReadFile(common.GetConfigFilePath("log.yaml")); err != nil {
+	if yamlFile, err = os.ReadFile(common.GetConfigFilePath("log.yaml")); err != nil {
 		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   #%v \n", err)
 	}
 	if err = yaml.Unmarshal(yamlFile, &mysqlConfig); err != nil {

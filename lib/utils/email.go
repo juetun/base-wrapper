@@ -11,8 +11,8 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/smtp"
+	"os"
 	"strings"
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
@@ -191,7 +191,7 @@ func (ep *EmailParam) SendMail2(to string) error {
 		mime.WriteString("Content-Disposition: attachment; filename=\"" + attaFileName + "\"\r\n\r\n")
 
 		// 读取并编码文件内容
-		attaData, err := ioutil.ReadFile(attaFile)
+		attaData, err := os.ReadFile(attaFile)
 		if err != nil {
 			return err
 		}

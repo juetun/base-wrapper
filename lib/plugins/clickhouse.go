@@ -3,7 +3,7 @@ package plugins
 import (
 	"database/sql"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"sync"
 
 	"github.com/ClickHouse/clickhouse-go"
@@ -27,7 +27,7 @@ func loadClickHouse() (err error) {
 	var configClickHouse map[string]ClickHouse
 	var yamlFile []byte
 	filePath := common.GetConfigFilePath("clickhouse.yaml")
-	if yamlFile, err = ioutil.ReadFile(filePath); err != nil {
+	if yamlFile, err = os.ReadFile(filePath); err != nil {
 		io.SystemOutFatalf("yamlFile.Get err(%s)  #%v \n", filePath, err)
 	}
 	if err = yaml.Unmarshal(yamlFile, &configClickHouse)

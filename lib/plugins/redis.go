@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/juetun/base-wrapper/lib/app/app_start"
-	"io/ioutil"
+	"os"
 	"sync"
 
 	"github.com/go-redis/redis/v8"
@@ -30,7 +30,7 @@ func loadRedisConfig() (err error) {
 	// 数据库配置信息存储对象
 	var config = make(map[string]Redis)
 	var yamlFile []byte
-	if yamlFile, err = ioutil.ReadFile(common.GetConfigFilePath("redis.yaml")); err != nil {
+	if yamlFile, err = os.ReadFile(common.GetConfigFilePath("redis.yaml")); err != nil {
 		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   #%v \n", err)
 	}
 	if err = yaml.Unmarshal(yamlFile, &config); err != nil {

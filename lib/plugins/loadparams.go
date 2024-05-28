@@ -3,7 +3,7 @@ package plugins
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 
 	"github.com/juetun/base-wrapper/lib/app/app_start"
 
@@ -38,7 +38,7 @@ func PluginLoadCommonParams(arg  *app_start.PluginsOperate) (err error) {
 	}()
 
 	var yamlFile []byte
-	if yamlFile, err = ioutil.ReadFile(common.GetConfigFilePath("common.yaml")); err != nil {
+	if yamlFile, err = os.ReadFile(common.GetConfigFilePath("common.yaml")); err != nil {
 		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   #%v \n", err)
 	}
 	if err = yaml.Unmarshal(yamlFile, &config); err != nil {
