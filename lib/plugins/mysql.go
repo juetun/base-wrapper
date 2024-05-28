@@ -89,7 +89,7 @@ func loadMysqlConfig() (err error) {
 	if yamlFile, err = os.ReadFile(filePath); err != nil {
 		io.SystemOutFatalf("yamlFile.Get err(%s)  #%v \n", filePath, err)
 	}
-	if err = yaml.Unmarshal(yamlFile, &mysqlConfig); err != nil {
+	if err = yaml.Unmarshal(yamlFile, &mapMysqlConfig); err != nil {
 		io.SystemOutFatalf("load database config err(%+v) \n", err)
 	}
 
