@@ -270,20 +270,39 @@ func (r *WebApplication) toolRouteRegister(appConfig *app_obj.Application, UrlPr
 
 }
 
+func (r *WebApplication) getHealthPath(suffix string) (pathString string) {
+	if app_obj.RouteTypeDefaultIntranet == "" {
+		pathString = fmt.Sprintf("/%v/%v", app_obj.App.AppName, suffix)
+		return
+	}
+	pathString = fmt.Sprintf("/%v/%v/%v", app_obj.App.AppName, app_obj.RouteTypeDefaultIntranet, suffix)
+	return
+}
+
 func (r *WebApplication) registerDefaultRoute(UrlPrefix string) {
 	r.syslog.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintln("#注册健康检查路由...")
 	// 注册健康检查请求地址
-	r.GinEngine.GET("/health", func(c *gin.Context) {
+	r.GinEngine.GET(r.getHealthPath("health"), func(c *gin.Context) {
 		c.String(http.StatusOK, "success")
 	})
 
+	r.GinEngine.HEAD(r.getHealthPath("health"), func(c *gin.Context) {
+		c.String(http.StatusOK, "success")
+		return
+	})
+
 	// 注册默认路径
-	r.GinEngine.GET("/index", func(c *gin.Context) {
+	r.GinEngine.GET(r.getHealthPath("index"), func(c *gin.Context) {
+		// time.Sleep(5 * time.Second)
+		c.String(http.StatusOK, fmt.Sprintf("Welcome \"%s\" Server", UrlPrefix))
+	})
+	r.GinEngine.HEAD(r.getHealthPath("index"), func(c *gin.Context) {
 		// time.Sleep(5 * time.Second)
 		c.String(http.StatusOK, fmt.Sprintf("Welcome \"%s\" Server", UrlPrefix))
 	})
 }
+
 func (r *WebApplication) registerSwagger(appConfig *app_obj.Application) {
 	// 如果非线上(release)环境，则可以直接使用
 	if app_obj.App.AppEnv == app_obj.EnvProd {
