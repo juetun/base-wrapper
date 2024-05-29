@@ -101,6 +101,8 @@ func getConfigFilePathContent(dir, fileName string, notEnv ...bool) (res string)
 	if extString != "" {
 		ext = strings.TrimLeft(extString, ".")
 	}
+	io := base.NewSystemOut().SetInfoType(base.LogLevelInfo)
+	io.SystemOutPrintf("dir:%v,fileName:%v,ext:%v,config_file_path:%v", dir, fileName, ext, res)
 	switch ext {
 	case "yaml":
 		if ok, _ := utils.PathExists(res); ok {
