@@ -81,16 +81,19 @@ func loadMysqlConfig() (err error) {
 		io.SystemOutFatalf("yamlFile.Get err(%s)  #%v \n", filePath, err)
 	}
 	if err = yaml.Unmarshal(yamlFile, &mysqlConfig); err != nil {
-		io.SystemOutFatalf("load database config err(%+v) \n", err)
+		io.SystemOutFatalf("load database config file(%v) err(%+v) \n", filePath, err)
+		return
 	}
 	app_obj.DistributedMysqlConnects = append(app_obj.DistributedMysqlConnects, mysqlConfig.DistributedConnects...)
 	//读取common_config配置文件中的信息
 	filePath = common.GetCommonConfigFilePath("database.yaml", true)
 	if yamlFile, err = os.ReadFile(filePath); err != nil {
 		io.SystemOutFatalf("yamlFile.Get err(%s)  #%v \n", filePath, err)
+		return
 	}
 	if err = yaml.Unmarshal(yamlFile, &mapMysqlConfig); err != nil {
-		io.SystemOutFatalf("load database config err(%+v) \n", err)
+		io.SystemOutFatalf("load database config file(%v) err(%+v) \n", filePath, err)
+		return
 	}
 
 	for _, connectName = range mysqlConfig.Connects {

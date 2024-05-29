@@ -41,7 +41,7 @@ func loadRedisConfig() (err error) {
 	if err = yaml.Unmarshal(yamlFile, &redisAppConfig); err != nil {
 		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Load redis config config err(%#v) \n", err)
 	}
-	
+
 	app_obj.DistributedRedisConnects = append(app_obj.DistributedRedisConnects, redisAppConfig.DistributedConnects...)
 
 	//读取common_config配置文件中的信息
@@ -51,7 +51,7 @@ func loadRedisConfig() (err error) {
 	}
 
 	if err = yaml.Unmarshal(yamlFile, &mapRedisConfig); err != nil {
-		io.SystemOutFatalf("load database config err(%+v) \n", err)
+		io.SystemOutFatalf("load Redis config err(%+v) \n", err)
 	}
 
 	for _, connectName = range redisAppConfig.Connects {
@@ -89,9 +89,9 @@ func initRedis(nameSpace, defaultNameSpace string, configs *Redis) {
 	if err != nil {
 		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("Load  redis config is error \n"))
 		io.SetInfoType(base.LogLevelFatal).SystemOutPrintf(fmt.Sprintf("err:%s,conf:%#v", err.Error(), conf))
-
+	} else {
+		io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("Load  redis config(%v) is finished \n", nameSpace))
 	}
-	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("Load  redis config is finished \n"))
 
 }
 
