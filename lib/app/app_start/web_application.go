@@ -23,22 +23,28 @@ import (
 	"time"
 )
 
-// HandleRouter 路由注册函数
-type HandleRouter func(c *gin.Engine, urlPrefix string)
-type RouterPath func(httpMethod, absolutePath, handlerName string, nuHandlers int)
+var (
+	HealthPrefixPathNotEmpty bool //健康检查 true-健康检查不会加上服务路径
+	HealthPrefixPath         string
+	HandleFunc               = make([]HandleRouter, 0) // 路由函数切片
+	HandleFuncIntranet       = make([]HandleRouter, 0) // 内网路由函数切片
+	HandleFuncOuterNet       = make([]HandleRouter, 0) // 外网路由函数切片
+	HandleFuncAdminNet       = make([]HandleRouter, 0) // 外网路由函数切片
+	HandleFuncPage           = make([]HandleRouter, 0) // 外网路由函数切片
+	RoutePathInitCallBack    RouterPath                //注册路由时调用
+)
 
-var HandleFunc = make([]HandleRouter, 0)         // 路由函数切片
-var HandleFuncIntranet = make([]HandleRouter, 0) // 内网路由函数切片
-var HandleFuncOuterNet = make([]HandleRouter, 0) // 外网路由函数切片
-var HandleFuncAdminNet = make([]HandleRouter, 0) // 外网路由函数切片
-var HandleFuncPage = make([]HandleRouter, 0)     // 外网路由函数切片
-var RoutePathInitCallBack RouterPath             //注册路由时调用
-type WebApplication struct {
-	GinEngine *gin.Engine
-	syslog    *base.SystemOut
-	//FlagMicro bool // 如果是支持微服务
-	MicroOperate MicroOperateInterface
-}
+type (
+	WebApplication struct {
+		GinEngine *gin.Engine
+		syslog    *base.SystemOut
+		//FlagMicro bool // 如果是支持微服务
+		MicroOperate MicroOperateInterface
+	}
+	// HandleRouter 路由注册函数
+	HandleRouter func(c *gin.Engine, urlPrefix string)
+	RouterPath   func(httpMethod, absolutePath, handlerName string, nuHandlers int)
+)
 
 // NewWebApplication privateMiddleWares 项目自定义的GIN中间件
 func NewWebApplication(privateMiddleWares ...gin.HandlerFunc) *WebApplication {
@@ -271,6 +277,10 @@ func (r *WebApplication) toolRouteRegister(appConfig *app_obj.Application, UrlPr
 }
 
 func (r *WebApplication) getHealthPath(suffix string) (pathString string) {
+	if HealthPrefixPathNotEmpty {
+		pathString = fmt.Sprintf("%v/%v", HealthPrefixPath, suffix)
+		return
+	}
 	if app_obj.RouteTypeDefaultIntranet == "" {
 		pathString = fmt.Sprintf("/%v/%v", app_obj.App.AppName, suffix)
 		return
