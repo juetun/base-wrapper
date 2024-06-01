@@ -10,7 +10,7 @@ package middlewares
 
 import (
 	"bytes"
-	"io/ioutil"
+	io2 "io"
 	"net/http"
 	"net/url"
 	"time"
@@ -79,12 +79,17 @@ func getUseHeader(header *http.Header) (res http.Header) {
 // 流量日志收集
 func delayExecGinLogCollect(start time.Time, c *gin.Context, path *url.URL, logger *app_obj.AppLog) {
 	c.Request.URL.RawQuery, _ = url.QueryUnescape(c.Request.URL.RawQuery)
-	var bodyBytes []byte
+
+	var (
+		bodyBytes   []byte
+		logDescMark = "delayExecGinLogCollect"
+	)
 	if c.Request.Body != nil {
-		bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
+		bodyBytes, _ = io2.ReadAll(c.Request.Body)
 		// c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
 		// c.Set("body", string(bodyBytes))
 	}
+
 	fields := logrus.Fields{
 		app_obj.AppFieldKey: "GIN",
 		"status":            c.Writer.Status(),
@@ -106,10 +111,15 @@ func delayExecGinLogCollect(start time.Time, c *gin.Context, path *url.URL, logg
 		fields["request"] = c.Request.Form.Encode()
 	}
 	if len(c.Errors) > 0 {
-		logger.Error(c, fields, c.Errors.String())
+		fields["err"] = c.Errors.String()
+		logger.Error(c, fields, logDescMark)
 		return
 	}
-	logger.Info(c, fields, c.Errors.String())
+	switch c.Request.Method {
+	case http.MethodHead: //跳过心跳检测日志
+	default:
+		logger.Info(c, fields, logDescMark)
+	}
 	return
 }
 
