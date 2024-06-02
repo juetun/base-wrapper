@@ -22,6 +22,7 @@ type Oss struct {
 	AccessKeyId         string                  `json:"accesskeyid" yaml:"accesskeyid"`
 	AccessKeySecret     string                  `json:"accesskeysecret" yaml:"accesskeysecret"`
 	BucketName          string                  `json:"bucketname" yaml:"bucketname"`
+	Scheme              string                  `json:"scheme" yaml:"scheme"`
 	RoleArn             string                  `json:"rolearn" yaml:"rolearn"`
 	SessionName         string                  `json:"sessionname" yaml:"sessionname"`
 	BucketUrl           string                  `json:"bucketurl" yaml:"bucketurl"`
