@@ -13,6 +13,7 @@ import (
 	io2 "io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -81,24 +82,29 @@ func delayExecGinLogCollect(start time.Time, c *gin.Context, path *url.URL, logg
 	c.Request.URL.RawQuery, _ = url.QueryUnescape(c.Request.URL.RawQuery)
 
 	var (
+		pathString  = path.String()
 		bodyBytes   []byte
 		logDescMark = "delayExecGinLogCollect"
 	)
+	if strings.Index(pathString, "/assets") == 0 || strings.Index(pathString, "assets") == 0 {
+		return
+	}
+	fields := logrus.Fields{
+		app_obj.AppFieldKey: "GIN",
+		"status":            c.Writer.Status(),
+		"method":            c.Request.Method,
+		"path":              pathString,
+		"ip":                c.ClientIP(),
+		"duration":          float64(time.Now().Sub(start)) / 1e6, // 时长单位微秒
+		"header":            getUseHeader(&c.Request.Header),
+	}
 	if c.Request.Body != nil {
 		bodyBytes, _ = io2.ReadAll(c.Request.Body)
 		// c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
 		// c.Set("body", string(bodyBytes))
 	}
-
-	fields := logrus.Fields{
-		app_obj.AppFieldKey: "GIN",
-		"status":            c.Writer.Status(),
-		"method":            c.Request.Method,
-		"path":              path.String(),
-		"ip":                c.ClientIP(),
-		"duration":          float64(time.Now().Sub(start)) / 1e6, // 时长单位微秒
-		"request":           string(bodyBytes),
-		"header":            getUseHeader(&c.Request.Header),
+	if len(bodyBytes) > 0 {
+		fields["request"] = string(bodyBytes)
 	}
 	// 只收集 http code>400的错误日志
 	if c.Writer.Status() >= 400 {
@@ -115,6 +121,7 @@ func delayExecGinLogCollect(start time.Time, c *gin.Context, path *url.URL, logg
 		logger.Error(c, fields, logDescMark)
 		return
 	}
+	 
 	switch c.Request.Method {
 	case http.MethodHead: //跳过心跳检测日志
 	default:
