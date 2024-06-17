@@ -99,6 +99,10 @@ func (r *shortMessage) SendMsg(param *MessageArgument) (channelName string, err 
 	if err != nil {
 		return
 	}
+	if channelData == nil {
+		err = fmt.Errorf("未获取到发送短信的通道信息")
+		return
+	}
 	err = channelData.Send(param)
 	return
 }
@@ -152,21 +156,22 @@ func (r *shortMessage) upIndex() {
 }
 
 func (r *shortMessage) initChannel(param *MessageArgument) (channelData ShortMessageInter, name string, err error) {
-
+	var (
+		i, ind int
+	)
 	if param.Channel != "" {
 		if _, ok := r.channelListHandler[param.Channel]; !ok {
 			err = fmt.Errorf("当前不支持你选择的短信发送通道(%s)", param.Channel)
+			return
 		}
-		return
 	} else {
 		// 更新轮询条件
 		r.upIndex()
+		ind = r.shortMessageIndex % len(r.channelListHandler)
+		i = 0
 	}
 
-	ind := r.shortMessageIndex % len(r.channelListHandler)
-
 	channelListHandler := r.getChannelListHandler(param)
-	i := 0
 	for chanelName, value := range channelListHandler {
 
 		//如果已经设置了chanelName
