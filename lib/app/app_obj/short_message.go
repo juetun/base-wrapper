@@ -2,23 +2,9 @@ package app_obj
 
 import (
 	"fmt"
-	"github.com/juetun/base-wrapper/lib/base"
 	"sync"
 )
 
-const (
-	ShortMessageSmsAliYun = "aliyunsms"
-	ShortMessageSmsFeiGe  = "feige"
-	ShortMessageSms100Sms = "100sms"
-)
-
-var (
-	ShortMessageSmsOptions = base.ModelItemOptions{
-		{Label: "阿里云短信", Value: ShortMessageSmsAliYun},
-		{Label: "飞鸽短信", Value: ShortMessageSmsFeiGe},
-		{Label: "短信100", Value: ShortMessageSms100Sms},
-	}
-)
 var ShortMessageObj = &shortMessage{channelListHandler: map[string]ShortMessageInter{},}
 
 func NewShortMessage(channelMap ...map[string]ShortMessageInter) (res *shortMessage) {

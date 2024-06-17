@@ -14,6 +14,20 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const (
+	ShortMessageSmsAliYun = "aliyunsms"
+	ShortMessageSmsFeiGe  = "feige"
+	ShortMessageSms100Sms = "100sms"
+)
+
+var (
+	ShortMessageSmsOptions = base.ModelItemOptions{
+		{Label: "阿里云短信", Value: ShortMessageSmsAliYun},
+		{Label: "飞鸽短信", Value: ShortMessageSmsFeiGe},
+		{Label: "短信100", Value: ShortMessageSms100Sms},
+	}
+)
+
 // PluginShortMessage 短信插件初始化
 func PluginShortMessage(arg *app_start.PluginsOperate) (err error) {
 
@@ -76,13 +90,13 @@ func PluginShortMessage(arg *app_start.PluginsOperate) (err error) {
 
 func initShortMessage(nameSpace string, shortMessageConfig *app_obj.ShortMessageConfig) (res app_obj.ShortMessageInter) {
 	switch nameSpace { // 短信通道配置 结构体映射
-	case app_obj.ShortMessageSms100Sms:
+	case ShortMessageSms100Sms:
 		res = short_message_impl.NewSms100(shortMessageConfig)
 		res.InitClient()
-	case app_obj.ShortMessageSmsFeiGe:
+	case ShortMessageSmsFeiGe:
 		res = short_message_impl.NewFeiGe(shortMessageConfig)
 		res.InitClient()
-	case app_obj.ShortMessageSmsAliYun:
+	case ShortMessageSmsAliYun:
 		res = short_message_impl.NewAliYunSms(shortMessageConfig)
 		res.InitClient()
 	default:
