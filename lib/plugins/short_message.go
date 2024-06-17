@@ -76,13 +76,13 @@ func PluginShortMessage(arg *app_start.PluginsOperate) (err error) {
 
 func initShortMessage(nameSpace string, shortMessageConfig *app_obj.ShortMessageConfig) (res app_obj.ShortMessageInter) {
 	switch nameSpace { // 短信通道配置 结构体映射
-	case "100sms":
+	case app_obj.ShortMessageSms100Sms:
 		res = short_message_impl.NewSms100(shortMessageConfig)
 		res.InitClient()
-	case "feige":
+	case app_obj.ShortMessageSmsFeiGe:
 		res = short_message_impl.NewFeiGe(shortMessageConfig)
 		res.InitClient()
-	case "aliyunsms":
+	case app_obj.ShortMessageSmsAliYun:
 		res = short_message_impl.NewAliYunSms(shortMessageConfig)
 		res.InitClient()
 	default:

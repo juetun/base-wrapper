@@ -2,9 +2,23 @@ package app_obj
 
 import (
 	"fmt"
+	"github.com/juetun/base-wrapper/lib/base"
 	"sync"
 )
 
+const (
+	ShortMessageSmsAliYun = "aliyunsms"
+	ShortMessageSmsFeiGe  = "feige"
+	ShortMessageSms100Sms = "100sms"
+)
+
+var (
+	ShortMessageSmsOptions = base.ModelItemOptions{
+		{Label: "阿里云短信", Value: ShortMessageSmsAliYun},
+		{Label: "飞鸽短信", Value: ShortMessageSmsFeiGe},
+		{Label: "短信100", Value: ShortMessageSms100Sms},
+	}
+)
 var ShortMessageObj = &shortMessage{channelListHandler: map[string]ShortMessageInter{},}
 
 func NewShortMessage(channelMap ...map[string]ShortMessageInter) (res *shortMessage) {
@@ -44,10 +58,10 @@ type (
 		AreaCode      string   `json:"area"`           // 地区号 默认 86
 		Content       string   `json:"content"`        // 短信内容
 		ExceptChannel []string `json:"except_channel"` // 排除渠道，（此字段主要为当某一渠道发送不成功后，重试发送切换渠道使用）
-		Channel       string   `json:"channel"`        // 短信渠道号 不设置使用默认规则
-		TemplateCode  string   `json:"template_code"`  //短信模版CODE （阿里云短信用）
-		SignName      string   `json:"sign_name"`      //签名名称 （阿里云短信用）
-		Type          int      `json:"type"`           //验证码发送的位置的KEY
+		Channel       string   `json:"channel"`        // 短信渠道号 不设置使用默认规则 不传值调用app_obj.ShortMessageObj.GetSendChannel()方法可用随机获取一个短信发送渠道
+		TemplateCode  string   `json:"template_code"`  // 短信模版CODE （阿里云短信用）
+		SignName      string   `json:"sign_name"`      // 签名名称 （阿里云短信用）
+		Type          int      `json:"type"`           // 验证码发送的位置的KEY
 	}
 )
 
@@ -70,6 +84,17 @@ func AddMessageChannel(channelName string, channel ShortMessageInter) {
 	syc.Lock()
 	defer syc.Unlock()
 	ShortMessageObj.channelListHandler[channelName] = channel
+}
+
+// 发送短信调用接口
+func (r *shortMessage) GetSendChannel(param *MessageArgument) (channelName string, err error) {
+
+	if len(r.channelListHandler) == 0 {
+		err = fmt.Errorf("当前没有可发送短信的通道")
+		return
+	}
+	_, channelName, err = r.initChannel(param)
+	return
 }
 
 // 发送短信调用接口
