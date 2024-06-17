@@ -7,7 +7,7 @@ package short_message_impl
 import (
 	"encoding/json"
 	"fmt"
-	"io"
+	ioRead "io"
 	"net/http"
 	"net/url"
 
@@ -63,7 +63,7 @@ func (r *FeiGe) sendSMS(mobile, content string) error {
 		_ = rsp.Body.Close()
 	}()
 
-	body, err := io.ReadAll(rsp.Body)
+	body, err := ioRead.ReadAll(rsp.Body)
 	if err != nil {
 		return fmt.Errorf("返回body解析失败")
 	}
