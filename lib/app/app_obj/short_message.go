@@ -58,20 +58,21 @@ type (
 	}
 
 	MessageArgument struct {
-		Mobile        string   `json:"mobile"`         // 手机号
-		AreaCode      string   `json:"area"`           // 地区号 默认 86
-		Content       string   `json:"content"`        // 短信内容
-		ExceptChannel []string `json:"except_channel"` // 排除渠道，（此字段主要为当某一渠道发送不成功后，重试发送切换渠道使用）
-		Channel       string   `json:"channel"`        // 短信渠道号 不设置使用默认规则 不传值调用app_obj.ShortMessageObj.GetSendChannel()方法可用随机获取一个短信发送渠道
-		TemplateCode  string   `json:"template_code"`  // 短信模版CODE （阿里云短信用）
-		SignName      string   `json:"sign_name"`      // 签名名称 （阿里云短信用）
-		Type          int      `json:"type"`           // 验证码发送的位置的KEY
+		Mobile             string              `json:"mobile"`         // 手机号
+		AreaCode           string              `json:"area"`           // 地区号 默认 86
+		Content            string              `json:"content"`        // 短信内容
+		ExceptChannel      []string            `json:"except_channel"` // 排除渠道，（此字段主要为当某一渠道发送不成功后，重试发送切换渠道使用）
+		Channel            string              `json:"channel"`        // 短信渠道号 不设置使用默认规则 不传值调用app_obj.ShortMessageObj.GetSendChannel()方法可用随机获取一个短信发送渠道
+		TemplateCode       string              `json:"template_code"`  // 短信模版CODE （阿里云短信用）
+		SignName           string              `json:"sign_name"`      // 签名名称 （阿里云短信用）
+		Type               int                 `json:"type"`           // 验证码发送的位置的KEY
+		ShortMessageConfig *ShortMessageConfig `json:"short_message_config"`
 	}
 	// 渠道发送需要实现的接口
 	ShortMessageInter interface {
 		Send(param *MessageArgument) (err error)
 		InitClient()
-		GetShortMessageConfig(param *MessageArgument) (shortMessageConfig *ShortMessageConfig)
+		GetShortMessageConfig() (shortMessageConfig *ShortMessageConfig)
 	}
 )
 
@@ -137,7 +138,8 @@ func (r *shortMessage) getChannelListHandler(param *MessageArgument) (channelLis
 	// 将黑名单短信通道排除
 	for key, value := range r.channelListHandler {
 		if !r.flagExceptChannel(param.ExceptChannel, key) {
-
+			config := value.GetShortMessageConfig()
+			param.ShortMessageConfig = config
 			channelListHandler[key] = value
 		}
 	}

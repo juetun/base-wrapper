@@ -23,6 +23,6 @@ func (s *Sms100) Send(param *app_obj.MessageArgument) (err error) {
 	fmt.Println("Sms100 发送短信")
 	return
 }
-func (s *Sms100) GetShortMessageConfig(param *app_obj.MessageArgument) (shortMessageConfig *app_obj.ShortMessageConfig) {
+func (s *Sms100) GetShortMessageConfig() (shortMessageConfig *app_obj.ShortMessageConfig) {
 	return s.shortMessageConfig
 }

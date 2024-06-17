@@ -81,6 +81,6 @@ func (r *FeiGe) sendSMS(mobile, content string) error {
 	return err
 }
 
-func (r *FeiGe) GetShortMessageConfig(param *app_obj.MessageArgument) (shortMessageConfig *app_obj.ShortMessageConfig) {
+func (r *FeiGe) GetShortMessageConfig() (shortMessageConfig *app_obj.ShortMessageConfig) {
 	return r.shortMessageConfig
 }
