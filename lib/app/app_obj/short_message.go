@@ -28,19 +28,38 @@ type shortMessage struct {
 
 // 短信发送的参数
 type (
+	ShortMessageAppConfig struct {
+		Connects            []string `json:"connects" yaml:"connects"`                         //当前应用使用了的数据库连接
+		Default             string   `json:"default"  yaml:"default"`                          //默认数据库
+		DistributedConnects []string `json:"distributed_connects" yaml:"distributed_connects"` //需要使用的分布式数据库连接
+	}
+	ShortMessageConfig struct {
+		Url       string `json:"url" yml:"url"`         //请求地址
+		AppKey    string `json:"app_key" yml:"app_key"` //
+		AppSecret string `json:"app_secret" yml:"app_secret"`
+	}
+
 	MessageArgument struct {
 		Mobile        string   `json:"mobile"`         // 手机号
 		AreaCode      string   `json:"area"`           // 地区号 默认 86
 		Content       string   `json:"content"`        // 短信内容
 		ExceptChannel []string `json:"except_channel"` // 排除渠道，（此字段主要为当某一渠道发送不成功后，重试发送切换渠道使用）
 		Channel       string   `json:"channel"`        // 短信渠道号 不设置使用默认规则
+		TemplateCode  string   `json:"template_code"`  //短信模版CODE （阿里云短信用）
+		SignName      string   `json:"sign_name"`      //签名名称 （阿里云短信用）
 		Type          int      `json:"type"`           //验证码发送的位置的KEY
 	}
 )
 
+func (r *ShortMessageConfig) ToString() (res string) {
+	res = fmt.Sprintf("Url:%s ,AppKey:%s,AppSecret:%v", r.Url, r.AppKey, r.AppSecret)
+	return
+}
+
 // 渠道发送需要实现的接口
 type ShortMessageInter interface {
 	Send(param *MessageArgument) (err error)
+	InitClient()
 }
 
 // 添加渠道
@@ -105,6 +124,7 @@ func (r *shortMessage) flagExceptChannel(exceptChannel []string, channelName str
 	}
 	return
 }
+
 func (r *shortMessage) upIndex() {
 	r.syncMutex.Lock()
 	// 多个短信通道轮流发
@@ -114,6 +134,7 @@ func (r *shortMessage) upIndex() {
 	}
 	r.syncMutex.Unlock()
 }
+
 func (r *shortMessage) initChannel(param *MessageArgument) (channelData ShortMessageInter, name string, err error) {
 
 	if param.Channel != "" {
@@ -131,7 +152,6 @@ func (r *shortMessage) initChannel(param *MessageArgument) (channelData ShortMes
 	channelListHandler := r.getChannelListHandler(param)
 	i := 0
 	for chanelName, value := range channelListHandler {
-
 		if ind == i {
 			channelData = value
 			name = chanelName

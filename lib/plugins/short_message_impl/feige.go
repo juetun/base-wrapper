@@ -7,7 +7,7 @@ package short_message_impl
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -15,9 +15,15 @@ import (
 )
 
 type FeiGe struct {
-	Password string `json:"password"`
-	SignId   string `json:"sign_id"`
-	Url      string `json:"url"` //"http://api.feige.ee/SmsService/Send"
+	shortMessageConfig *app_obj.ShortMessageConfig
+	//Password string `json:"password"`
+	//SignId   string `json:"sign_id"`
+	//Url      string `json:"url"` //"http://api.feige.ee/SmsService/Send"
+}
+
+func (r *FeiGe) InitClient() {
+
+	return
 }
 
 func (r *FeiGe) Send(param *app_obj.MessageArgument) (err error) {
@@ -25,11 +31,9 @@ func (r *FeiGe) Send(param *app_obj.MessageArgument) (err error) {
 	return
 }
 
-func NewFeiGe() (r app_obj.ShortMessageInter) {
+func NewFeiGe(shortMessageConfig *app_obj.ShortMessageConfig) (r app_obj.ShortMessageInter) {
 	return &FeiGe{
-		Url:      "http://api.feige.ee/SmsService/Send",
-		SignId:   "",
-		Password: "",
+		shortMessageConfig: shortMessageConfig,
 	}
 }
 
@@ -49,15 +53,17 @@ func (r *FeiGe) sendSMS(mobile, content string) error {
 	formValues.Set("Mobile", mobile)
 	formValues.Set("Content", content)
 	formValues.Set("Account", mobile)
-	formValues.Set("Pwd", r.Password)
-	formValues.Set("SignId", r.SignId)
-	rsp, err := http.PostForm(r.Url, formValues)
+	formValues.Set("Pwd", r.shortMessageConfig.AppSecret)
+	formValues.Set("SignId", r.shortMessageConfig.AppKey)
+	rsp, err := http.PostForm(r.shortMessageConfig.Url, formValues)
 	if err != nil {
 		return fmt.Errorf("请求失败")
 	}
-	defer rsp.Body.Close()
+	defer func() {
+		_ = rsp.Body.Close()
+	}()
 
-	body, err := ioutil.ReadAll(rsp.Body)
+	body, err := io.ReadAll(rsp.Body)
 	if err != nil {
 		return fmt.Errorf("返回body解析失败")
 	}

@@ -23,19 +23,49 @@ func PluginShortMessage(arg *app_start.PluginsOperate) (err error) {
 	defer syncLock.Unlock()
 
 	// 数据库配置信息存储对象
-	var configs = make(map[string]ShortMessageConfig)
-	var yamlFile []byte
-	if yamlFile, err = os.ReadFile(common.GetConfigFilePath("message.yaml")); err != nil {
-		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   #%v \n", err)
+	var (
+		conShortMsgConfigs    = make(map[string]app_obj.ShortMessageConfig)
+		itemConfig            app_obj.ShortMessageConfig
+		configs               app_obj.ShortMessageAppConfig
+		filePath, connectName string
+		yamlFile              []byte
+		ok                    bool
+	)
+
+	filePath = common.GetConfigFilePath("message.yaml")
+	if yamlFile, err = os.ReadFile(filePath); err != nil {
+		io.SystemOutFatalf("yamlFile.Get err(%s)  #%v \n", filePath, err)
 	}
 	if err = yaml.Unmarshal(yamlFile, &configs); err != nil {
-		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Load short message err(%#v) \n", err)
+		io.SystemOutFatalf("load short message config file(%v) err(%+v) \n", filePath, err)
+		return
+	}
+	app_obj.DistributedShortMessageConnects = append(app_obj.DistributedShortMessageConnects, configs.DistributedConnects...)
+	//读取common_config配置文件中的信息
+	filePath = common.GetCommonConfigFilePath("message.yaml", true)
+	if yamlFile, err = os.ReadFile(filePath); err != nil {
+		io.SystemOutFatalf("yamlFile.Get err(%s)  #%v \n", filePath, err)
+		return
+	}
+	if err = yaml.Unmarshal(yamlFile, &conShortMsgConfigs); err != nil {
+		io.SystemOutFatalf("load short message config file(%v) err(%+v) \n", filePath, err)
+		return
 	}
 
 	// 初始化短信通道
 	shortHandle := map[string]app_obj.ShortMessageInter{}
-	for nameSpace, value := range configs {
-		shortHandle[nameSpace] = initShortMessage(nameSpace, &value)
+
+	for _, connectName = range configs.Connects {
+		if connectName == "" {
+			continue
+		}
+		if itemConfig, ok = conShortMsgConfigs[connectName]; !ok {
+			err = fmt.Errorf("当前common_config中不支持您要使用的短信通道连接(%v)", connectName)
+			io.SystemOutFatalf("load short message  config err(%+v) \n", err)
+			return
+		}
+		io.SystemOutPrintf("【 %s 】%+v \n", connectName, itemConfig.ToString())
+		shortHandle[connectName] = initShortMessage(connectName, &itemConfig)
 	}
 
 	app_obj.ShortMessageObj = app_obj.NewShortMessage(shortHandle)
@@ -43,21 +73,21 @@ func PluginShortMessage(arg *app_start.PluginsOperate) (err error) {
 	return
 
 }
-func initShortMessage(nameSpace string, shortMessageConfig *ShortMessageConfig) (res app_obj.ShortMessageInter) {
+
+func initShortMessage(nameSpace string, shortMessageConfig *app_obj.ShortMessageConfig) (res app_obj.ShortMessageInter) {
 	switch nameSpace { // 短信通道配置 结构体映射
 	case "100sms":
-		res = short_message_impl.NewSms100()
+		res = short_message_impl.NewSms100(shortMessageConfig)
+		res.InitClient()
 	case "feige":
-		res = short_message_impl.NewFeiGe()
+		res = short_message_impl.NewFeiGe(shortMessageConfig)
+		res.InitClient()
+	case "aliyunsms":
+		res = short_message_impl.NewAliYunSms(shortMessageConfig)
+		res.InitClient()
 	default:
 		var err = fmt.Errorf("当前不支持此短信通道(%s)", nameSpace)
 		panic(err)
 	}
 	return
-}
-
-type ShortMessageConfig struct {
-	Url       string `json:"url" yml:"Url"`
-	AppKey    string `json:"app_key" yml:"AppKey"`
-	AppSecret string `json:"app_secret" yml:"AppSecret"`
 }
