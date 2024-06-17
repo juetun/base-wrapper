@@ -34,13 +34,13 @@ type (
 		DistributedConnects []string `json:"distributed_connects" yaml:"distributed_connects"` //需要使用的分布式数据库连接
 	}
 	ShortMessageConfig struct {
-		Url                       string `json:"url" yml:"url"`         //请求地址
-		AppKey                    string `json:"app_key" yml:"app_key"` //
-		AppSecret                 string `json:"app_secret" yml:"app_secret"`
-		AliYunAuthName            string `json:"aliyun_auth_name" yml:"aliyun_auth_name"`
-		AliYunAuthTemplateCode    string `json:"aliyun_auth_template_code" yml:"aliyun_auth_template_code"`
-		AliYunGeneralName         string `json:"aliyun_general_name" yml:"aliyun_general_name"`
-		AliYunGeneralTemplateCode string `json:"aliyun_general_template_code" yml:"aliyun_general_template_code"`
+		Url                       string `json:"url" yml:"url"`        //请求地址
+		AppKey                    string `json:"app_key" yml:"appkey"` //
+		AppSecret                 string `json:"app_secret" yml:"appsecret"`
+		AliYunAuthName            string `json:"aliyun_auth_name" yml:"aliyunauthname"`
+		AliYunAuthTemplateCode    string `json:"aliyun_auth_template_code" yml:"aliyunauthtemplatecode"`
+		AliYunGeneralName         string `json:"aliyun_general_name" yml:"aliyungeneralname"`
+		AliYunGeneralTemplateCode string `json:"aliyun_general_template_code" yml:"aliyungeneraltemplatecode"`
 	}
 
 	MessageArgument struct {
