@@ -48,9 +48,13 @@ type (
 		DistributedConnects []string `json:"distributed_connects" yaml:"distributed_connects"` //需要使用的分布式数据库连接
 	}
 	ShortMessageConfig struct {
-		Url       string `json:"url" yml:"url"`         //请求地址
-		AppKey    string `json:"app_key" yml:"app_key"` //
-		AppSecret string `json:"app_secret" yml:"app_secret"`
+		Url                       string `json:"url" yml:"url"`         //请求地址
+		AppKey                    string `json:"app_key" yml:"app_key"` //
+		AppSecret                 string `json:"app_secret" yml:"app_secret"`
+		AliYunAuthName            string `json:"aliyun_auth_name" yml:"aliyun_auth_name"`
+		AliYunAuthTemplateCode    string `json:"aliyun_auth_template_code" yml:"aliyun_auth_template_code"`
+		AliYunGeneralName         string `json:"aliyun_general_name" yml:"aliyun_general_name"`
+		AliYunGeneralTemplateCode string `json:"aliyun_general_template_code" yml:"aliyun_general_template_code"`
 	}
 
 	MessageArgument struct {
@@ -63,17 +67,17 @@ type (
 		SignName      string   `json:"sign_name"`      // 签名名称 （阿里云短信用）
 		Type          int      `json:"type"`           // 验证码发送的位置的KEY
 	}
+	// 渠道发送需要实现的接口
+	ShortMessageInter interface {
+		Send(param *MessageArgument) (err error)
+		InitClient()
+		GetShortMessageConfig(param *MessageArgument) (shortMessageConfig *ShortMessageConfig)
+	}
 )
 
 func (r *ShortMessageConfig) ToString() (res string) {
 	res = fmt.Sprintf("Url:%s ,AppKey:%s,AppSecret:%v", r.Url, r.AppKey, r.AppSecret)
 	return
-}
-
-// 渠道发送需要实现的接口
-type ShortMessageInter interface {
-	Send(param *MessageArgument) (err error)
-	InitClient()
 }
 
 // 添加渠道
@@ -115,7 +119,7 @@ func (r *shortMessage) SendMsg(param *MessageArgument) (channelName string, err 
 // 获取短信渠道列表
 func (r *shortMessage) GetChannelKey() (res []string) {
 	res = make([]string, 0, len(r.channelListHandler))
-	for key, _ := range r.channelListHandler {
+	for key := range r.channelListHandler {
 		res = append(res, key)
 	}
 	return
@@ -133,6 +137,7 @@ func (r *shortMessage) getChannelListHandler(param *MessageArgument) (channelLis
 	// 将黑名单短信通道排除
 	for key, value := range r.channelListHandler {
 		if !r.flagExceptChannel(param.ExceptChannel, key) {
+
 			channelListHandler[key] = value
 		}
 	}

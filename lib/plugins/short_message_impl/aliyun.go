@@ -104,3 +104,7 @@ func (r *AliYunSms) createClient() (_err error) {
 	r._client = _result
 	return
 }
+
+func (r *AliYunSms) GetShortMessageConfig(param *app_obj.MessageArgument) (shortMessageConfig *app_obj.ShortMessageConfig) {
+	return r.shortMessageConfig
+}
