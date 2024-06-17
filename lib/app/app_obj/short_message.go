@@ -124,8 +124,6 @@ func (r *shortMessage) getChannelListHandler(param *MessageArgument) (channelLis
 	// 将黑名单短信通道排除
 	for key, value := range r.channelListHandler {
 		if !r.flagExceptChannel(param.ExceptChannel, key) {
-			config := value.GetShortMessageConfig()
-			param.ShortMessageConfig = config
 			channelListHandler[key] = value
 		}
 	}
@@ -172,6 +170,8 @@ func (r *shortMessage) initChannel(param *MessageArgument) (channelData ShortMes
 	for chanelName, value := range channelListHandler {
 		if ind == i {
 			channelData = value
+			config := value.GetShortMessageConfig()
+			param.ShortMessageConfig = config
 			name = chanelName
 		}
 		i++
