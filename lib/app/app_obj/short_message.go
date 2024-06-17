@@ -155,22 +155,11 @@ func (r *shortMessage) upIndex() {
 	r.syncMutex.Unlock()
 }
 
-func (r *shortMessage) initChannel(param *MessageArgument) (channelData ShortMessageInter, name string, err error) {
-	var (
-		i, ind int
-	)
-	if param.Channel != "" {
-		if _, ok := r.channelListHandler[param.Channel]; !ok {
-			err = fmt.Errorf("当前不支持你选择的短信发送通道(%s)", param.Channel)
-			return
-		}
-	} else {
-		// 更新轮询条件
-		r.upIndex()
-		ind = r.shortMessageIndex % len(r.channelListHandler)
-		i = 0
+func (r *shortMessage) hasSetChannel(param *MessageArgument) (channelData ShortMessageInter, name string, err error) {
+	if _, ok := r.channelListHandler[param.Channel]; !ok {
+		err = fmt.Errorf("当前不支持你选择的短信发送通道(%s)", param.Channel)
+		return
 	}
-
 	channelListHandler := r.getChannelListHandler(param)
 	for chanelName, value := range channelListHandler {
 
@@ -184,6 +173,22 @@ func (r *shortMessage) initChannel(param *MessageArgument) (channelData ShortMes
 			}
 			continue
 		}
+	}
+	return
+}
+
+func (r *shortMessage) hasNotSetChannel(param *MessageArgument) (channelData ShortMessageInter, name string, err error) {
+	var (
+		i, ind int
+	)
+
+	// 更新轮询条件
+	r.upIndex()
+	ind = r.shortMessageIndex % len(r.channelListHandler)
+	i = 0
+
+	channelListHandler := r.getChannelListHandler(param)
+	for chanelName, value := range channelListHandler {
 		if ind == i {
 			channelData = value
 			config := value.GetShortMessageConfig()
@@ -193,6 +198,15 @@ func (r *shortMessage) initChannel(param *MessageArgument) (channelData ShortMes
 		i++
 
 	}
+	return
+}
 
+func (r *shortMessage) initChannel(param *MessageArgument) (channelData ShortMessageInter, name string, err error) {
+
+	if param.Channel != "" {
+		channelData, name, err = r.hasSetChannel(param)
+		return
+	}
+	channelData, name, err = r.hasNotSetChannel(param)
 	return
 }
