@@ -158,16 +158,27 @@ func (r *shortMessage) initChannel(param *MessageArgument) (channelData ShortMes
 			err = fmt.Errorf("当前不支持你选择的短信发送通道(%s)", param.Channel)
 		}
 		return
+	} else {
+		// 更新轮询条件
+		r.upIndex()
 	}
-
-	// 更新轮询条件
-	r.upIndex()
 
 	ind := r.shortMessageIndex % len(r.channelListHandler)
 
 	channelListHandler := r.getChannelListHandler(param)
 	i := 0
 	for chanelName, value := range channelListHandler {
+
+		//如果已经设置了chanelName
+		if param.Channel != "" {
+			if param.Channel == chanelName {
+				channelData = value
+				config := value.GetShortMessageConfig()
+				param.ShortMessageConfig = config
+				name = chanelName
+			}
+			continue
+		}
 		if ind == i {
 			channelData = value
 			config := value.GetShortMessageConfig()
@@ -175,6 +186,7 @@ func (r *shortMessage) initChannel(param *MessageArgument) (channelData ShortMes
 			name = chanelName
 		}
 		i++
+
 	}
 
 	return
