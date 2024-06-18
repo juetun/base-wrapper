@@ -8,31 +8,30 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/plugins"
 	ioRead "io"
 	"net/http"
 	"net/url"
-
-	"github.com/juetun/base-wrapper/lib/app/app_obj"
 )
 
 type FeiGe struct {
-	shortMessageConfig *app_obj.ShortMessageConfig
+	shortMessageConfig *plugins.ShortMessageConfig
 	//Password string `json:"password"`
 	//SignId   string `json:"sign_id"`
 	//Url      string `json:"url"` //"http://api.feige.ee/SmsService/Send"
 }
 
-func (r *FeiGe) InitClient() {
+func (r *FeiGe) InitClient() (err error) {
 
 	return
 }
 
-func (r *FeiGe) Send(ctx *base.Context, param *app_obj.MessageArgument, logTypes ...string) (err error) {
+func (r *FeiGe) Send(ctx *base.Context, param *plugins.MessageArgument, logTypes ...string) (err error) {
 	err = r.sendSMS(param.Mobile, param.Content)
 	return
 }
 
-func NewFeiGe(shortMessageConfig *app_obj.ShortMessageConfig) (r app_obj.ShortMessageInter) {
+func NewFeiGe(shortMessageConfig *plugins.ShortMessageConfig) (r plugins.ShortMessageInter) {
 	return &FeiGe{
 		shortMessageConfig: shortMessageConfig,
 	}
@@ -82,6 +81,6 @@ func (r *FeiGe) sendSMS(mobile, content string) error {
 	return err
 }
 
-func (r *FeiGe) GetShortMessageConfig() (shortMessageConfig *app_obj.ShortMessageConfig) {
+func (r *FeiGe) GetShortMessageConfig() (shortMessageConfig *plugins.ShortMessageConfig) {
 	return r.shortMessageConfig
 }

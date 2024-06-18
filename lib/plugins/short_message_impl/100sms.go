@@ -2,28 +2,28 @@ package short_message_impl
 
 import (
 	"fmt"
-	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/plugins"
 )
 
 type Sms100 struct {
-	shortMessageConfig *app_obj.ShortMessageConfig
+	shortMessageConfig *plugins.ShortMessageConfig
 }
 
-func (s *Sms100) InitClient() {
+func (s *Sms100) InitClient() (err error) {
 	return
 }
 
-func NewSms100(shortMessageConfig *app_obj.ShortMessageConfig) (r app_obj.ShortMessageInter) {
+func NewSms100(shortMessageConfig *plugins.ShortMessageConfig) (r plugins.ShortMessageInter) {
 	return &Sms100{
 		shortMessageConfig: shortMessageConfig,
 	}
 }
 
-func (s *Sms100) Send(ctx *base.Context, param *app_obj.MessageArgument, logTypes ...string) (err error) {
+func (s *Sms100) Send(ctx *base.Context, param *plugins.MessageArgument, logTypes ...string) (err error) {
 	fmt.Println("Sms100 发送短信")
 	return
 }
-func (s *Sms100) GetShortMessageConfig() (shortMessageConfig *app_obj.ShortMessageConfig) {
+func (s *Sms100) GetShortMessageConfig() (shortMessageConfig *plugins.ShortMessageConfig) {
 	return s.shortMessageConfig
 }
