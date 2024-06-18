@@ -12,6 +12,13 @@ import (
 	"strings"
 )
 
+const (
+	LogTypeErr   = "error"
+	LogTypeInfo  = "info"
+	LogTypeDebug = "debug"
+	LogTypeFatal = "Fatal"
+)
+
 type AliYunSms struct {
 	shortMessageConfig *app_obj.ShortMessageConfig
 	_client            *dysmsapi20170525.Client
@@ -23,28 +30,63 @@ func (r *AliYunSms) InitClient() {
 
 var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
 
-func (r *AliYunSms) Send(param *app_obj.MessageArgument) (err error) {
+func (r *AliYunSms) log(ctx *base.Context, logType, logMark string, logContent map[string]interface{}) {
+	switch logType {
+	case LogTypeErr:
+		ctx.Error(logContent, logMark)
+	case LogTypeInfo:
+		ctx.Info(logContent, logMark)
+	case LogTypeDebug:
+		ctx.Debug(logContent, logMark)
+	case LogTypeFatal:
+		ctx.Fatal(logContent, logMark)
+	}
+}
 
+func (r *AliYunSms) Send(ctx *base.Context, param *app_obj.MessageArgument, logTypes ...string) (err error) {
+	logContent := make(map[string]interface{}, 10)
+	logMark := "AliYunSmsSend"
+	var logType = ""
+	if len(logTypes) > 0 {
+		logType = logTypes[0]
+	}
+
+	//记录日志
+	defer func() {
+		if logType != "" {
+			r.log(ctx, logType, logMark, logContent)
+		} else if err != nil {
+			r.log(ctx, LogTypeErr, logMark, logContent)
+		} else {
+			r.log(ctx, LogTypeInfo, logMark, logContent)
+		}
+	}()
 	sendSmsRequest := &dysmsapi20170525.SendSmsRequest{
 		SignName:      tea.String(param.SignName),
 		TemplateCode:  tea.String(param.TemplateCode),
 		PhoneNumbers:  tea.String(param.Mobile),
 		TemplateParam: tea.String(param.Content),
 	}
+	logContent["sendSmsRequest"] = sendSmsRequest
 	runtime := &util.RuntimeOptions{}
+	var (
+		sendSmsResponse *dysmsapi20170525.SendSmsResponse
+	)
 	tryErr := func() (_e error) {
 		defer func() {
 			if r := tea.Recover(recover()); r != nil {
+				logContent["errorRecover"] = r.Error()
 				_e = r
 			}
 		}()
 		// 复制代码运行请自行打印 API 的返回值
-		_, err = r._client.SendSmsWithOptions(sendSmsRequest, runtime)
+		sendSmsResponse, err = r._client.SendSmsWithOptions(sendSmsRequest, runtime)
 		if err != nil {
-			return err
+			logContent["SendSmsWithOptions"] = err.Error()
+			return
 		}
 
-		return nil
+		return
 	}()
 
 	if tryErr != nil {
@@ -54,6 +96,7 @@ func (r *AliYunSms) Send(param *app_obj.MessageArgument) (err error) {
 		} else {
 			error.Message = tea.String(tryErr.Error())
 		}
+		logContent["error_info"] = error.Message
 		// 此处仅做打印展示，请谨慎对待异常处理，在工程项目中切勿直接忽略异常。
 		// 错误 message
 		fmt.Println(tea.StringValue(error.Message))

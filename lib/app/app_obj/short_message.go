@@ -2,6 +2,7 @@ package app_obj
 
 import (
 	"fmt"
+	"github.com/juetun/base-wrapper/lib/base"
 	"sync"
 )
 
@@ -56,7 +57,7 @@ type (
 	}
 	// 渠道发送需要实现的接口
 	ShortMessageInter interface {
-		Send(param *MessageArgument) (err error)
+		Send(ctx *base.Context, param *MessageArgument, logTypes ...string) (err error)
 		InitClient()
 		GetShortMessageConfig() (shortMessageConfig *ShortMessageConfig)
 	}
@@ -89,7 +90,7 @@ func (r *shortMessage) GetSendChannel(param *MessageArgument) (channelName strin
 }
 
 // 发送短信调用接口
-func (r *shortMessage) SendMsg(param *MessageArgument) (channelName string, err error) {
+func (r *shortMessage) SendMsg(ctx *base.Context, param *MessageArgument, logTypes ...string) (channelName string, err error) {
 
 	if len(r.channelListHandler) == 0 {
 		err = fmt.Errorf("当前没有可发送短信的通道")
@@ -103,7 +104,7 @@ func (r *shortMessage) SendMsg(param *MessageArgument) (channelName string, err 
 		err = fmt.Errorf("未获取到发送短信的通道信息")
 		return
 	}
-	err = channelData.Send(param)
+	err = channelData.Send(ctx,param, logTypes...)
 	return
 }
 

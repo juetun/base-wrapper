@@ -7,6 +7,7 @@ package short_message_impl
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/juetun/base-wrapper/lib/base"
 	ioRead "io"
 	"net/http"
 	"net/url"
@@ -26,7 +27,7 @@ func (r *FeiGe) InitClient() {
 	return
 }
 
-func (r *FeiGe) Send(param *app_obj.MessageArgument) (err error) {
+func (r *FeiGe) Send(ctx *base.Context, param *app_obj.MessageArgument, logTypes ...string) (err error) {
 	err = r.sendSMS(param.Mobile, param.Content)
 	return
 }

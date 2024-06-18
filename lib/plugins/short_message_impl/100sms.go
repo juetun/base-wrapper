@@ -3,6 +3,7 @@ package short_message_impl
 import (
 	"fmt"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
+	"github.com/juetun/base-wrapper/lib/base"
 )
 
 type Sms100 struct {
@@ -19,7 +20,7 @@ func NewSms100(shortMessageConfig *app_obj.ShortMessageConfig) (r app_obj.ShortM
 	}
 }
 
-func (s *Sms100) Send(param *app_obj.MessageArgument) (err error) {
+func (s *Sms100) Send(ctx *base.Context, param *app_obj.MessageArgument, logTypes ...string) (err error) {
 	fmt.Println("Sms100 发送短信")
 	return
 }
