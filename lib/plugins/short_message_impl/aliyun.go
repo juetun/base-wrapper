@@ -8,7 +8,6 @@ import (
 	util "github.com/alibabacloud-go/tea-utils/v2/service"
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/base-wrapper/lib/plugins"
 	"strings"
 )
 
@@ -20,7 +19,7 @@ const (
 )
 
 type AliYunSms struct {
-	shortMessageConfig *plugins.ShortMessageConfig
+	shortMessageConfig *ShortMessageConfig
 	_client            *dysmsapi20170525.Client
 }
 
@@ -44,7 +43,7 @@ func (r *AliYunSms) log(ctx *base.Context, logType, logMark string, logContent m
 	}
 }
 
-func (r *AliYunSms) Send(ctx *base.Context, param *plugins.MessageArgument, logTypes ...string) (err error) {
+func (r *AliYunSms) Send(ctx *base.Context, param *MessageArgument, logTypes ...string) (err error) {
 	logContent := make(map[string]interface{}, 10)
 	logMark := "AliYunSmsSend"
 	var logType = ""
@@ -117,7 +116,7 @@ func (r *AliYunSms) Send(ctx *base.Context, param *plugins.MessageArgument, logT
 	return
 }
 
-func NewAliYunSms(shortMessageConfig *plugins.ShortMessageConfig) (r plugins.ShortMessageInter) {
+func NewAliYunSms(shortMessageConfig *ShortMessageConfig) (r ShortMessageInter) {
 	return &AliYunSms{shortMessageConfig: shortMessageConfig,}
 }
 
@@ -149,6 +148,6 @@ func (r *AliYunSms) createClient() (_err error) {
 	return
 }
 
-func (r *AliYunSms) GetShortMessageConfig() (shortMessageConfig *plugins.ShortMessageConfig) {
+func (r *AliYunSms) GetShortMessageConfig() (shortMessageConfig *ShortMessageConfig) {
 	return r.shortMessageConfig
 }

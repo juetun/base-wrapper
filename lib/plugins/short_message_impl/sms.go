@@ -1,4 +1,4 @@
-package plugins
+package short_message_impl
 
 import (
 	"fmt"
@@ -10,7 +10,6 @@ import (
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
-	"github.com/juetun/base-wrapper/lib/plugins/short_message_impl"
 	"gopkg.in/yaml.v2"
 )
 
@@ -120,13 +119,13 @@ func PluginShortMessage(arg *app_start.PluginsOperate) (err error) {
 func initShortMessage(nameSpace string, shortMessageConfig *ShortMessageConfig) (res ShortMessageInter, err error) {
 	switch nameSpace { // 短信通道配置 结构体映射
 	case ShortMessageSms100Sms:
-		res = short_message_impl.NewSms100(shortMessageConfig)
+		res = NewSms100(shortMessageConfig)
 		err = res.InitClient()
 	case ShortMessageSmsFeiGe:
-		res = short_message_impl.NewFeiGe(shortMessageConfig)
+		res = NewFeiGe(shortMessageConfig)
 		err = res.InitClient()
 	case ShortMessageSmsAliYun:
-		res = short_message_impl.NewAliYunSms(shortMessageConfig)
+		res = NewAliYunSms(shortMessageConfig)
 		err = res.InitClient()
 	default:
 		err = fmt.Errorf("当前不支持此短信通道(%s)", nameSpace)
