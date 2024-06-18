@@ -85,7 +85,7 @@ func (r *AliYunSms) Send(ctx *base.Context, param *MessageArgument, logTypes ...
 			logContent["SendSmsWithOptions"] = err.Error()
 			return
 		}
-
+		logContent["sendSmsResponse"] = sendSmsResponse
 		return
 	}()
 
