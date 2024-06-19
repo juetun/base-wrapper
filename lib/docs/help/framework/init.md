@@ -25,7 +25,7 @@ func main() {
         PluginOss,
         PluginJwt, // 加载用户验证插件,必须放在Redis插件后
         // PluginElasticSearchV7,
-        PluginShortMessage,
+        	short_message_impl.PluginShortMessage,
         PluginAppMap,
         PluginAuthorization,
         // func(arg *app_start.PluginsOperate) (err error) {

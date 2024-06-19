@@ -18,7 +18,8 @@ import (
 	_ "github.com/juetun/base-wrapper/lib/app/init" // 加载公共插件项
 	"github.com/juetun/base-wrapper/lib/authorization/model"
 	. "github.com/juetun/base-wrapper/lib/plugins" // 组件目录
-	_ "github.com/juetun/base-wrapper/web/router"  // 加载路由
+	"github.com/juetun/base-wrapper/lib/plugins/short_message_impl"
+	_ "github.com/juetun/base-wrapper/web/router" // 加载路由
 
 	_ "github.com/juetun/base-wrapper/docs"
 )
@@ -41,7 +42,7 @@ func main() {
 		PluginOss,
 		PluginJwt, // 加载用户验证插件,必须放在Redis插件后
 		PluginElasticSearchV7,
-		PluginShortMessage,
+		short_message_impl.PluginShortMessage,
 		PluginAppMap,
 		PluginAuthorization,
 		// func(arg *app_start.PluginsOperate) (err error) {

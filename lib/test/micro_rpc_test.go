@@ -8,6 +8,7 @@
 package test
 
 import (
+	"github.com/juetun/base-wrapper/lib/plugins/short_message_impl"
 	"net/http"
 	"path/filepath"
 	"testing"
@@ -25,7 +26,7 @@ func TestMicroRpcGet(t *testing.T) {
 	app_start.NewPlugins().Use(
 		// PluginJwt, // 加载用户验证插件,必须放在Redis插件后
 		// PluginElasticSearchV7,
-		PluginShortMessage,
+		short_message_impl.PluginShortMessage,
 		PluginAppMap,
 		// plugins.PluginOss,
 		// plugins.PluginUser, // 用户登录,jwt等用户信息逻辑处理
