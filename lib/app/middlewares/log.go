@@ -121,9 +121,10 @@ func delayExecGinLogCollect(start time.Time, c *gin.Context, path *url.URL, logg
 		logger.Error(c, fields, logDescMark)
 		return
 	}
-	 
+
 	switch c.Request.Method {
 	case http.MethodHead: //跳过心跳检测日志
+	case http.MethodOptions: //
 	default:
 		logger.Info(c, fields, logDescMark)
 	}
