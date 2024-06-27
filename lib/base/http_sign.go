@@ -265,8 +265,9 @@ func (s *SignUtils) ParamsConcat(params url.Values) (valueMap map[string]string)
 	}
 	return
 }
+
 func (s *SignUtils) GetRequestParams(c *gin.Context) (valueMap map[string]string) {
-	valueMap = make(map[string]string, len(c.Request.PostForm))
+	valueMap = make(map[string]string, len(c.Request.Form))
 	_ = c.Request.ParseMultipartForm(128) // 保存表单缓存的内存大小128M
 	valueMap = s.ParamsConcat(c.Request.Form)
 	return
