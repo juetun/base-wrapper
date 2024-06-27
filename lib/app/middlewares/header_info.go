@@ -152,7 +152,9 @@ func HttpHeaderInfo() gin.HandlerFunc {
 			})
 			return
 		}
-		if !c.GetBool(app_obj.DebugFlag) { //DebugFlag只要不为true 可重复赋值
+
+		//如果支持签名调试
+		if app_obj.App.AppSignDebug && !c.GetBool(app_obj.DebugFlag) { //DebugFlag只要不为true 可重复赋值
 			c.Set(app_obj.DebugFlag, HttpHeaderInformation.HDebug)
 		}
 		c.Set(app_obj.HttpHeaderInfo, HttpHeaderInformation)

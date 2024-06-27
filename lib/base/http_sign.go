@@ -220,8 +220,15 @@ func (s *SignUtils) SignGinRequest(c *gin.Context) (validateResult bool, signRes
 	if base64Code, encryptionString, err = ConcatString(signParams); err != nil {
 		return
 	}
-
-	listenHandlerStruct = s.testAddHeader(c, base64Code, encryptionString)
+	listenHandlerStruct = ListenHandlerStruct{}
+	switch app_obj.App.AppEnv {
+	case app_obj.EnvProd:
+		if c.GetBool(app_obj.DebugFlag) {
+			listenHandlerStruct = s.testAddHeader(c, base64Code, encryptionString)
+		}
+	default: // 如果不是线上环境,可输出签名格式 (此处代码为调试 签名是否能正常使用准备)
+		listenHandlerStruct = s.testAddHeader(c, base64Code, encryptionString)
+	}
 
 	signResult = s.Encrypt(base64Code, secret, listenHandlerStruct)
 	if signResult == c.Request.Header.Get(app_obj.HttpSign) {
@@ -233,16 +240,13 @@ func (s *SignUtils) SignGinRequest(c *gin.Context) (validateResult bool, signRes
 func (s *SignUtils) testAddHeader(c *gin.Context, base64Code, encryptionString string) (listenHandlerStruct ListenHandlerStruct) {
 	// 配置回调输出
 	listenHandlerStruct = ListenHandlerStruct{}
-	// 如果不是线上环境,可输出签名格式 (此处代码为调试 签名是否能正常使用准备)
-	if app_obj.App.AppEnv != app_obj.EnvProd && c.GetBool(app_obj.DebugFlag) {
-		resp := c.Writer.Header()
-		resp.Set("Sign-format", encryptionString)
-		resp.Set("Sign-Base64Code", base64Code)
-		listenHandlerStruct = ListenHandlerStruct{
-			MD5HMAC:       func(s string) {},
-			ByteTo16After: func(s string) { resp.Set("Sign-ByteTo16", s) },
-			FinishHandler: func(s string) { resp.Set("Sign-f", s) },
-		}
+	resp := c.Writer.Header()
+	resp.Set("Sign-format", encryptionString)
+	resp.Set("Sign-Base64Code", base64Code)
+	listenHandlerStruct = ListenHandlerStruct{
+		MD5HMAC:       func(s string) {},
+		ByteTo16After: func(s string) { resp.Set("Sign-ByteTo16", s) },
+		FinishHandler: func(s string) { resp.Set("Sign-f", s) },
 	}
 	return
 }

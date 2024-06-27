@@ -77,6 +77,7 @@ type (
 		AppPort              int             `json:"app_port" yaml:"port"`                             // 应用监听的端口
 		AppGraceReload       int             `json:"grace_reload" yaml:"grace_reload"`                 // 应用是否支持优雅重启
 		AppNeedPProf         bool            `json:"app_need_p_prof" yaml:"app_need_p_prof"`           // 是否需要内存分析
+		AppSignDebug         bool            `json:"app_sign_debug" yaml:"app_sign_debug"`             // 是否支持签名调试
 		AppTemplateDirectory string          `json:"app_template_directory" yaml:"template_directory"` // temp模板默认目录
 		AppRouterPrefix      AppRouterPrefix `json:"app_router_prefix" yaml:"app_router_prefix"`       // 路由前缀
 		NotValidateSign      []UrlFormat     `json:"not_validate_sign"  yaml:"not_validate_sign"`      //不需要签名验证的Uri
