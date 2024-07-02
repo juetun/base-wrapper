@@ -85,6 +85,7 @@ func delayExecGinLogCollect(start time.Time, c *gin.Context, path *url.URL, logg
 		pathString  = path.String()
 		bodyBytes   []byte
 		logDescMark = "delayExecGinLogCollect"
+		err         error
 	)
 	if strings.Index(pathString, "/assets") == 0 || strings.Index(pathString, "assets") == 0 {
 		return
@@ -99,9 +100,12 @@ func delayExecGinLogCollect(start time.Time, c *gin.Context, path *url.URL, logg
 		"header":            getUseHeader(&c.Request.Header),
 	}
 	if c.Request.Body != nil {
-		bodyBytes, _ = io2.ReadAll(c.Request.Body)
-		// c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
-		// c.Set("body", string(bodyBytes))
+		if bodyBytes, err = io2.ReadAll(c.Request.Body); err != nil {
+			fields["err"] = err.Error()
+			fields["mark"] = "ReadAll"
+		}
+		c.Request.Body = io2.NopCloser(bytes.NewBuffer(bodyBytes))//读取完body一定要回写 不然后边获取不到
+		c.Set("body", string(bodyBytes))
 	}
 	if len(bodyBytes) > 0 {
 		fields["request"] = string(bodyBytes)
