@@ -31,23 +31,24 @@ const (
 )
 
 type CollectParam struct {
-	PathUrl string `json:"path_url"`
+	PathUrl string `json:"path_url,omitempty"`
 }
 type RequestOptions struct {
-	Context            *base.Context `json:"-"`                // 上下文传参 操作日志对象
-	NotMicro           bool          `json:"not_micro"`        // 不是微服务应用 (默认false -是微服务内调用)
-	Method             string        `json:"method"`           // http请求方法
-	AppName            string        `json:"app_name"`         // 应用名
-	URI                string        `json:"uri"`              // 请求的地址
-	ConnectTimeOut     time.Duration `json:"connect_time_out"` // 请求连接超时时长 默认300毫秒(建立HTTP请求的时长)
-	RequestTimeOut     time.Duration `json:"request_time_out"` // 获取请求时长 默认5秒(获取数据的时长)
-	Header             http.Header   `json:"header"`           // 请求的header请求
-	Value              url.Values    `json:"value"`            // 请求参数
-	BodyJson           []byte        `json:"body_json"`        // 请求的body信息
-	PathVersion        string        `json:"path_version"`
-	RetryTimes         int           `json:"retry_times"`          // 失败重试次数,1不重试（只发送一次请求） 2尝试再请求一次
-	RetryTimesDuration time.Duration `json:"retry_times_duration"` // 重试时间间隔
-	CollectParams      CollectParam  `json:"collect_params"`
+	Context            *base.Context `json:"-"`                          // 上下文传参 操作日志对象
+	NotMicro           bool          `json:"not_micro,omitempty"`        // 不是微服务应用 (默认false -是微服务内调用)
+	Method             string        `json:"method,omitempty"`           // http请求方法
+	AppName            string        `json:"app_name,omitempty"`         // 应用名
+	URI                string        `json:"uri,omitempty"`              // 请求的地址
+	ConnectTimeOut     time.Duration `json:"connect_time_out,omitempty"` // 请求连接超时时长 默认300毫秒(建立HTTP请求的时长)
+	RequestTimeOut     time.Duration `json:"request_time_out,omitempty"` // 获取请求时长 默认5秒(获取数据的时长)
+	Header             http.Header   `json:"header,omitempty"`           // 请求的header请求
+	Value              url.Values    `json:"value,omitempty"`            // 请求参数
+	BodyJson           []byte        `json:"body_json,omitempty"`        // 请求的body信息
+	PathVersion        string        `json:"path_version,omitempty"`
+	RetryTimes         int           `json:"retry_times,omitempty"`          // 失败重试次数,1不重试（只发送一次请求） 2尝试再请求一次
+	RetryTimesDuration time.Duration `json:"retry_times_duration,omitempty"` // 重试时间间隔
+	CollectParams      CollectParam  `json:"collect_params,omitempty"`
+	LogMark            string        `json:"-"` //输出日志标记
 }
 
 // 请求操作结构体
@@ -368,9 +369,11 @@ func (r *httpRpc) GetBodyAsString() (res string) {
 
 func (r *httpRpc) GetBody() (res *httpRpc) {
 	res = r
-	logContent := map[string]interface{}{
-		"request": r.Request,
-		"uri":     r.Uri,
+	logContent := make(map[string]interface{}, 15)
+	logContent["request"] = r.Request
+	logContent["uri"] = r.Uri
+	if r.Request.LogMark != "" {
+		logContent["mark"] = r.Request.LogMark
 	}
 	if r.Request.BodyJson != nil {
 		logContent["reqBody"] = string(r.Request.BodyJson)
@@ -385,10 +388,10 @@ func (r *httpRpc) GetBody() (res *httpRpc) {
 		} else {
 			r.Request.Context.Info(logContent, "httpRpcGetBody")
 		}
-
 	}()
 
 	if r.Error != nil {
+		logContent["desc"] = "1"
 		return
 	}
 	// 保证I/O正常关闭
@@ -415,7 +418,6 @@ func (r *httpRpc) GetBody() (res *httpRpc) {
 	}
 
 	logContent["body"] = string(r.Body)
-
 	// 成功，返回数据及状态
 	return
 
