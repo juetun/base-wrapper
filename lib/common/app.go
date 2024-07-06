@@ -74,9 +74,16 @@ func GetConfigFileDirectory(notEnv ...bool) (res string) {
 	return
 }
 
+//获取common_config/{env}目录位置
 func GetCommonConfigDirectory(notEnv ...bool) (res string) {
 	env := getEnvPath()
-	res = fmt.Sprintf("%vapps/common_config/%v", GetConfigFileDirectory(notEnv...), env)
+	res = fmt.Sprintf("%v%v", GetCommonConfigDir(notEnv...), env)
+	return
+}
+
+//获取common_config目录位置
+func GetCommonConfigDir(notEnv ...bool) (res string) {
+	res = fmt.Sprintf("%vapps/common_config/", GetConfigFileDirectory(notEnv...))
 	return
 }
 
