@@ -31,8 +31,10 @@ func PluginElasticSearchV7(arg *app_start.PluginsOperate) (err error) {
 	defer io.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintf(fmt.Sprintf("ElasticSearch load config finished \n"))
 
+	var filePath = common.GetCommonConfigFilePath("elasticsearch.yml", true)
+
 	var yamlFile []byte
-	if yamlFile, err = os.ReadFile(common.GetConfigFilePath("elasticsearch.yaml")); err != nil {
+	if yamlFile, err = os.ReadFile(filePath); err != nil {
 		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   #%v \n", err)
 	}
 	// 数据库配置信息存储对象

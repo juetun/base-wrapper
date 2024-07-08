@@ -13,6 +13,7 @@ package con_impl
 
 import (
 	"fmt"
+	"github.com/juetun/base-wrapper/lib/plugins/short_message_impl"
 	"net/http"
 	"time"
 
@@ -21,7 +22,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	. "github.com/juetun/base-wrapper/lib/base"
 	. "github.com/juetun/base-wrapper/lib/base/page_block"
 	"github.com/juetun/base-wrapper/web/cons/page"
@@ -85,7 +85,7 @@ func (r *ConPageImpl) Websocket(c *gin.Context) {
 }
 
 func (r *ConPageImpl) shortMessage(c *gin.Context) {
-	keyList := app_obj.ShortMessageObj.GetChannelKey()
+	keyList := short_message_impl.ShortMessageObj.GetChannelKey()
 	fmt.Println("当前支持的通道号有:", keyList)
 	// app_obj.ShortMessageObj.SendMsg(&app_obj.MessageArgument{
 	//	Mobile:   "",
