@@ -2,7 +2,7 @@
 package app_obj
 
 import (
-	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/elastic/go-elasticsearch/v8"
 )
 
 var ElasticSearchV7Maps = make(map[string]*elasticsearch.Client)

@@ -22,7 +22,7 @@ import (
 
 	"github.com/juetun/base-wrapper/lib/utils/identifying_code_pkg"
 
-	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"

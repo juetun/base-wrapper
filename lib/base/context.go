@@ -97,6 +97,7 @@ func GinContext(opt *gin.Context) ContextOption {
 		context.GinContext = opt
 	}
 }
+
 func (r *Context) InitContext(needLock ...bool) (c *Context) {
 	if len(needLock) > 0 && needLock[0] {
 		var syncLog sync.Mutex
