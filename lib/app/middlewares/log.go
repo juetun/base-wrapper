@@ -99,7 +99,8 @@ func delayExecGinLogCollect(start time.Time, c *gin.Context, path *url.URL, logg
 		"duration":          float64(time.Now().Sub(start)) / 1e6, // 时长单位微秒
 		"header":            getUseHeader(&c.Request.Header),
 	}
-	if c.Request.Body != nil {
+
+	if strings.Contains(c.Request.Header.Get("Content-Type"), "application/json") {
 		if bodyBytes, err = io2.ReadAll(c.Request.Body); err != nil {
 			fields["err"] = err.Error()
 			fields["mark"] = "ReadAll"
