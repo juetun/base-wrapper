@@ -284,7 +284,19 @@ func (r *SubTreasuryBase) getById(it FetchDataParameter, fetchDataHandler FetchD
 }
 
 func (r *SubTreasuryBase) getDbByIndex(index int64) (db *gorm.DB, dbName string, err error) {
-
+	dbLen := len(r.DbNameSpaceList)
+	if dbLen == 0 {
+		err = fmt.Errorf("SubTreasuryBase DbNameSpaceList is nil")
+		return
+	}
+	if index < 0 {
+		err = fmt.Errorf("SubTreasuryBase index is error")
+		return
+	}
+	if index >= int64(dbLen) {
+		err = fmt.Errorf("SubTreasuryBase index is out")
+		return
+	}
 	dbName = r.DbNameSpaceList[index]
 	return r.GetDbByDbName(dbName)
 
