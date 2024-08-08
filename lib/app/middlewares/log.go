@@ -82,9 +82,8 @@ func delayExecGinLogCollect(start time.Time, c *gin.Context, path *url.URL, logg
 
 	var (
 		pathString  = path.String()
-		bodyBytes   []byte
 		logDescMark = "delayExecGinLogCollect"
-		err         error
+		//err         error
 	)
 	if strings.Index(pathString, "/assets") == 0 || strings.Index(pathString, "assets") == 0 {
 		return
