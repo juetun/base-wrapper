@@ -10,7 +10,6 @@ package middlewares
 
 import (
 	"bytes"
-	io2 "io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -100,19 +99,6 @@ func delayExecGinLogCollect(start time.Time, c *gin.Context, path *url.URL, logg
 		"header":            getUseHeader(&c.Request.Header),
 	}
 
-	if strings.Contains(c.Request.Header.Get("Content-Type"), "application/json") {
-		if bodyBytes, err = io2.ReadAll(c.Request.Body); err != nil {
-			fields["err"] = err.Error()
-			fields["mark"] = "ReadAll"
-		}
-		if len(bodyBytes) > 0 {
-			fields["request"] = string(bodyBytes)
-			c.Request.Body = io2.NopCloser(bytes.NewBuffer(bodyBytes)) //读取完body一定要回写 不然后边获取不到
-			c.Set("body", string(bodyBytes))
-		} else {
-			c.Set("body", "")
-		}
-	}
 	// 只收集 http code>400的错误日志
 	if c.Writer.Status() >= 400 {
 		blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
