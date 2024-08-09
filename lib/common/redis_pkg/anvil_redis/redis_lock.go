@@ -44,7 +44,7 @@ type (
 		LockKey          string               `json:"lock_key"`          // 业务key
 		UniqueKey        string               `json:"unique_key"`        // 锁的值 （用于释放锁时，只能指定线程才可释放锁）
 		expiration       time.Duration        `json:"duration"`          // 锁的时长 （单位秒）
-		TTlDuration      time.Duration        `json:"ttl_duration"`      // 锁续时的时长 （单位秒）
+		tTlDuration      time.Duration        `json:"ttl_duration"`      // 锁续时的时长 （单位秒）
 		maxExecDuration  time.Duration        `json:"max_exec_duration"` //最大执行时长 0表示无限制
 		RedisClient      *redis.Client        `json:"-"`
 		OkHandler        DistributedOkHandler `json:"-"`
@@ -119,7 +119,6 @@ func RedisLockMaxExecDuration(maxExecDuration time.Duration) RedisLockOption {
 }
 
 // RedisLock Redis 分布式锁
-
 // RunWithGetLock 多次尝试获取锁实现逻辑
 func (r *RedisLock) RunWithGetLock() (err error) {
 	//校验参数是否可用
@@ -150,6 +149,21 @@ func (r *RedisLock) RunWithGetLock() (err error) {
 }
 
 //单次去获取锁，获取到就做 没获取到就跳过
+//	options := []anvil_redis.RedisLockOption{anvil_redis.RedisLockDuration(10 * time.Second),
+//	anvil_redis.RedisLockContext(r.Context),
+//	anvil_redis.RedisLockCtx(r.ctx),
+//	anvil_redis.RedisLockRedisClient(client),
+//	anvil_redis.RedisLockDuration(3 * time.Second),
+//	anvil_redis.RedisLockUniqueKey(utils.Guid(cacheKey)),
+//	anvil_redis.RedisLockLockKey(cacheKey),
+//	anvil_redis.RedisLockOkHandler(func(ctx context.Context) (err error) {
+//	_ = r.logicLoadData(client, cacheKey, duration, status, timeNow, notLoadingCallBack)
+//	return
+//	}),}
+//	if _, err = anvil_redis.NewRedisLock(options...).
+//	Run(); err != nil {
+//	return
+//	}
 func (r *RedisLock) Run() (getLock bool, err error) {
 	if err = r.validateParameters(); err != nil {
 		return
@@ -260,13 +274,13 @@ func (r *RedisLock) validateParameters() (err error) {
 		err = fmt.Errorf("请设置Duration")
 		return
 	}
-	if r.TTlDuration >= r.expiration {
+	if r.tTlDuration >= r.expiration {
 		err = fmt.Errorf("Duration必须大于TTlDuration")
 		return
 	}
-	if r.TTlDuration == 0 {
-		r.TTlDuration = r.expiration - 1
-		if r.TTlDuration <= 0 {
+	if r.tTlDuration == 0 {
+		r.tTlDuration = r.expiration - 1
+		if r.tTlDuration <= 0 {
 			err = fmt.Errorf("请设置TTlDuration的值")
 			return
 		}
@@ -284,15 +298,18 @@ func (r *RedisLock) ttlRun(ctx context.Context, unLockAct unLockAct) () {
 			// log.Printf("结束")
 			_ = unLockAct()
 			goto BreakLogic
-		case <-time.After(r.TTlDuration):
-			// log.Printf("续租数据\n")
+		case <-time.After(r.tTlDuration):
+			mark := "RedisLockRun0"
 			if _, err = r.refreshLock(); err != nil {
+				r.Context.Error(map[string]interface{}{
+					"LockKey": "续租失败",
+					"err":     err.Error(),
+				}, mark)
+			} else {
 				r.Context.Debug(map[string]interface{}{
 					"LockKey": "续租数据",
-					"err":     err.Error(),
-				}, "RedisLockRun0")
+				}, mark)
 			}
-
 		}
 	}
 BreakLogic:
