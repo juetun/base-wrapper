@@ -159,10 +159,13 @@ func (r *RedisLock) Run() (getLock bool, err error) {
 		"unique_key": r.UniqueKey,
 	}
 	defer func() {
+		mark := "RedisLockRun1"
 		if err == nil {
+			r.Context.Debug(logContent, mark)
 			return
 		}
-		r.Context.Error(logContent, "RedisLockRun1")
+		logContent["err"] = err.Error()
+		r.Context.Error(logContent, mark)
 	}()
 	// 如果锁成功了，则操作，然后释放锁
 	if getLock, err = r.lock(); err != nil {
@@ -242,7 +245,9 @@ func (r *RedisLock) unLock() (ok bool, err error) {
 	end
 	`)
 
-	result, err := script.Run(r.getCtx(), r.getCacheClient(), []string{r.LockKey}, r.UniqueKey).Int64()
+	//
+	ctx := context.TODO() //注(请勿修改):此上下文句柄为操作Redis使用 不要使用 锁数据的句柄
+	result, err := script.Run(ctx, r.getCacheClient(), []string{r.LockKey}, r.UniqueKey).Int64()
 	if err != nil {
 		return
 	}
