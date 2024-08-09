@@ -46,6 +46,7 @@ type (
 		expiration       time.Duration        `json:"duration"`          // 锁的时长 （单位秒）
 		TTlDuration      time.Duration        `json:"ttl_duration"`      // 锁续时的时长 （单位秒）
 		maxExecDuration  time.Duration        `json:"max_exec_duration"` //最大执行时长 0表示无限制
+		RedisClient      *redis.Client        `json:"-"`
 		OkHandler        DistributedOkHandler `json:"-"`
 		Context          *base.Context        `json:"-"`
 		Ctx              context.Context      `json:"-"`
@@ -71,6 +72,11 @@ func RedisLockAttemptsInterval(attemptsInterval time.Duration) RedisLockOption {
 func RedisLockLockKey(LockKey string) RedisLockOption {
 	return func(RedisLock *RedisLock) {
 		RedisLock.LockKey = LockKey
+	}
+}
+func RedisLockRedisClient(redisClient *redis.Client) RedisLockOption {
+	return func(RedisLock *RedisLock) {
+		RedisLock.RedisClient = redisClient
 	}
 }
 
@@ -171,10 +177,10 @@ func (r *RedisLock) Run() (getLock bool, err error) {
 	var cancel context.CancelFunc
 	if r.maxExecDuration > 0 { //如果设置了最大执行时长
 		// 如果是当前操作锁定的数据
-		r.Ctx, cancel = context.WithTimeout(r.Ctx, r.maxExecDuration)
+		r.Ctx, cancel = context.WithTimeout(r.getCtx(), r.maxExecDuration)
 	} else {
 		// 如果是当前操作锁定的数据
-		r.Ctx, cancel = context.WithCancel(r.Ctx)
+		r.Ctx, cancel = context.WithCancel(r.getCtx())
 	}
 
 	go func() {
@@ -215,8 +221,8 @@ func (r *RedisLock) lock() (ok bool, err error) {
 		return
 	}
 
-	if ok, err = r.Context.CacheClient.
-		SetNX(context.Background(),
+	if ok, err = r.getCacheClient().
+		SetNX(r.getCtx(),
 			r.LockKey,
 			r.UniqueKey,
 			r.expiration).
@@ -236,7 +242,7 @@ func (r *RedisLock) unLock() (ok bool, err error) {
 	end
 	`)
 
-	result, err := script.Run(context.Background(), r.Context.CacheClient, []string{r.LockKey}, r.UniqueKey).Int64()
+	result, err := script.Run(r.getCtx(), r.getCacheClient(), []string{r.LockKey}, r.UniqueKey).Int64()
 	if err != nil {
 		return
 	}
@@ -298,6 +304,24 @@ func (r *RedisLock) unLockAct() (e1 error) {
 	return
 }
 
+func (r *RedisLock) getCacheClient() (res *redis.Client) {
+	if r.RedisClient != nil {
+		res = r.RedisClient
+		return
+	}
+	res = r.Context.CacheClient
+	return
+}
+
+func (r *RedisLock) getCtx() (res context.Context) {
+	if r.Ctx != nil {
+		res = r.Ctx
+		return
+	}
+	res = context.TODO()
+	return
+}
+
 // RefreshLock 存在则更新过期时间,不存在则创建key
 func (r *RedisLock) refreshLock() (ok bool, err error) {
 	script := redis.NewScript(`
@@ -312,7 +336,7 @@ func (r *RedisLock) refreshLock() (ok bool, err error) {
 	end
 	`)
 	var result int64
-	if result, err = script.Run(context.Background(), r.Context.CacheClient, []string{r.LockKey}, r.UniqueKey, r.expiration/time.Second).Int64(); err != nil {
+	if result, err = script.Run(r.getCtx(), r.getCacheClient(), []string{r.LockKey}, r.UniqueKey, r.expiration/time.Second).Int64(); err != nil {
 		return
 	} else {
 		ok = result > 0
