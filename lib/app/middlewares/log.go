@@ -71,6 +71,13 @@ func getUseHeader(header *http.Header) (res http.Header) {
 		if inExceptHeaderSlice(s) {
 			continue
 		}
+		if header.Get(s) == "" {
+			continue
+		}
+		if s == "Content-Type" && header.Get(s) == "application/x-www-form-urlencoded" {
+			res.Set("Content-Type", "general")
+			continue
+		}
 		res.Set(s, header.Get(s))
 	}
 	return
@@ -82,7 +89,7 @@ func delayExecGinLogCollect(start time.Time, c *gin.Context, path *url.URL, logg
 
 	var (
 		pathString  = path.String()
-		logDescMark = "delayExecGinLogCollect"
+		logDescMark = "ginLog"
 		//err         error
 	)
 	if strings.Index(pathString, "/assets") == 0 || strings.Index(pathString, "assets") == 0 {
