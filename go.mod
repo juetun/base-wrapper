@@ -13,7 +13,7 @@ require (
 	github.com/asim/go-micro/v3 v3.7.1
 	github.com/astaxie/beego v1.12.3
 	github.com/elastic/elastic-transport-go/v8 v8.6.0
-	github.com/elastic/go-elasticsearch/v8 v8.14.0
+	github.com/elastic/go-elasticsearch/v8 v8.15.0
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/gin-contrib/pprof v1.4.0
 	github.com/gin-gonic/gin v1.9.0
@@ -31,7 +31,7 @@ require (
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/sony/sonyflake v1.1.0
 	github.com/speps/go-hashids/v2 v2.0.1
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0
 	github.com/swaggo/swag v1.16.1
