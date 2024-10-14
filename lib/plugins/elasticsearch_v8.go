@@ -44,14 +44,14 @@ func PluginElasticSearchV8(arg *app_start.PluginsOperate) (err error) {
 	}
 
 	for key, value := range configs {
-		esConfig := orgConfig(&value)
+		esConfig := orgConfig(key, &value)
 		initEs(key, esConfig)
 	}
 	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("Load elastic_search config finished ")
 	return
 }
 
-func orgConfig(config *Config) (configOption []SetElasticSearchConfigOption) {
+func orgConfig(nameSpace string, config *Config) (configOption []SetElasticSearchConfigOption) {
 	if len(config.Addresses) > 0 {
 		configOption = append(configOption, SetAddresses(config.Addresses))
 	}
@@ -62,9 +62,15 @@ func orgConfig(config *Config) (configOption []SetElasticSearchConfigOption) {
 		configOption = append(configOption, SetPassword(config.Password))
 	}
 	configOption = append(configOption, SetDiscoverNodesOnStart(config.DiscoverNodesOnStart))
+
+	responseHeaderTimeout, err := time.ParseDuration(config.ResponseHeaderTimeout)
+	if err != nil {
+		io.SetInfoType(base.LogLevelInfo).
+			SystemOutPrintf("Load elastic_search config(%s) parse responseHeaderTimeout error", nameSpace, config.ResponseHeaderTimeout)
+	}
 	configOption = append(configOption, SetTransport(&http.Transport{
 		MaxIdleConnsPerHost:   10,
-		ResponseHeaderTimeout: time.Second,
+		ResponseHeaderTimeout: responseHeaderTimeout, // time.Second,
 		DialContext:           (&net.Dialer{Timeout: time.Second}).DialContext,
 		TLSClientConfig: &tls.Config{
 			MinVersion: tls.VersionTLS11,
@@ -74,18 +80,18 @@ func orgConfig(config *Config) (configOption []SetElasticSearchConfigOption) {
 }
 
 func initEs(nameSpace string, configOption []SetElasticSearchConfigOption) {
-	esConfig := NewElasticSearchConfig(configOption...)
-	var err error
-	var handler *elasticsearch.Client
 
-	var configInterface map[string]interface{}
 	var (
-		bt []byte
+		esConfig        = NewElasticSearchConfig(configOption...)
+		handler         *elasticsearch.Client
+		configInterface map[string]interface{}
+		err             error
+		bt              []byte
+		showEsConfig    ShowEsConfig
 	)
 	io.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintf("Load elastic_search config(%s) ", nameSpace)
 
-	var showEsConfig ShowEsConfig
 	showEsConfig.ParseFromEsConfig(&esConfig.Config)
 	if bt, err = json.Marshal(showEsConfig); err != nil {
 		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("init  es(%v) failure \n", nameSpace))
@@ -98,8 +104,8 @@ func initEs(nameSpace string, configOption []SetElasticSearchConfigOption) {
 	for key, data := range configInterface {
 		io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("【%s】init Es %+v \n", key, data))
 	}
-	handler, err = elasticsearch.NewClient(esConfig.Config)
-	if err != nil {
+
+	if handler, err = elasticsearch.NewClient(esConfig.Config); err != nil {
 		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("init es(%v) failure \n", nameSpace))
 		return
 	}
@@ -269,37 +275,25 @@ func SetConnectionPoolFunc(ConnectionPoolFunc func([]*elastictransport.Connectio
 }
 
 type Config struct {
-	Addresses []string `json:"addresses" yaml:"addresses"` // A list of Elasticsearch nodes to use.
-	Username  string   `json:"username" yaml:"username"`   // Username for HTTP Basic Authentication.
-	Password  string   `json:"password" yaml:"password"`   // Password for HTTP Basic Authentication.
-
-	CloudID string `json:"cloud_id" yaml:"cloudid"` // Endpoint for the Elastic Service (https://elastic.co/cloud).
-	APIKey  string `json:"api_key" yaml:"apikey"`   // Base64-encoded token for authorization; if set, overrides username and password.
-
-	Header http.Header // Global HTTP request header.
-
-	// PEM-encoded certificate authorities.
-	// When set, an empty certificate pool will be created, and the certificates will be appended to it.
-	// The option is only valid when the transport is not specified, or when it's http.Transport.
-	CACert []byte `json:"ca_cert" yaml:"ca_cert"`
-
-	RetryOnStatus        []int `json:"retry_on_status" yaml:"retryonstatus"`                // List of status codes for retry. Default: 502, 503, 504.
-	DisableRetry         bool  `json:"disable_retry" yaml:"disableretry"`                   // Default: false.
-	EnableRetryOnTimeout bool  `json:"enable_retry_on_timeout" yaml:"enableretryontimeout"` // Default: false.
-	MaxRetries           int   `json:"max_retries" yaml:"maxretries"`                       // Default: 3.
-
-	DiscoverNodesOnStart  bool          `json:"discover_nodes_on_start" yaml:"discovernodesonstart"`  // Discover nodes when initializing the client. Default: false.
-	DiscoverNodesInterval time.Duration `json:"discover_nodes_interval" yaml:"discovernodesinterval"` // Discover nodes periodically. Default: disabled.
-
-	EnableMetrics     bool `json:"enable_metrics" yaml:"enable_metrics"`         // Enable the metrics collection.
-	EnableDebugLogger bool `json:"enable_debug_logger" yaml:"enabledebuglogger"` // Enable the debug logging.
-
-	RetryBackoff func(attempt int) time.Duration // Optional backoff duration. Default: nil.
-
-	Transport http.RoundTripper         // The HTTP transport object.
-	Logger    elastictransport.Logger   // The logger object.
-	Selector  elastictransport.Selector // The selector object.
-
-	// Optional constructor function for a custom ConnectionPool. Default: nil.
-	ConnectionPoolFunc func([]*elastictransport.Connection, elastictransport.Selector) elastictransport.ConnectionPool
+	Addresses             []string                        `json:"addresses" yaml:"addresses"` // A list of Elasticsearch nodes to use.
+	Username              string                          `json:"username" yaml:"username"`   // Username for HTTP Basic Authentication.
+	Password              string                          `json:"password" yaml:"password"`   // Password for HTTP Basic Authentication.
+	CloudID               string                          `json:"cloud_id" yaml:"cloudid"`    // Endpoint for the Elastic Service (https://elastic.co/cloud).
+	APIKey                string                          `json:"api_key" yaml:"apikey"`      // Base64-encoded token for authorization; if set, overrides username and password.
+	Header                http.Header                     // Global HTTP request header.
+	CACert                []byte                          `json:"ca_cert" yaml:"ca_cert"`
+	RetryOnStatus         []int                           `json:"retry_on_status" yaml:"retryonstatus"`                 // List of status codes for retry. Default: 502, 503, 504.
+	DisableRetry          bool                            `json:"disable_retry" yaml:"disableretry"`                    // Default: false.
+	EnableRetryOnTimeout  bool                            `json:"enable_retry_on_timeout" yaml:"enableretryontimeout"`  // Default: false.
+	MaxRetries            int                             `json:"max_retries" yaml:"maxretries"`                        // Default: 3.
+	DiscoverNodesOnStart  bool                            `json:"discover_nodes_on_start" yaml:"discovernodesonstart"`  // Discover nodes when initializing the client. Default: false.
+	DiscoverNodesInterval time.Duration                   `json:"discover_nodes_interval" yaml:"discovernodesinterval"` // Discover nodes periodically. Default: disabled.
+	EnableMetrics         bool                            `json:"enable_metrics" yaml:"enablemetrics"`                  // Enable the metrics collection.
+	EnableDebugLogger     bool                            `json:"enable_debug_logger" yaml:"enabledebuglogger"`         // Enable the debug logging.
+	RetryBackoff          func(attempt int) time.Duration // Optional backoff duration. Default: nil.
+	Transport             http.RoundTripper               // The HTTP transport object.
+	Logger                elastictransport.Logger         // The logger object.
+	Selector              elastictransport.Selector       // The selector object.
+	ConnectionPoolFunc    func([]*elastictransport.Connection, elastictransport.Selector) elastictransport.ConnectionPool
+	ResponseHeaderTimeout string `json:"response_header_timeout" yaml:"responseheadertimeout"`
 }
