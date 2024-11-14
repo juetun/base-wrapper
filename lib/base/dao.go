@@ -332,6 +332,9 @@ func (r *ServiceDao) CreateTableWithError(db *gorm.DB, tableName string, e, mode
 		}
 
 		err = fmt.Errorf(me.Error())
+	case *ErrorRuntimeStruct:
+		err = e.(*ErrorRuntimeStruct)
+		return
 	default:
 		err = fmt.Errorf("数据异常,请重试(102)")
 		return
