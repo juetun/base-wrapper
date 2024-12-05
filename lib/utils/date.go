@@ -89,7 +89,7 @@ func DateTimeDiff(valueTime, baseTime time.Time, formats ...string) (res string,
 	}
 	dif := baseTime.Unix() - valueTime.Unix()
 	difTime = time.Duration(baseTime.UnixNano() - valueTime.UnixNano())
-	if dif < 60 && dif > 0 {
+	if dif < 60 && dif >= 0 {
 		res = "刚刚"
 		return
 	}
