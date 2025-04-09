@@ -7,6 +7,7 @@ package sub_treasury_impl
 import (
 	"context"
 	"fmt"
+	"math"
 	"sync"
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
@@ -127,10 +128,14 @@ func (r *SubTreasuryBase) GetHashTable(columnValue int64) (tableName string, err
 func (r *SubTreasuryBase) GetHashNumber(columnValue int64) (dbNumber, tableNumber int64) {
 
 	dbNumber = columnValue % r.dbNumber
-
+	dbNumber = r.abs(dbNumber)
 	div := columnValue / r.dbNumber
-	tableNumber = div % r.TableNumber
+	tableNumber = r.abs(div % r.TableNumber)
 	return
+}
+
+func (r *SubTreasuryBase) abs(value int64) (res int64) {
+	return int64(math.Abs(float64(value)))
 }
 
 func (r *SubTreasuryBase) TableNameString(tableIndex int64) (tableName string) {
