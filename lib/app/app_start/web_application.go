@@ -26,12 +26,13 @@ import (
 var (
 	HealthPrefixPathNotEmpty bool //健康检查 true-健康检查不会加上服务路径
 	HealthPrefixPath         string
-	HandleFunc               = make([]HandleRouter, 0) // 路由函数切片
-	HandleFuncIntranet       = make([]HandleRouter, 0) // 内网路由函数切片
-	HandleFuncOuterNet       = make([]HandleRouter, 0) // 外网路由函数切片
-	HandleFuncAdminNet       = make([]HandleRouter, 0) // 外网路由函数切片
-	HandleFuncPage           = make([]HandleRouter, 0) // 外网路由函数切片
-	RoutePathInitCallBack    RouterPath                //注册路由时调用
+	HandleFunc               = make([]HandleRouter, 0)        // 路由函数切片
+	HandleFuncIntranet       = make([]HandleRouter, 0)        // 内网路由函数切片
+	HandleFuncOuterNet       = make([]HandleRouter, 0)        // 外网路由函数切片
+	HandleFuncAdminNet       = make([]HandleRouter, 0)        // 外网路由函数切片
+	HandleFuncPage           = make([]HandleRouter, 0)        // 外网路由函数切片
+	RoutePathInitCallBack    RouterPath                       //注册路由时调用
+	PermitAdminUrlPath       = make([]*PermitUrlPath, 0, 200) //收集应用内路由信息
 )
 
 type (
@@ -40,6 +41,10 @@ type (
 		syslog    *base.SystemOut
 		//FlagMicro bool // 如果是支持微服务
 		MicroOperate MicroOperateInterface
+	}
+	PermitUrlPath struct {
+		Method string `json:"method"`
+		Uri    string `json:"uri"`
 	}
 	// HandleRouter 路由注册函数
 	HandleRouter func(c *gin.Engine, urlPrefix string)
@@ -68,6 +73,7 @@ func NewWebApplication(privateMiddleWares ...gin.HandlerFunc) *WebApplication {
 		gin.DebugPrintRouteFunc = RoutePathInitCallBack
 	} else {
 		gin.DebugPrintRouteFunc = func(httpMethod, absolutePath, handlerName string, nuHandlers int) {
+			PermitAdminUrlPath = append(PermitAdminUrlPath, &PermitUrlPath{Method: httpMethod, Uri: absolutePath})
 			//路由结构修改
 			webApp.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("ROUTE_PATH: %v %v %v (%v Handlers)\n", httpMethod, absolutePath, handlerName, nuHandlers)
 		}
@@ -148,7 +154,7 @@ func (r *WebApplication) LoadRouter(routerHandler ...RouterHandler) (res *WebApp
 	if len(HandleFuncAdminNet) > 0 {
 		fmt.Printf("\n")
 		r.syslog.SetInfoType(base.LogLevelInfo).
-			SystemOutPrintln("注册外网访问接口路由....")
+			SystemOutPrintln("注册客服后台访问接口路由....")
 		for _, router := range HandleFuncAdminNet {
 			r.GinEngine.Use(middlewares.AdminMiddlewares())
 			router(r.GinEngine, fmt.Sprintf("%s/%s", UrlPrefix, app_obj.App.AppRouterPrefix.AdminNet))
