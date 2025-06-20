@@ -16,42 +16,59 @@ import (
 	"gorm.io/gorm"
 )
 
+var (
+	//分库分表配置信息
+	DiffDbAndTableConfig = make([]ModelDiffDbAndTable, 0, 10)
+)
+
 // SubTreasuryBase 分库分表实现
 // 可通过自定义 GetDbFunc  GetTableFunc 数据数据库和表的算法实现
 // 如果不传递方法，则默认使用数值(字符串取每个字符的assi码值之和)取余数作为数据库和表的定位
-type SubTreasuryBase struct {
-	// 表统一前缀
-	TablePrefix string `json:"table_prefix"`
+type (
+	SubTreasuryBase struct {
+		// 表统一前缀
+		TablePrefix string `json:"table_prefix"`
 
-	// 总计表数
-	TableNumber int64 `json:"table_number"`
+		// 总计表数
+		TableNumber int64 `json:"table_number"`
 
-	// 总数据库数,通过计算DbNameSpaceList的长度获取
-	dbNumber int64 `json:"-"`
+		// 总数据库数,通过计算DbNameSpaceList的长度获取
+		dbNumber int64 `json:"-"`
 
-	TableComment string `json:"table_comment"` //表的注释
+		TableComment string `json:"table_comment"` //表的注释
 
-	// 数据库访问空间名
-	DbNameSpaceList []string `json:"db_name_list"`
+		// 数据库访问空间名
+		DbNameSpaceList []string `json:"db_name_list"`
 
-	// 获取数据库连接的算法
-	GetDbFuncHandler GetDbFunc
+		// 获取数据库连接的算法
+		GetDbFuncHandler GetDbFunc
 
-	// 获取数据表连接的算法
-	GetTableFuncHandler GetTableFunc
+		// 获取数据表连接的算法
+		GetTableFuncHandler GetTableFunc
 
-	// 当前配置的数据库连接
-	Context *base.Context `json:"-"`
-}
+		// 当前配置的数据库连接
+		Context *base.Context `json:"-"`
+	}
+	ModelBaseDiffDbAndTable interface {
+		ModelBase
+		GetCommonOption(context ...*Context) (res []SubTreasuryBaseOption)
+		GetDBAndTableNumber() (dbNameSpace []string, tableNum int64)
+		GetHashIndex() (shopId int64)
+	}
+	ModelDiffDbAndTable struct {
+		Key          string                  `json:"key"`
+		TableComment string                  `json:"table_comment"`
+		Struct       ModelBaseDiffDbAndTable `json:"struct"`
+	}
+	// GetDbFunc 自定义操作哪个数据库算法实现的操作方法
+	GetDbFunc func(subTreasury *SubTreasuryBase, columnValue int64) (db *gorm.DB, dbName string, err error)
 
-// GetDbFunc 自定义操作哪个数据库算法实现的操作方法
-type GetDbFunc func(subTreasury *SubTreasuryBase, columnValue int64) (db *gorm.DB, dbName string, err error)
+	// GetTableFunc 自定义操作哪个table实现的操作方法
+	GetTableFunc func(subTreasury *SubTreasuryBase, columnValue int64) (tableName string, err error)
 
-// GetTableFunc 自定义操作哪个table实现的操作方法
-type GetTableFunc func(subTreasury *SubTreasuryBase, columnValue int64) (tableName string, err error)
-
-// SubTreasuryBaseOption 调用分布式数据库操作的对象结构体参数
-type SubTreasuryBaseOption func(p *SubTreasuryBase)
+	// SubTreasuryBaseOption 调用分布式数据库操作的对象结构体参数
+	SubTreasuryBaseOption func(p *SubTreasuryBase)
+)
 
 func (r *SubTreasuryBase) OperateEveryDatabase(handler OperateEveryDatabaseHandler) (err error) {
 

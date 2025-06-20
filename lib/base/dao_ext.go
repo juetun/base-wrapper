@@ -2,13 +2,7 @@ package base
 
 import (
 	"fmt"
-	"github.com/juetun/base-wrapper/lib/base/sub_treasury_impl"
 	"gorm.io/gorm"
-)
-
-var (
-	//分库分表配置信息
-	DiffDbAndTableConfig = make([]ModelDiffDbAndTable, 0, 10)
 )
 
 type (
@@ -25,17 +19,7 @@ type (
 		UnmarshalBinary(data []byte) (err error) //缓存时使用
 		MarshalBinary() (data []byte, err error) //缓存时使用
 	}
-	ModelBaseDiffDbAndTable interface {
-		ModelBase
-		GetCommonOption(context ...*Context) (res []sub_treasury_impl.SubTreasuryBaseOption)
-		GetDBAndTableNumber() (dbNameSpace []string, tableNum int64)
-		GetHashIndex() (shopId int64)
-	}
-	ModelDiffDbAndTable struct {
-		Key          string                  `json:"key"`
-		TableComment string                  `json:"table_comment"`
-		Struct       ModelBaseDiffDbAndTable `json:"struct"`
-	}
+
 	DaoBatchAdd interface {
 		BatchAdd(data *BatchAddDataParameter) (err error)
 	}
