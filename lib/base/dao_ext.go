@@ -2,7 +2,6 @@ package base
 
 import (
 	"fmt"
-	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/base/sub_treasury_impl"
 	"gorm.io/gorm"
 )
@@ -28,7 +27,7 @@ type (
 	}
 	ModelBaseDiffDbAndTable interface {
 		ModelBase
-		GetCommonOption(context ...*base.Context) (res []sub_treasury_impl.SubTreasuryBaseOption)
+		GetCommonOption(context ...*Context) (res []sub_treasury_impl.SubTreasuryBaseOption)
 		GetDBAndTableNumber() (dbNameSpace []string, tableNum int64)
 		GetHashIndex() (shopId int64)
 	}
