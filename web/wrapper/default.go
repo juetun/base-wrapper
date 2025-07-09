@@ -9,6 +9,7 @@
 package wrapper
 
 import (
+	"fmt"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/web/models"
 )
@@ -63,6 +64,10 @@ func (r *ArgWebSocket) Default(ctx *base.Context) (err error) {
 	r.XAuthToken = ctx.GinContext.DefaultQuery("x_auth_token", "")
 	r.CurrentUserRole = ctx.GinContext.DefaultQuery("current_user_role", "")
 	r.WebsocketKey = ctx.GinContext.Request.Header.Get("Sec-Websocket-Key")
+	if r.Pk == "" {
+		err = fmt.Errorf("没有设置token")
+		return
+	}
 	return
 }
 

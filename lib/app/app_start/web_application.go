@@ -33,6 +33,7 @@ var (
 	HandleFuncPage           = make([]HandleRouter, 0)        // 外网路由函数切片
 	RoutePathInitCallBack    RouterPath                       //注册路由时调用
 	PermitAdminUrlPath       = make([]*PermitUrlPath, 0, 200) //收集应用内路由信息
+	AdminNetHandlerFunc      = make([]gin.HandlerFunc, 0, 5)  //管理后台操作中间件
 )
 
 type (
@@ -155,8 +156,9 @@ func (r *WebApplication) LoadRouter(routerHandler ...RouterHandler) (res *WebApp
 		fmt.Printf("\n")
 		r.syslog.SetInfoType(base.LogLevelInfo).
 			SystemOutPrintln("注册客服后台访问接口路由....")
+		AdminNetHandlerFunc = append([]gin.HandlerFunc{middlewares.AdminMiddlewares()}, AdminNetHandlerFunc...)
 		for _, router := range HandleFuncAdminNet {
-			r.GinEngine.Use(middlewares.AdminMiddlewares())
+			r.GinEngine.Use(AdminNetHandlerFunc...)
 			router(r.GinEngine, fmt.Sprintf("%s/%s", UrlPrefix, app_obj.App.AppRouterPrefix.AdminNet))
 		}
 	}
