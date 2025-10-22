@@ -8,6 +8,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
 	. "github.com/juetun/base-wrapper/lib/plugins" // 组件目录
+	"github.com/juetun/base-wrapper/lib/plugins/short_message_impl"
 	"log"
 	"os"
 	"testing"
@@ -106,7 +107,7 @@ func TestNewRedisDelayMqConsumer(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			gotRes := NewRedisDelayMq(tt.args.options...)
-			gotRes.Consumer("topic_delay_mq", "gid", func(topic, msgBody, messageId string) (err error) {
+			gotRes.Consumer("topic_delay_mq", func(topic, msgBody, messageId string) (err error) {
 				log.Printf("消费日志:topic:%s msgBody:%s messageId:%s \n", topic, msgBody, messageId)
 				return
 			})
