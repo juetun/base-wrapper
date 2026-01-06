@@ -3,7 +3,7 @@ package common
 type HttpResult struct {
 	Code    int         `json:"code"`
 	Data    interface{} `json:"data"`
-	Message string      `json:"msg"`
+	Message string      `json:"message"`
 }
 type Object struct {
 }
@@ -11,7 +11,7 @@ type Object struct {
 func NewHttpResult() *HttpResult {
 	return &HttpResult{
 		Code:    0,
-		Data:   new(Object),
+		Data:    new(Object),
 		Message: "ok",
 	}
 }
