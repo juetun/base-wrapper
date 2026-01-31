@@ -28,15 +28,18 @@ type (
 	ArgGetByStringIds struct {
 		//parameters.GetDataTypeCommon
 		GetDataTypeCommon
-		Ids []string `json:"ids"`
+		Ids    []string        `json:"ids"`
+		MapIds map[string]bool `json:"-"`
 	}
 	ArgGetByNumberIds struct {
 		//parameters.GetDataTypeCommon
 		GetDataTypeCommon
-		Ids []int64 `json:"ids"`
+		Ids    []int64        `json:"ids"`
+		MapIds map[int64]bool `json:"-"`
 	}
 
 	GetDataTypeCommon struct {
+		InitCount      int    `json:"-" form:"-"`
 		GetType        string `json:"get_type" form:"get_type"`                 // 本次读取数据从数据库 ，缓存，或使用优先从缓存(缓存没有,则从数据库读取 同时写入缓存)
 		IncludeDelData bool   `json:"include_del_data" form:"include_del_data"` // 查询数据包括已删除(软删)的数据默认查询不包括软删数据
 		RefreshCache   uint8  `json:"refresh_cache" form:"refresh_cache"`       // 是否刷新缓存数据
@@ -53,7 +56,24 @@ func NewArgGetByStringIds(options ...ArgGetByStringIdsOption) (res *ArgGetByStri
 	for _, option := range options {
 		option(res)
 	}
+
 	_ = res.GetDataTypeCommon.Default()
+	res.Ids = make([]string, 0, res.InitCount)
+	res.MapIds = make(map[string]bool, res.InitCount)
+	return
+}
+
+func (r *ArgGetByNumberIds) AddIds(ids ...int64) {
+	var (
+		ok bool
+		id int64
+	)
+	for _, id = range ids {
+		if _, ok = r.MapIds[id]; !ok {
+			r.Ids = append(r.Ids, id)
+			r.MapIds[id] = true
+		}
+	}
 	return
 }
 
@@ -107,13 +127,35 @@ func ArgGetByStringIdsOptionExpireTimeRand(expireTimeRand bool) ArgGetByStringId
 	}
 }
 
+func ArgGetByStringIdsOptionInitCount(initCount int) ArgGetByNumberIdsOption {
+	return func(arg *ArgGetByNumberIds) {
+		arg.InitCount = initCount
+	}
+}
+
+func (r *ArgGetByStringIds) AddIds(ids ...string) {
+	var (
+		ok bool
+		id string
+	)
+	for _, id = range ids {
+		if _, ok = r.MapIds[id]; !ok {
+			r.Ids = append(r.Ids, id)
+			r.MapIds[id] = true
+		}
+	}
+	return
+}
+
 //NewArgGetByNumberIds
 func NewArgGetByNumberIds(options ...ArgGetByNumberIdsOption) (res *ArgGetByNumberIds) {
 	res = &ArgGetByNumberIds{}
 	for _, option := range options {
 		option(res)
 	}
-	res.GetDataTypeCommon.Default()
+	_ = res.GetDataTypeCommon.Default()
+	res.Ids = make([]int64, 0, res.InitCount)
+	res.MapIds = make(map[int64]bool, res.InitCount)
 	return
 }
 
@@ -140,6 +182,12 @@ func ArgGetByNumberIdsOptionGetDataTypeCommon(getDataTypeCommon GetDataTypeCommo
 func ArgGetByNumberIdsOptionGetType(getType string) ArgGetByNumberIdsOption {
 	return func(arg *ArgGetByNumberIds) {
 		arg.GetType = getType
+	}
+}
+
+func ArgGetByNumberIdsOptionInitCount(initCount int) ArgGetByNumberIdsOption {
+	return func(arg *ArgGetByNumberIds) {
+		arg.InitCount = initCount
 	}
 }
 
