@@ -71,6 +71,11 @@ func (r *ArgGetByNumberIds) AddIds(ids ...int64) {
 		ok bool
 		id int64
 	)
+	if r.MapIds == nil {
+		lCount := len(ids)
+		r.MapIds = make(map[int64]bool, lCount)
+		r.Ids = make([]int64, 0, lCount)
+	}
 	for _, id = range ids {
 		if _, ok = r.MapIds[id]; !ok {
 			r.Ids = append(r.Ids, id)
@@ -141,6 +146,11 @@ func (r *ArgGetByStringIds) AddIds(ids ...string) {
 		ok bool
 		id string
 	)
+	if r.MapIds == nil {
+		lCount := len(ids)
+		r.MapIds = make(map[string]bool, lCount)
+		r.Ids = make([]string, 0, lCount)
+	}
 	for _, id = range ids {
 		if _, ok = r.MapIds[id]; !ok {
 			r.Ids = append(r.Ids, id)
