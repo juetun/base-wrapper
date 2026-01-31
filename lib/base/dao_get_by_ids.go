@@ -58,8 +58,11 @@ func NewArgGetByStringIds(options ...ArgGetByStringIdsOption) (res *ArgGetByStri
 	}
 
 	_ = res.GetDataTypeCommon.Default()
-	res.Ids = make([]string, 0, res.InitCount)
-	res.MapIds = make(map[string]bool, res.InitCount)
+	if res.Ids == nil || len(res.Ids) == 0 {
+		res.Ids = make([]string, 0, res.InitCount)
+		res.MapIds = make(map[string]bool, res.InitCount)
+	}
+
 	return
 }
 
@@ -117,7 +120,7 @@ func ArgGetByStringIdsOptionRefreshCache(refreshCache uint8) ArgGetByStringIdsOp
 //ArgGetByStringIdsOptionIds
 func ArgGetByStringIdsOptionIds(Ids ...string) ArgGetByStringIdsOption {
 	return func(arg *ArgGetByStringIds) {
-		arg.Ids = Ids
+		arg.AddIds(Ids...)
 	}
 }
 
@@ -154,15 +157,17 @@ func NewArgGetByNumberIds(options ...ArgGetByNumberIdsOption) (res *ArgGetByNumb
 		option(res)
 	}
 	_ = res.GetDataTypeCommon.Default()
-	res.Ids = make([]int64, 0, res.InitCount)
-	res.MapIds = make(map[int64]bool, res.InitCount)
+	if res.Ids == nil || len(res.Ids) == 0 {
+		res.Ids = make([]int64, 0, res.InitCount)
+		res.MapIds = make(map[int64]bool, res.InitCount)
+	}
 	return
 }
 
 //ArgGetByNumberIdsOptionIds
 func ArgGetByNumberIdsOptionIds(Ids ...int64) ArgGetByNumberIdsOption {
 	return func(arg *ArgGetByNumberIds) {
-		arg.Ids = Ids
+		arg.AddIds(Ids...)
 	}
 }
 func ArgGetByNumberIdsOptionExpireTimeRand(expireTimeRand bool) ArgGetByNumberIdsOption {
