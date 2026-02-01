@@ -93,6 +93,21 @@ func (r *PageQuery) GetRequestIdAsInt64() (requestId int64, err error) {
 	return
 }
 
+//判断当前页面是否第一页
+func (r *PageQuery) FlagIsFirst() (isFirstPage bool) {
+	switch r.PageType {
+	case DefaultPageTypeList:
+		if r.PageNo <= 1 {
+			isFirstPage = true
+		}
+	case DefaultPageTypeNext:
+		if r.RequestId == "" || r.RequestId == "0" {
+			isFirstPage = true
+		}
+	}
+	return
+}
+
 func (r *PageQuery) GetOffset() (offset int) {
 	offset = r.PagerParameter.GetOffset()
 	return
