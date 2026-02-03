@@ -18,7 +18,7 @@ import (
 
 var (
 	//分库分表配置信息
-	DiffDbAndTableConfig = make([]ModelDiffDbAndTable, 0, 10)
+	DiffDbAndTableConfig = make([]ModelDiffDbAndTable, 0, 50)
 )
 
 // SubTreasuryBase 分库分表实现
@@ -51,6 +51,9 @@ type (
 	}
 	ModelBaseDiffDbAndTable interface {
 		ModelBase
+		DiffDbAndTable
+	}
+	DiffDbAndTable interface {
 		GetCommonOption(context ...*Context) (res []SubTreasuryBaseOption)
 		GetDBAndTableNumber() (dbNameSpace []string, tableNum int64)
 		GetHashIndex() (shopId int64)
@@ -58,6 +61,7 @@ type (
 	ModelDiffDbAndTable struct {
 		Key          string                  `json:"key"`
 		TableComment string                  `json:"table_comment"`
+		App          string                  `json:"-"`
 		Struct       ModelBaseDiffDbAndTable `json:"struct"`
 	}
 	// GetDbFunc 自定义操作哪个数据库算法实现的操作方法

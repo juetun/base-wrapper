@@ -72,6 +72,16 @@ func NewHttpRpc(params *RequestOptions) (r *httpRpc) {
 	return
 }
 
+func (r *RequestOptions) SetBodyJsonWithParameter(argData interface{}) (err error) {
+	if argData == nil {
+		return
+	}
+	if r.BodyJson, err = json.Marshal(argData); err != nil {
+		return
+	}
+	return
+}
+
 // 初始化默认参数
 func (r *RequestOptions) initDefault() {
 	if r.Method == "" {
