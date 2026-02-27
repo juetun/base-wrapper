@@ -38,6 +38,7 @@ type (
 	ModelItemOption struct {
 		Value interface{} `json:"value"`
 		Label string      `json:"label"`
+		Desc  string      `json:"desc,omitempty"`
 	}
 	ModelItemOptions []ModelItemOption
 )
