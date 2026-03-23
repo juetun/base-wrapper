@@ -16,6 +16,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+//支持微服务
 func PluginRegistry(arg *app_start.PluginsOperate) (err error) {
 	var syncLock sync.Mutex
 	syncLock.Lock()
@@ -30,7 +31,7 @@ func loadRegistryConfig() (err error) {
 
 	// 数据库配置信息存储对象
 	var yamlFile []byte
-	if yamlFile, err = os.ReadFile(common.GetConfigFilePath("registry.yaml")); err != nil {
+	if yamlFile, err = os.ReadFile(common.GetCommonConfigFilePath("registry.yaml", true)); err != nil {
 		base.Io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   #%v \n", err)
 		return
 	}
