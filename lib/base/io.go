@@ -17,8 +17,11 @@ const (
 	LogLevelFatal = "FATAL"
 )
 
-var systemLogInit sync.Once
-var logObj *SystemOut
+var (
+	systemLogInit sync.Once
+	logObj        *SystemOut
+	Io            = NewSystemOut().SetInfoType(LogLevelInfo)
+)
 
 func NewSystemOut() *SystemOut {
 	systemLogInit.Do(func() {

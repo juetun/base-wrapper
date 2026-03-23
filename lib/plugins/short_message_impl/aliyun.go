@@ -140,7 +140,7 @@ func (r *AliYunSms) createClient() (_err error) {
 	config.Endpoint = tea.String(r.shortMessageConfig.Url)
 	var _result = &dysmsapi20170525.Client{}
 	if _result, _err = dysmsapi20170525.NewClient(config); _err != nil {
-		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("ShortMessage init client failure (err:%v)\n", _err.Error()))
+		base.Io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("ShortMessage init client failure (err:%v)\n", _err.Error()))
 		return
 	}
 

@@ -22,14 +22,14 @@ func GetAppConfig() *app_obj.Application {
 	return app_obj.App
 }
 
-func DefaultAppTemplateDirectory(io *base.SystemOut) (res string) {
+func DefaultAppTemplateDirectory() (res string) {
 	var dir string
 	var err error
 	if dir, err = os.Getwd(); err != nil {
 		return
 	}
 	res = fmt.Sprintf("%s/web/views/", dir)
-	io.SystemOutPrintf("Template default directory is :'%s'", res)
+	base.Io.SystemOutPrintf("Template default directory is :'%s'", res)
 	return
 }
 func getEnvPath() (env string) {
@@ -44,7 +44,6 @@ func GetConfigFileDirectory(notEnv ...bool) (res string) {
 	var (
 		dir = ExecPath
 		err error
-		io  = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
 	)
 	env := getEnvPath()
 
@@ -52,7 +51,7 @@ func GetConfigFileDirectory(notEnv ...bool) (res string) {
 
 		if ExecPath == "" {
 			if dir, err = os.Getwd(); err != nil {
-				io.SystemOutPrintf("Template GetConfigFileDirectory is :'%s'", res)
+				base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("Template GetConfigFileDirectory is :'%s'", res)
 			}
 		}
 
@@ -108,8 +107,7 @@ func getConfigFilePathContent(dir, fileName string, notEnv ...bool) (res string)
 	if extString != "" {
 		ext = strings.TrimLeft(extString, ".")
 	}
-	io := base.NewSystemOut().SetInfoType(base.LogLevelInfo)
-	io.SystemOutPrintf("dir:%v,fileName:%v,ext:%v,config_file_path:%v", dir, fileName, ext, res)
+	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("dir:%v,fileName:%v,ext:%v,config_file_path:%v", dir, fileName, ext, res)
 	switch ext {
 	case "yaml":
 		if ok, _ := utils.PathExists(res); ok {
@@ -134,8 +132,7 @@ func NewApplication() *app_obj.Application {
 	if env == "" { // 默认环境为线上环境
 		env = app_obj.EnvProd
 	}
-	var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
-	io.SystemOutPrintf("Env:'%s'(You can set environment variable with 'export \"GO_ENV=%s\")", env, strings.Join(app_obj.EnvList, "|"))
+	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("Env:'%s'(You can set environment variable with 'export \"GO_ENV=%s\")", env, strings.Join(app_obj.EnvList, "|"))
 	return &app_obj.Application{
 		AppSystemName:  "",
 		AppName:        "app",

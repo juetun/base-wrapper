@@ -29,21 +29,20 @@ var config CommonConfig
 func GetCommonConfig() *CommonConfig {
 	return &config
 }
-func PluginLoadCommonParams(arg  *app_start.PluginsOperate) (err error) {
-	var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
-	io.SystemOutPrintln("Load common config start")
+func PluginLoadCommonParams(arg *app_start.PluginsOperate) (err error) {
+	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintln("Load common config start")
 	defer func() {
-		io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("common config is: '%v' \n", config.ToString())
-		io.SystemOutPrintf("load common config finished \n")
+		base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("common config is: '%v' \n", config.ToString())
+		base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("load common config finished \n")
 	}()
 
 	var yamlFile []byte
 	if yamlFile, err = os.ReadFile(common.GetConfigFilePath("common.yaml")); err != nil {
-		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   #%v \n", err)
+		base.Io.SetInfoType(base.LogLevelInfo).SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   #%v \n", err)
 	}
 	if err = yaml.Unmarshal(yamlFile, &config); err != nil {
-		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Load common config config err(%#v) \n", err)
+		base.Io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Load common config config err(%#v) \n", err)
 	}
-	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("Load common config is : '%#v' ", config)
+	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("Load common config is : '%#v' ", config)
 	return
 }

@@ -12,13 +12,13 @@ import (
 	"sync"
 	"time"
 
-	"go.etcd.io/etcd/client/v3"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/app/micro_service"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/plugins/service_discory"
 	"github.com/juetun/base-wrapper/lib/plugins/service_discory/traefik/discovery"
 	"github.com/juetun/base-wrapper/lib/utils"
+	"go.etcd.io/etcd/client/v3"
 )
 
 const (

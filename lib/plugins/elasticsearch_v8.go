@@ -27,27 +27,27 @@ func PluginElasticSearchV8(arg *app_start.PluginsOperate) (err error) {
 	syncLock.Lock()
 	defer syncLock.Unlock()
 
-	io.SystemOutPrintln("Load ElasticSearch start")
-	defer io.SetInfoType(base.LogLevelInfo).
+	base.Io.SystemOutPrintln("Load ElasticSearch start")
+	defer base.Io.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintf(fmt.Sprintf("ElasticSearch load config finished \n"))
 
 	var filePath = common.GetCommonConfigFilePath("elasticsearch.yml", true)
 
 	var yamlFile []byte
 	if yamlFile, err = os.ReadFile(filePath); err != nil {
-		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   #%v \n", err)
+		base.Io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   #%v \n", err)
 	}
 	// 数据库配置信息存储对象
 	var configs = make(map[string]Config)
 	if err = yaml.Unmarshal(yamlFile, &configs); err != nil {
-		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Fatal error elastic_search file(%#v) \n", err)
+		base.Io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Fatal error elastic_search file(%#v) \n", err)
 	}
 
 	for key, value := range configs {
 		esConfig := orgConfig(key, &value)
 		initEs(key, esConfig)
 	}
-	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("Load elastic_search config finished ")
+	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("Load elastic_search config finished ")
 	return
 }
 
@@ -65,7 +65,7 @@ func orgConfig(nameSpace string, config *Config) (configOption []SetElasticSearc
 
 	responseHeaderTimeout, err := time.ParseDuration(config.ResponseHeaderTimeout)
 	if err != nil {
-		io.SetInfoType(base.LogLevelInfo).
+		base.Io.SetInfoType(base.LogLevelInfo).
 			SystemOutPrintf("Load elastic_search config(%s) parse responseHeaderTimeout error", nameSpace, config.ResponseHeaderTimeout)
 	}
 	configOption = append(configOption, SetTransport(&http.Transport{
@@ -89,24 +89,24 @@ func initEs(nameSpace string, configOption []SetElasticSearchConfigOption) {
 		bt              []byte
 		showEsConfig    ShowEsConfig
 	)
-	io.SetInfoType(base.LogLevelInfo).
+	base.Io.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintf("Load elastic_search config(%s) ", nameSpace)
 
 	showEsConfig.ParseFromEsConfig(&esConfig.Config)
 	if bt, err = json.Marshal(showEsConfig); err != nil {
-		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("init  es(%v) failure \n", nameSpace))
+		base.Io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("init  es(%v) failure \n", nameSpace))
 		return
 	}
 	if err = json.Unmarshal(bt, &configInterface); err != nil {
-		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("init  es(%v) failure \n", nameSpace))
+		base.Io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("init  es(%v) failure \n", nameSpace))
 		return
 	}
 	for key, data := range configInterface {
-		io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("【%s】init Es %+v \n", key, data))
+		base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("【%s】init Es %+v \n", key, data))
 	}
 
 	if handler, err = elasticsearch.NewClient(esConfig.Config); err != nil {
-		io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("init es(%v) failure \n", nameSpace))
+		base.Io.SetInfoType(base.LogLevelError).SystemOutPrintf(fmt.Sprintf("init es(%v) failure \n", nameSpace))
 		return
 	}
 	app_obj.ElasticSearchV7Maps[nameSpace] = handler

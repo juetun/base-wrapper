@@ -23,23 +23,23 @@ func PluginClickHouse(arg *app_start.PluginsOperate) (err error) {
 }
 func loadClickHouse() (err error) {
 
-	io.SystemOutPrintln("Load clickHouse start")
+	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintln("Load clickHouse start")
 	var configClickHouse map[string]ClickHouse
 	var yamlFile []byte
 	filePath := common.GetConfigFilePath("clickhouse.yaml")
 	if yamlFile, err = os.ReadFile(filePath); err != nil {
-		io.SystemOutFatalf("yamlFile.Get err(%s)  #%v \n", filePath, err)
+		base.Io.SetInfoType(base.LogLevelError).SystemOutFatalf("yamlFile.Get err(%s)  #%v \n", filePath, err)
 	}
 	if err = yaml.Unmarshal(yamlFile, &configClickHouse)
 		err != nil {
-		io.SystemOutFatalf("load clickHouse config err(%+v) \n", err)
+		base.Io.SetInfoType(base.LogLevelError).SystemOutFatalf("load clickHouse config err(%+v) \n", err)
 	}
-	io.SystemOutPrintf("load clickHouse config is:%+v \n", configClickHouse)
+	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("load clickHouse config is:%+v \n", configClickHouse)
 	for key, value := range configClickHouse {
 		_ = initClickHouse(key, &value)
 	}
 
-	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("Database ClickHouse load config finished \n"))
+	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("Database ClickHouse load config finished \n"))
 	return
 }
 
@@ -51,14 +51,14 @@ func initClickHouse(key string, clickHouseConfig *ClickHouse) (err error) {
 	var connect *sql.DB
 
 	if connect, err = sql.Open("clickhouse", clickHouseConfig.Addr); err != nil {
-		io.SystemOutFatalf("load clickHouse config err(%+v) \n", err)
+		base.Io.SetInfoType(base.LogLevelError).SystemOutFatalf("load clickHouse config err(%+v) \n", err)
 	}
 	if err = connect.Ping(); err != nil {
 		if exception, ok := err.(*clickhouse.Exception); ok {
-			io.SystemOutFatalf("[%d] %s \n%s\n", exception.Code, exception.Message, exception.StackTrace)
+			base.Io.SetInfoType(base.LogLevelError).SystemOutFatalf("[%d] %s \n%s\n", exception.Code, exception.Message, exception.StackTrace)
 			return
 		}
-		io.SystemOutFatalf("load clickHouse config err(%+v) \n", err)
+		base.Io.SetInfoType(base.LogLevelInfo).SystemOutFatalf("load clickHouse config err(%+v) \n", err)
 		return
 	}
 	app_obj.DbClickHouse[key] = &app_obj.ClickHouseClient{

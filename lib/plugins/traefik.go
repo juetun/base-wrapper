@@ -26,23 +26,23 @@ func PluginRegistry(arg *app_start.PluginsOperate) (err error) {
 
 func loadRegistryConfig() (err error) {
 
-	io.SystemOutPrintln("开始注册服务")
+	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintln("开始注册服务")
 
 	// 数据库配置信息存储对象
 	var yamlFile []byte
 	if yamlFile, err = os.ReadFile(common.GetConfigFilePath("registry.yaml")); err != nil {
-		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   #%v \n", err)
+		base.Io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   #%v \n", err)
 		return
 	}
 
 	if err = yaml.Unmarshal(yamlFile, &micro_service.ServiceConfig); err != nil {
-		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Load micro server registry err(%#v) \n", err)
+		base.Io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Load micro server registry err(%#v) \n", err)
 		return
 	}
 
-	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("registry server (%#v) \n", micro_service.ServiceConfig)
+	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("registry server (%#v) \n", micro_service.ServiceConfig)
 	//
 
-	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("load micro server registry finished \n"))
+	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("load micro server registry finished \n"))
 	return
 }

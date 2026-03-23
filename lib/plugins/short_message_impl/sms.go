@@ -59,7 +59,7 @@ type (
 // PluginShortMessage 短信插件初始化
 func PluginShortMessage(arg *app_start.PluginsOperate) (err error) {
 	_ = arg
-	io.SystemOutPrintln("Load short message start")
+	base.Io.SystemOutPrintln("Load short message start")
 	var syncLock sync.Mutex
 	syncLock.Lock()
 	defer syncLock.Unlock()

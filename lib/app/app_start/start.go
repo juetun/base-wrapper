@@ -3,12 +3,9 @@ package app_start
 
 import (
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
-	stytemLog "log"
-	"strings"
-
 	"github.com/juetun/base-wrapper/lib/authorization/model"
-
 	"github.com/juetun/base-wrapper/lib/base"
+	"strings"
 )
 
 var (
@@ -55,17 +52,17 @@ func Authorization(authorization AuthorizationStruct) (handler PluginsOperateOpt
 //定时任务调度器
 func PluginTimerTask(arg *PluginsOperate) (err error) {
 	if !app_obj.App.AppRunTimerTask {
-		stytemLog.Println("当前服务将不会执行定时任务")
+		base.Io.SystemOutPrintln("当前服务将不会执行定时任务")
 		return
 	}
 
 	defer func() {
-		stytemLog.Println("【INFO】Start timer task running")
+		base.Io.SystemOutPrintln("【INFO】Start timer task running")
 	}()
 	for _, handler := range TimerTaskHandler {
-		handler(arg)
+		_ = handler(arg)
 	}
-	stytemLog.Println("【INFO】Load timer task")
+	base.Io.SystemOutPrintln("【INFO】Load timer task")
 
 	return
 }
@@ -76,29 +73,28 @@ func (r *PluginsOperate) LoadPlugins() (res *PluginsOperate) {
 	if len(PluginsHandleStruct) == 0 {
 		return
 	}
-	var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
-	stytemLog.Printf("")
-	stytemLog.Printf("----开始加载插件 ----")
-	stytemLog.Printf("")
+	base.Io.SystemOutPrintln("")
+	base.Io.SystemOutPrintln("----开始加载插件 ----")
+	base.Io.SystemOutPrintln("")
 	var err error
 	for _, handle := range PluginsHandleStruct {
-		io.SystemOutPrintf(strings.Repeat("-", 30) + "\n")
-
+		base.Io.SystemOutPrintf(strings.Repeat("-", 30) + "\n")
 		if err = handle.FuncHandler(r); err != nil {
-			panic(err)
+			base.Io.SystemOutFatalf("加载插件异常 \n", err.Error())
+			return
 		}
 	}
 
 	//加载执行定时任务
 	if err = PluginTimerTask(res); err != nil {
-		stytemLog.Printf("----加载定时任务失败 %v----", err.Error())
+		base.Io.SystemOutPrintf("----加载定时任务失败 %v----\n", err.Error())
 		return
 	}
 
-	io.SystemOutPrintf("Start load plugins finished \n")
-	stytemLog.Printf("")
-	stytemLog.Printf("----插件加载完成----")
-	stytemLog.Printf("")
+	base.Io.SystemOutPrintf("Start load plugins finished \n")
+	base.Io.SystemOutPrintln("")
+	base.Io.SystemOutPrintln("----插件加载完成----")
+	base.Io.SystemOutPrintln("")
 	return
 }
 

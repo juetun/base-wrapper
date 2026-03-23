@@ -16,7 +16,7 @@ func PluginLog(arg  *app_start.PluginsOperate) (err error) {
 	syncLock.Lock()
 	defer syncLock.Unlock()
 
-	io.SystemOutPrintln("init log system")
+	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintln("init log system")
 
 	// 读取配置文件初始化日志配置数据
 	configLogFile, err := loadLogConfig()
@@ -29,19 +29,19 @@ func PluginLog(arg  *app_start.PluginsOperate) (err error) {
 
 	// 初始化日志操作对象
 	app_obj.InitAppLog()
-	io.SystemOutPrintln("Init log finished")
+	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintln("Init log finished")
 	return
 }
 func loadLogConfig() (mysqlConfig app_obj.OptionLog, err error) {
 
-	io.SetInfoType(base.LogLevelInfo).SystemOutPrintln("Load log start")
+	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintln("Load log start")
 
 	var yamlFile []byte
 	if yamlFile, err = os.ReadFile(common.GetConfigFilePath("log.yaml")); err != nil {
-		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   #%v \n", err)
+		base.Io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   #%v \n", err)
 	}
 	if err = yaml.Unmarshal(yamlFile, &mysqlConfig); err != nil {
-		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Load log config config err(%#v) \n", err)
+		base.Io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Load log config config err(%#v) \n", err)
 	}
 
 	return

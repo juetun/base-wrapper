@@ -63,11 +63,9 @@ func PluginMysql(arg *app_start.PluginsOperate) (err error) {
 	return
 }
 
-var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
-
 func loadMysqlConfig() (err error) {
 
-	io.SystemOutPrintln("Load database start")
+	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintln("Load database start")
 	var (
 		yamlFile              []byte
 		mysqlConfig           MysqlAppConfig
@@ -78,21 +76,21 @@ func loadMysqlConfig() (err error) {
 	)
 	filePath = common.GetConfigFilePath("database.yaml")
 	if yamlFile, err = os.ReadFile(filePath); err != nil {
-		io.SystemOutFatalf("yamlFile.Get err(%s)  #%v \n", filePath, err)
+		base.Io.SystemOutFatalf("yamlFile.Get err(%s)  #%v \n", filePath, err)
 	}
 	if err = yaml.Unmarshal(yamlFile, &mysqlConfig); err != nil {
-		io.SystemOutFatalf("load database config file(%v) err(%+v) \n", filePath, err)
+		base.Io.SetInfoType(base.LogLevelInfo).SystemOutFatalf("load database config file(%v) err(%+v) \n", filePath, err)
 		return
 	}
 	app_obj.DistributedMysqlConnects = append(app_obj.DistributedMysqlConnects, mysqlConfig.DistributedConnects...)
 	//读取common_config配置文件中的信息
 	filePath = common.GetCommonConfigFilePath("database.yaml", true)
 	if yamlFile, err = os.ReadFile(filePath); err != nil {
-		io.SystemOutFatalf("yamlFile.Get err(%s)  #%v \n", filePath, err)
+		base.Io.SystemOutFatalf("yamlFile.Get err(%s)  #%v \n", filePath, err)
 		return
 	}
 	if err = yaml.Unmarshal(yamlFile, &mapMysqlConfig); err != nil {
-		io.SystemOutFatalf("load database config file(%v) err(%+v) \n", filePath, err)
+		base.Io.SystemOutFatalf("load database config file(%v) err(%+v) \n", filePath, err)
 		return
 	}
 
@@ -102,14 +100,14 @@ func loadMysqlConfig() (err error) {
 		}
 		if itemMysqlConfig, ok = mapMysqlConfig[connectName]; !ok {
 			err = fmt.Errorf("当前common_config中不支持您要使用的数据库连接(%v)", connectName)
-			io.SystemOutFatalf("load database config err(%+v) \n", err)
+			base.Io.SystemOutFatalf("load database config err(%+v) \n", err)
 			return
 		}
-		io.SystemOutPrintf("【 %s 】%+v \n", connectName, itemMysqlConfig.ToString())
+		base.Io.SystemOutPrintf("【 %s 】%+v \n", connectName, itemMysqlConfig.ToString())
 		initMysql(connectName, &itemMysqlConfig, mysqlConfig.Default)
 	}
 
-	io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("Database load config finished \n"))
+	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("Database load config finished \n"))
 	return
 }
 
@@ -157,8 +155,8 @@ func getMysql(nameSpace, defaultNameString string, addr *Mysql) *gorm.DB {
 	}), &gorm.Config{
 		Logger: common.NewWithLogger(app_obj.GetLog()), // common.NewGOrmLog(),
 	}); err != nil {
-		io.SetInfoType(base.LogLevelFatal).SystemOutPrintf(fmt.Sprintf("Fatal error database file: %v \n", err))
-		panic(err)
+		base.Io.SetInfoType(base.LogLevelFatal).SystemOutFatalf(fmt.Sprintf("Fatal error database file: %v \n", err))
+		return nil
 	}
 	app_obj.DbMysql[nameSpace] = db
 	if nameSpace == defaultNameString && defaultNameString != "" {

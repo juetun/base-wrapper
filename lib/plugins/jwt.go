@@ -14,8 +14,8 @@ func PluginJwt(arg *app_start.PluginsOperate) (err error) {
 	syncLock.Lock()
 	defer syncLock.Unlock()
 
-	io.SystemOutPrintln("init JWT config")
-	defer io.SystemOutPrintln("Init JWT finished")
+	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintln("init JWT config")
+	defer  base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintln("Init JWT finished")
 	err = base.NewJwtParam().JwtInit()
 	return
 }

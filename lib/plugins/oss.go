@@ -50,20 +50,19 @@ func PluginOss(arg *app_start.PluginsOperate) (err error) {
 	syncLock.Lock()
 	defer syncLock.Unlock()
 
-	var io = base.NewSystemOut().SetInfoType(base.LogLevelInfo)
-	io.SystemOutPrintln("Load common config start")
+	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintln("Load common config start")
 	defer func() {
-		io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("oss config is: '%v' \n", config.ToString())
-		io.SystemOutPrintf("load oss config finished \n")
+		base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("oss config is: '%v' \n", config.ToString())
+		base.Io.SystemOutPrintf("load oss config finished \n")
 	}()
 
 	var yamlFile []byte
 	var v map[string]Oss
 	if yamlFile, err = os.ReadFile(common.GetCommonConfigFilePath("oss.yaml", true)); err != nil {
-		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   %#v \n", err)
+		base.Io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("yamlFile.Get err   %#v \n", err)
 	}
 	if err = yaml.Unmarshal(yamlFile, &v); err != nil {
-		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Load oss config config err(%#v) \n", err)
+		base.Io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Load oss config config err(%#v) \n", err)
 	}
 	for k, d := range v {
 		if k == "" {
