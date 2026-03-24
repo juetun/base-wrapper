@@ -36,12 +36,12 @@ func loadRegistryConfig() (err error) {
 		return
 	}
 
-	if err = yaml.Unmarshal(yamlFile, &micro_service.ServiceConfig); err != nil {
+	if err = yaml.Unmarshal(yamlFile, &micro_service.RegistryServiceConfig); err != nil {
 		base.Io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Load micro server registry err(%#v) \n", err)
 		return
 	}
 
-	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("registry server (%#v) \n", micro_service.ServiceConfig)
+	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("registry server (%#v) \n", micro_service.RegistryServiceConfig)
 	//
 
 	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("load micro server registry finished \n"))

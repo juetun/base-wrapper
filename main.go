@@ -14,7 +14,6 @@ package main
 
 import (
 	"github.com/juetun/base-wrapper/lib/app/app_start"
-	"github.com/juetun/base-wrapper/lib/app/app_start/micro_register"
 	_ "github.com/juetun/base-wrapper/lib/app/init" // 加载公共插件项
 	"github.com/juetun/base-wrapper/lib/authorization/model"
 	. "github.com/juetun/base-wrapper/lib/plugins" // 组件目录

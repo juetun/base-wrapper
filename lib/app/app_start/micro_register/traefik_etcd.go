@@ -8,7 +8,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/app/app_start"
 	"github.com/juetun/base-wrapper/lib/app/micro_service"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/library/common/tools"
+	"github.com/juetun/base-wrapper/lib/utils"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -45,7 +45,7 @@ type (
 func (r *ETCDRegisterAndUnRegister) orgServerInfo() (serviceId, serviceName string, serviceInfoBytes []byte, err error) {
 	// 3. 准备服务注册信息
 	var ip string
-	if ip, err = tools.GetLocalIP(); err != nil {
+	if ip, err = utils.GetLocalIP(); err != nil {
 		return
 	}
 	serviceId = uuid.New().String()
@@ -72,7 +72,7 @@ func (r *ETCDRegisterAndUnRegister) RegisterMicro(c *gin.Engine, cTxs ...context
 	var serviceInfoBytes []byte
 	var serviceId, serviceName string
 	var eTCDConfig = clientv3.Config{
-		Endpoints:   micro_service.ServiceConfig.Endpoints, // etcd 地址
+		Endpoints:   micro_service.RegistryServiceConfig.Consul.Endpoints, // etcd 地址
 		DialTimeout: 5 * time.Second,
 	}
 

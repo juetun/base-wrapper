@@ -8,9 +8,11 @@ import (
 	consulapi "github.com/hashicorp/consul/api"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/app/app_start"
+	"github.com/juetun/base-wrapper/lib/app/micro_service"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/library/common/tools"
+	"github.com/juetun/base-wrapper/lib/utils"
 	"net/http"
+	"strings"
 )
 
 var io = base.NewSystemOut().
@@ -21,12 +23,12 @@ var io = base.NewSystemOut().
 type (
 	//注册服务参数到consul
 	ConsulRegisterAndUnRegister struct {
-		client       *api.Client    `json:"-"`
-		ConsulConfig *ServiceConfig `json:"consul_config"`
+		client       *api.Client         `json:"-"`
+		ConsulConfig *MicroServiceConfig `json:"consul_config"`
 	}
 
 	// 服务配置
-	ServiceConfig struct {
+	MicroServiceConfig struct {
 		ServiceName  string // 服务名（Traefik 会通过这个名字发现服务）
 		Host         string // 服务监听地址
 		Port         int    // 服务端口
@@ -48,13 +50,13 @@ func (r *ConsulRegisterAndUnRegister) UnRegisterMicro() {
 func NewConsulRegisterAndUnRegister() (r app_start.MicroOperateInterface) {
 	var (
 		err   error
-		ip, _ = tools.GetLocalIP() // 注意：如果 Traefik 在另一台机器，需改为本机内网 IP
+		ip, _ = utils.GetLocalIP() // 注意：如果 Traefik 在另一台机器，需改为本机内网 IP
 		res   = &ConsulRegisterAndUnRegister{
-			ConsulConfig: &ServiceConfig{
+			ConsulConfig: &MicroServiceConfig{
 				Host:        ip,
 				ServiceName: app_obj.App.AppName, // Traefik 会通过这个名称匹配服务
 				Port:        app_obj.App.AppPort,
-				ConsulAddr:  "127.0.0.1:8500", // Consul 默认地址
+				ConsulAddr:  strings.Join(micro_service.RegistryServiceConfig.Consul.Endpoints, ","), // Consul 默认地址
 			},
 		}
 	)
