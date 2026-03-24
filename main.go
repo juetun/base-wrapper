@@ -53,10 +53,9 @@ func main() {
 		// plugins.PluginOss,
 	).LoadPlugins() // 加载插件动作
 
-
 	// 启动GIN服务
 	_ = app_start.NewWebApplication().
-		SetFlagMicro(micro_register.NewETCDRegister()).
- 		Run()
+		SetFlagMicro(micro_register.NewConsulRegisterAndUnRegister()).
+		Run()
 
 }

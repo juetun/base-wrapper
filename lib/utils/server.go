@@ -6,32 +6,26 @@ package utils
 import (
 	"fmt"
 	"net"
+	"strings"
 )
 
-// GetLocalIP 获取本机网卡IP
-func GetLocalIP() (ipv4 string, err error) {
-	var (
-		addrs   []net.Addr
-		addr    net.Addr
-		ipNet   *net.IPNet // IP地址
-		isIpNet bool
-	)
-	// 获取所有网卡
-	if addrs, err = net.InterfaceAddrs(); err != nil {
-		return
+//获取当前服务器的内网IP
+func GetLocalIP() (ip string, err error) {
+	var addrList []net.Addr
+	if addrList, err = net.InterfaceAddrs(); err != nil {
+		return "", err
 	}
-	// 取第一个非lo的网卡IP
-	for _, addr = range addrs {
-		// 这个网络地址是IP地址: ipv4, ipv6
-		if ipNet, isIpNet = addr.(*net.IPNet); isIpNet && !ipNet.IP.IsLoopback() {
-			// 跳过IPV6
+	for _, address := range addrList {
+		// 检查地址是否为IP地址字符串
+		if ipNet, ok := address.(*net.IPNet); ok && !ipNet.IP.IsLoopback() {
 			if ipNet.IP.To4() != nil {
-				ipv4 = ipNet.IP.String() // 192.168.1.1
-				return
+				// 排除IPv6地址和环回地址
+				ip = ipNet.IP.String() // 转换为字符串
+				if strings.HasPrefix(ip, "192.168.") || strings.HasPrefix(ip, "10.") || (strings.HasPrefix(ip, "172.") && strings.Contains(ip, ".")) {
+					return ip, nil // 返回内网IP
+				}
 			}
 		}
 	}
-
-	err = fmt.Errorf("get local ip is failure")
-	return
+	return "", fmt.Errorf("no suitable IP found")
 }
