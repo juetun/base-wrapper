@@ -101,7 +101,7 @@ func (r *ConsulRegisterAndUnRegister) RegisterMicro(c *gin.Engine, cTxs ...conte
 		// 自定义标签（可选，Traefik 可通过标签过滤服务）
 		Tags: []string{
 			"traefik.enable=true", // 告诉 Traefik 启用该服务
-			fmt.Sprintf("traefik.http.routers.%v.rule=PathPrefix(`/%v`)", r.ConsulConfig.ServiceName, traefikRouter),             // Traefik 路由规则
+			fmt.Sprintf("traefik.http.routers.%v.rule=PathPrefix(`/%v`)", traefikRouter, r.ConsulConfig.ServiceName),             // Traefik 路由规则
 			fmt.Sprintf("traefik.http.routers.%s.entrypoints=%s", traefikRouter, traefikEntry),                                   // 绑定入口点
 			fmt.Sprintf("traefik.http.services.%s.loadbalancer.server.port=%d", r.ConsulConfig.ServiceName, r.ConsulConfig.Port), // 服务端口
 		},

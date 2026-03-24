@@ -14,6 +14,7 @@ package main
 
 import (
 	"github.com/juetun/base-wrapper/lib/app/app_start"
+	micro_service "github.com/juetun/base-wrapper/lib/app/app_start/micro_register"
 	_ "github.com/juetun/base-wrapper/lib/app/init" // 加载公共插件项
 	"github.com/juetun/base-wrapper/lib/authorization/model"
 	. "github.com/juetun/base-wrapper/lib/plugins" // 组件目录
@@ -44,17 +45,11 @@ func main() {
 		short_message_impl.PluginShortMessage,
 		PluginAppMap,
 		PluginAuthorization,
-		// func(arg *app_start.PluginsOperate) (err error) {
-		// 	// 启动websocket
-		// 	go anvil_websocket.WebsocketStart()
-		// 	return
-		// },
-		// plugins.PluginOss,
 	).LoadPlugins() // 加载插件动作
 
 	// 启动GIN服务
 	_ = app_start.NewWebApplication().
-		SetFlagMicro(micro_register.NewConsulRegisterAndUnRegister()).
+		SetFlagMicro(micro_service.NewConsulRegisterAndUnRegister()).
 		Run()
 
 }

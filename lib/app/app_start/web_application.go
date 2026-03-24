@@ -13,6 +13,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/app/middlewares"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
+	"github.com/juetun/base-wrapper/lib/utils"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"net/http"
@@ -20,6 +21,7 @@ import (
 	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -177,95 +179,94 @@ func (r *WebApplication) LoadRouter(routerHandler ...RouterHandler) (res *WebApp
 	return
 }
 
-// Run 开始加载Gin 服务
-func (r *WebApplication) Run(cTxs ...context.Context) (err error) {
-	var ctx context.Context
+func (r *WebApplication) getCtx(cTxs ...context.Context) (ctx context.Context) {
 	if len(cTxs) > 0 {
 		ctx = cTxs[0]
 	}
 	if ctx == nil {
 		ctx = context.Background()
 	}
+	return
+}
+
+// Run 开始加载Gin 服务
+func (r *WebApplication) Run(cTxs ...context.Context) (err error) {
+	ctx := r.getCtx(cTxs...)
 	appConfig := common.GetAppConfig()
 
-	// // 如果支持优雅重启
+	// // 如果支持优雅重启（微服务启动）
 	if appConfig.AppGraceReload > 0 {
-		r.start(ctx)
+		r.startWithMicro(ctx)
 		return
 	}
+	//普通启动
+	r.startGeneral()
+
+	return
+}
+
+func (r *WebApplication) startGeneral() {
 	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintln("General start ")
-	if r.MicroOperate != nil { //如果实现了微服务注册与发现
-		r.MicroOperate.RegisterMicro(r.GinEngine, ctx)
-	}
-
-	return
-}
-
-//将服务从注册中心拿掉
-func (r *WebApplication) UnRegisterMicro() {
-	if r.MicroOperate != nil {
-		r.MicroOperate.UnRegisterMicro()
-	}
-	return
-}
-
-func (r *WebApplication) start(ctx context.Context) {
-
-	r.syslog.SetInfoType(base.LogLevelInfo).
-		SystemOutPrintln("Support grace reload")
-
-	httpServer := &http.Server{
-		Addr:    r.GetListenPortString(),
+	// 5. 启动 Gin 服务
+	var ip, _ = utils.GetLocalIP()
+	server := &http.Server{
+		Addr:    fmt.Sprintf("%s:%d", ip, app_obj.App.AppPort),
 		Handler: r.GinEngine,
 	}
-	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("Listen Addr  %s", httpServer.Addr)
+	r.syslog.SetInfoType(base.LogLevelError).SystemOutPrintf("未启动信息")
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		base.Io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("服务启动失败: %v", err)
+	}
+	return
+}
 
-	go func() { // 启动GIN服务动作
+func (r *WebApplication) startWithMicro(ctx context.Context) {
+	if r.MicroOperate == nil {
+		return
+	}
+	if _, err := r.MicroOperate.RegisterMicro(r.GinEngine, ctx); err != nil {
+		base.Io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("注册服务失败: %v", err)
+		return
+	}
 
-		if r.MicroOperate != nil {
-			var err error
-			_, err = r.MicroOperate.RegisterMicro(r.GinEngine, ctx)
-			if err != nil {
-				r.syslog.SetInfoType(base.LogLevelError).SystemOutFatalf("listen: %s\n", err.Error())
-				return
-			}
+	// 确保程序退出时注销服务
+	defer r.MicroOperate.UnRegisterMicro()
+
+	// 5. 启动 Gin 服务
+	var ip, _ = utils.GetLocalIP()
+	server := &http.Server{
+		Addr:    fmt.Sprintf("%s:%d", ip, app_obj.App.AppPort),
+		Handler: r.GinEngine,
+	}
+
+	// 6. 优雅退出（监听系统信号）
+	go func() {
+		quit := make(chan os.Signal, 1)
+		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+		<-quit
+		base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintln("开始优雅关闭服务...")
+
+		// 关闭 HTTP 服务
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := server.Shutdown(ctx); err != nil {
+			base.Io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("服务关闭失败: %v", err)
 			return
 		}
-
-		// service connections
-		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			r.syslog.SetInfoType(base.LogLevelInfo).SystemOutFatalf("listen: %s\n", err)
-		}
-
+		base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintln("服务已优雅关闭")
 	}()
 
-	// Wait for interrupt signal to gracefully shutdown the server with
-	// a timeout of 5 seconds.
-	quit := make(chan os.Signal)
-	defer func() {
-		close(quit)
-	}()
-	signal.Notify(quit, os.Interrupt)
-	<-quit
-	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintln("Shutdown Server ...")
+	// 7. 启动 HTTP 服务
+	base.Io.
+		SetInfoType(base.LogLevelInfo).
+		SystemOutPrintf("Gin 服务启动成功，监听地址: %s:%d \n", ip, app_obj.App.AppPort)
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		base.Io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("服务启动失败: %v", err)
 
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer func() {
-		cancel()
-		r.syslog.SetInfoType(base.LogLevelError).SystemOutPrintln("Server exiting")
-	}()
-
-	if r.MicroOperate != nil { //如果开启了微服务,
-		r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintln("将服务信息从注册中心移除")
-		//则先将服务从注册中心拿掉
-		r.UnRegisterMicro()
 	}
-
-	if err := httpServer.Shutdown(ctx); err != nil {
-		r.syslog.SetInfoType(base.LogLevelError).SystemOutFatalf("Server Shutdown:", err)
-	}
-
+	return
 }
+
 func (r *WebApplication) GetListenPortString() string {
 	return ":" + strconv.Itoa(common.GetAppConfig().AppPort)
 }
