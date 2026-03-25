@@ -83,15 +83,65 @@ func (r *ConsulRegisterAndUnRegister) getServiceId() (serviceId string) {
 	return
 }
 
+func (r *ConsulRegisterAndUnRegister) getMapAppConfig() (rules []*app_obj.ConsulAppRuleInfo) {
+	return app_obj.RegistryServiceConfig.Consul.MapApp
+}
+
+func (r *ConsulRegisterAndUnRegister) orgRoutesRule(serviceRoute string) (res string) {
+	var rules []*app_obj.ConsulAppRuleInfo
+	var mapAppRule = make(map[string]*app_obj.ConsulAppRuleInfo, len(rules))
+	var appRule *app_obj.ConsulAppRuleInfo
+	var ok bool
+
+	for _, item := range rules {
+		mapAppRule[item.MicroAppName] = item
+	}
+	if appRule, ok = mapAppRule[app_obj.App.AppName]; !ok {
+		res = fmt.Sprintf("traefik.http.routers.%v.rule=PathPrefix(`/%v`)", serviceRoute, r.ConsulConfig.ServiceName)
+		return
+	}
+	var ruleString = ""
+	hostLength := len(appRule.Host)
+	if hostLength > 0 {
+		if hostLength == 1 {
+			ruleString += fmt.Sprintf("Host(`%v`)", appRule.Host[0])
+		} else {
+			ruleString += "("
+			for k, item := range appRule.Host {
+				if item == "" {
+					continue
+				}
+				if k == 0 {
+					ruleString += fmt.Sprintf("Host(`%v`)", item)
+				} else {
+					ruleString += fmt.Sprintf("||Host(`%v`)", item)
+				}
+			}
+			ruleString += ")"
+		}
+	}
+
+	if appRule.PathPrefix != "" {
+		if ruleString != "" {
+			ruleString += "&&"
+		}
+		ruleString += fmt.Sprintf("PathPrefix(`%v`)", appRule.PathPrefix)
+	}
+
+	res = fmt.Sprintf("traefik.http.routers.%v.rule=%v", serviceRoute, ruleString)
+
+	return
+}
+
 func (r *ConsulRegisterAndUnRegister) GetMicroServiceTags() (tagList []string) {
 	tagList = make([]string, 0, 30)
 	serviceRouteWs := fmt.Sprintf("ws-%v", app_obj.App.AppName)
 	middleWareCors := "cors-allow"
 	tagList = make([]string, 0, 30)
 	tagList = append(tagList, []string{
-		"traefik.enable=true", // 告诉 Traefik 启用该服务
-		fmt.Sprintf("traefik.http.routers.%v.rule=PathPrefix(`/%v`)", serviceRouteWs, r.ConsulConfig.ServiceName), // Traefik 路由规则
-		fmt.Sprintf("traefik.http.routers.%v.service=%v", serviceRouteWs, r.ConsulConfig.ServiceName),             // Traefik 路由规则
+		"traefik.enable=true",           // 告诉 Traefik 启用该服务
+		r.orgRoutesRule(serviceRouteWs), // Traefik 路由规则
+		fmt.Sprintf("traefik.http.routers.%v.service=%v", serviceRouteWs, r.ConsulConfig.ServiceName), // Traefik 路由规则
 		fmt.Sprintf("traefik.http.routers.%s.entrypoints=%s", serviceRouteWs, "web"),
 		fmt.Sprintf("traefik.http.routers.%s.middlewares=%s", serviceRouteWs, middleWareCors),                                //设置中间件
 		fmt.Sprintf("traefik.http.services.%s.loadbalancer.server.port=%d", r.ConsulConfig.ServiceName, r.ConsulConfig.Port), // 服务端口
@@ -112,12 +162,14 @@ func (r *ConsulRegisterAndUnRegister) GetMicroServiceTags() (tagList []string) {
 func (r *ConsulRegisterAndUnRegister) orgWss(middleWareCors string) (tagList []string) {
 	serviceRouteWss := fmt.Sprintf("wss-%v", app_obj.App.AppName)
 	tagList = []string{
+		r.orgRoutesRule(serviceRouteWss),
 		fmt.Sprintf("traefik.http.routers.%v.rule=PathPrefix(`/%v`)", serviceRouteWss, r.ConsulConfig.ServiceName), // Traefik 路由规则
 		fmt.Sprintf("traefik.http.routers.%v.service=%v", serviceRouteWss, r.ConsulConfig.ServiceName),             // Traefik 路由规则
 		fmt.Sprintf("traefik.http.routers.%s.entrypoints=%s", serviceRouteWss, "websecure"),                        // 支持websocket
 		fmt.Sprintf("traefik.http.routers.%s.middlewares=%s", serviceRouteWss, middleWareCors),                     // 设置中间件
 		//fmt.Sprintf("traefik.http.routers.%s.middlewares=%v", serviceRouteWss, fmt.Sprintf("%v,%v", middleWareCors,websocketMiddleWareName)),
-		fmt.Sprintf("traefik.http.routers.%s.tls=true", serviceRouteWss), // 绑定入口点
+		fmt.Sprintf("traefik.http.routers.%s.tls=false", serviceRouteWss),           // 绑定入口点
+		fmt.Sprintf("traefik.tcp.routers.%v.tls.passthrough=true", serviceRouteWss), // 开启TLS 透传 Traefik 不解密 HTTPS/WSS 流量，直接把加密数据【原封不动】转发给后端服务。
 	}
 	return
 }

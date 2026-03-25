@@ -106,9 +106,15 @@ type (
 			Host          string   `json:"host" yaml:"host"`
 		} `json:"etcd,omitempty" yaml:"etcd"` //etcd 配置信息
 		Consul *struct {
-			WebsocketConnectTimeOut int64    `json:"websocket_connect_time_out" yaml:"websocketconnecttimeout"` //websocket连接超时时长
-			Endpoints               []string `json:"endpoints" yaml:"endpoints"`                                //consul 注册地址
+			WebsocketConnectTimeOut int64                `json:"websocket_connect_time_out" yaml:"websocketconnecttimeout"` //websocket连接超时时长
+			Endpoints               []string             `json:"endpoints" yaml:"endpoints"`                                //consul 注册地址
+			MapApp                  []*ConsulAppRuleInfo `json:"map_app" yaml:"mapapp"`
 		} `json:"consul,omitempty" yaml:"consul"` //consul 配置信息
+	}
+	ConsulAppRuleInfo struct {
+		MicroAppName string   `json:"micro_app_name" yaml:"microappname"` //微服务名匹配
+		Host         []string `json:"host"  yaml:"host"`                  //域名匹配
+		PathPrefix   string   `json:"path_prefix" yaml:"pathprefix"`      //URL前缀匹配
 	}
 	UrlFormat struct {
 		IsPrefix bool            `json:"is_prefix" yaml:"is_prefix"`
