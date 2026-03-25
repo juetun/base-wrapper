@@ -65,7 +65,7 @@ func (r *ETCDRegisterAndUnRegister) orgServerInfo() (serviceId, serviceName stri
 	if err = json.Unmarshal(serviceInfoBytes, &dataMap); err != nil {
 		return
 	}
-	tagList := r.GetMicroServiceTags(serviceId, serviceName)
+	tagList := r.GetMicroServiceTags()
 	var vSplit []string
 	var keyValue string
 	for _, item := range tagList {
