@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/app/app_start"
-	"github.com/juetun/base-wrapper/lib/app/micro_service"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/utils"
 	"time"
@@ -72,7 +71,7 @@ func (r *ETCDRegisterAndUnRegister) RegisterMicro(c *gin.Engine, cTxs ...context
 	var serviceInfoBytes []byte
 	var serviceId, serviceName string
 	var eTCDConfig = clientv3.Config{
-		Endpoints:   micro_service.RegistryServiceConfig.Consul.Endpoints, // etcd 地址
+		Endpoints:   app_obj.RegistryServiceConfig.Consul.Endpoints, // etcd 地址
 		DialTimeout: 5 * time.Second,
 	}
 
