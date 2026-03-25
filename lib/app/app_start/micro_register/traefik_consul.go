@@ -88,48 +88,50 @@ func (r *ConsulRegisterAndUnRegister) getMapAppConfig() (rules []*app_obj.Consul
 }
 
 func (r *ConsulRegisterAndUnRegister) orgRoutesRule(serviceRoute string) (res string) {
-	var rules []*app_obj.ConsulAppRuleInfo
-	var mapAppRule = make(map[string]*app_obj.ConsulAppRuleInfo, len(rules))
-	var appRule *app_obj.ConsulAppRuleInfo
-	var ok bool
 
-	for _, item := range rules {
+	var (
+		rules      = app_obj.RegistryServiceConfig.Consul.MapApp
+		mapAppRule = make(map[string]*app_obj.ConsulAppRuleInfo, len(rules))
+		appRule    *app_obj.ConsulAppRuleInfo
+		ok         bool
+		ruleString strings.Builder
+		item       *app_obj.ConsulAppRuleInfo
+	)
+
+	for _, item = range rules {
 		mapAppRule[item.MicroAppName] = item
 	}
 	if appRule, ok = mapAppRule[app_obj.App.AppName]; !ok {
 		res = fmt.Sprintf("traefik.http.routers.%v.rule=PathPrefix(`/%v`)", serviceRoute, r.ConsulConfig.ServiceName)
 		return
 	}
-	var ruleString = ""
 	hostLength := len(appRule.Host)
 	if hostLength > 0 {
 		if hostLength == 1 {
-			ruleString += fmt.Sprintf("Host(`%v`)", appRule.Host[0])
+			ruleString.WriteString(fmt.Sprintf("Host(`%v`)", appRule.Host[0]))
 		} else {
-			ruleString += "("
+			ruleString.WriteString("(")
 			for k, item := range appRule.Host {
 				if item == "" {
 					continue
 				}
-				if k == 0 {
-					ruleString += fmt.Sprintf("Host(`%v`)", item)
-				} else {
-					ruleString += fmt.Sprintf("||Host(`%v`)", item)
+				if k != 0 {
+					ruleString.WriteString("||")
 				}
+				ruleString.WriteString(fmt.Sprintf("Host(`%v`)", item))
 			}
-			ruleString += ")"
+			ruleString.WriteString(")")
 		}
 	}
 
 	if appRule.PathPrefix != "" {
-		if ruleString != "" {
-			ruleString += "&&"
+		if ruleString.Len() != 0 {
+			ruleString.WriteString("&&")
 		}
-		ruleString += fmt.Sprintf("PathPrefix(`%v`)", appRule.PathPrefix)
+		ruleString.WriteString(fmt.Sprintf("PathPrefix(`%v`)", appRule.PathPrefix))
 	}
 
-	res = fmt.Sprintf("traefik.http.routers.%v.rule=%v", serviceRoute, ruleString)
-
+	res = fmt.Sprintf("traefik.http.routers.%v.rule=%v", serviceRoute, ruleString.String())
 	return
 }
 
