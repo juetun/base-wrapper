@@ -195,14 +195,17 @@ func (r *WebApplication) loadRegistryMicroSrv() {
 	if !app_obj.RegistryServiceConfig.OpenMicService {
 		return
 	}
-
-	//如果开启了微服务注册
-	switch app_obj.RegistryServiceConfig.MicServiceType {
-	case app_obj.RegisterCenterConsul: //注册中心为Consul
-		r.SetFlagMicro(microService2.NewConsulRegisterAndUnRegister())
-	case app_obj.RegisterCenterETCD: //注册中心为 ETCD
-		r.SetFlagMicro(microService2.NewETCDRegisterAndUnRegister())
+	
+	if r.MicroOperate == nil {
+		//如果开启了微服务注册
+		switch app_obj.RegistryServiceConfig.MicServiceType {
+		case app_obj.RegisterCenterConsul: //注册中心为Consul
+			r.SetFlagMicro(microService2.NewConsulRegisterAndUnRegister())
+		case app_obj.RegisterCenterETCD: //注册中心为 ETCD
+			r.SetFlagMicro(microService2.NewETCDRegisterAndUnRegister())
+		}
 	}
+
 	return
 }
 

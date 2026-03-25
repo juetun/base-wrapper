@@ -83,7 +83,7 @@ type (
 		AppVersion           string          `json:"app_version" yaml:"version"`                       // 应用版本以前缀v 开头
 		AppApiVersion        string          `json:"app_api_version" yaml:"app_api_version"`           // 应用的API的版本号，用于api接口路由参数拼接
 		AppPort              int             `json:"app_port" yaml:"port"`                             // 应用监听的端口
- 		AppNeedPProf         bool            `json:"app_need_p_prof" yaml:"app_need_p_prof"`           // 是否需要内存分析
+		AppNeedPProf         bool            `json:"app_need_p_prof" yaml:"app_need_p_prof"`           // 是否需要内存分析
 		AppSignDebug         bool            `json:"app_sign_debug" yaml:"app_sign_debug"`             // 是否支持签名调试
 		AppTemplateDirectory string          `json:"app_template_directory" yaml:"template_directory"` // temp模板默认目录
 		AppRouterPrefix      AppRouterPrefix `json:"app_router_prefix" yaml:"app_router_prefix"`       // 路由前缀
@@ -95,9 +95,10 @@ type (
 		UseDefaultShopId     bool            `json:"use_default_shop_id" yaml:"use_default_shop_id"`   //测试环境调试数据使用的默认店铺ID
 	}
 	ServerRegistry struct {
-		OpenMicService bool   `json:"open_mic_service" yaml:"openmicrservice"` //是否开启微服务
-		MicServiceType string `json:"mic_service_type" yaml:"micservicetype"`  //注册的微服务注册中心类型枚举型 consul etcd
-		ETCD           *struct {
+		OpenMicService   bool   `json:"open_mic_service" yaml:"openmicrservice"`  //是否开启微服务
+		SupportWebsocket bool   `json:"support_websocket" yam:"supportwebsocket"` //是否支持websocket true-支持 false-不支持
+		MicServiceType   string `json:"mic_service_type" yaml:"micservicetype"`   //注册的微服务注册中心类型枚举型 consul etcd
+		ETCD             *struct {
 			Endpoints     []string `json:"endpoints" yaml:"endpoints"`
 			Dir           string   `json:"dir" yaml:"dir"`
 			LockKey       string   `json:"lock_key" yaml:"lockkey"`
@@ -105,7 +106,8 @@ type (
 			Host          string   `json:"host" yaml:"host"`
 		} `json:"etcd,omitempty" yaml:"etcd"` //etcd 配置信息
 		Consul *struct {
-			Endpoints []string `json:"endpoints" yaml:"endpoints"` //consul 注册地址
+			WebsocketConnectTimeOut int64    `json:"websocket_connect_time_out" yaml:"websocketconnecttimeout"` //websocket连接超时时长
+			Endpoints               []string `json:"endpoints" yaml:"endpoints"`                                //consul 注册地址
 		} `json:"consul,omitempty" yaml:"consul"` //consul 配置信息
 	}
 	UrlFormat struct {

@@ -7,6 +7,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/utils"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -60,8 +61,30 @@ func (r *ETCDRegisterAndUnRegister) orgServerInfo() (serviceId, serviceName stri
 		err = fmt.Errorf("序列化服务信息失败: %v", err)
 		return
 	}
+	var dataMap map[string]interface{}
+	if err = json.Unmarshal(serviceInfoBytes, &dataMap); err != nil {
+		return
+	}
+	tagList := r.GetMicroServiceTags(serviceId, serviceName)
+	var vSplit []string
+	var keyValue string
+	for _, item := range tagList {
+		vSplit = strings.Split(item, "=")
+		if len(vSplit) > 1 {
+			keyValue = strings.TrimSpace(vSplit[0])
+			dataMap[keyValue] = strings.TrimSpace(vSplit[1])
+		}
+	}
+	if serviceInfoBytes, err = json.Marshal(dataMap); err != nil {
+		err = fmt.Errorf("序列化服务信息失败: %v", err)
+		return
+	}
 	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("当前serviceInfo信息: %v\n", string(serviceInfoBytes))
 	return
+}
+
+func (r *ETCDRegisterAndUnRegister) GetMicroServiceTags() (tagList []string) {
+	return []string{}
 }
 
 // 注册服务到etcd
