@@ -86,18 +86,14 @@ func (r *ConsulRegisterAndUnRegister) getServiceId() (serviceId string) {
 func (r *ConsulRegisterAndUnRegister) GetMicroServiceTags() (tagList []string) {
 	tagList = make([]string, 0, 30)
 	serviceRouteWs := fmt.Sprintf("ws-%v", app_obj.App.AppName)
-	websocketMiddleWareName := "websocket-long"
 	middleWareCors := "cors-allow"
-
+	tagList = make([]string, 0, 30)
 	tagList = append(tagList, []string{
 		"traefik.enable=true", // 告诉 Traefik 启用该服务
-		fmt.Sprintf("traefik.http.middlewares.%v.websocket.timeout=%v", websocketMiddleWareName, app_obj.RegistryServiceConfig.Consul.WebsocketConnectTimeOut), // 24小时不断开（单位：秒）
-		fmt.Sprintf("traefik.http.routers.%v.rule=PathPrefix(`/%v`)", serviceRouteWs, r.ConsulConfig.ServiceName),                                              // Traefik 路由规则
-		fmt.Sprintf("traefik.http.routers.%v.service=%v", serviceRouteWs, r.ConsulConfig.ServiceName),                                                          // Traefik 路由规则
-		fmt.Sprintf("traefik.http.routers.%s.entrypoints=%s", serviceRouteWs, "web,websecure"),                                                                 //支持80和443端口
-		fmt.Sprintf("traefik.http.routers.%s.middlewares=%v", serviceRouteWs, fmt.Sprintf("%v,%v", middleWareCors, websocketMiddleWareName)),                   //配置中间件信息
-		fmt.Sprintf("traefik.http.routers.%s.tls=true", serviceRouteWs),                                                                                        // 绑定入口点 // 绑定入口点
-		fmt.Sprintf("traefik.http.services.%s.loadbalancer.server.port=%d", r.ConsulConfig.ServiceName, r.ConsulConfig.Port),                                   // 服务端口
+		fmt.Sprintf("traefik.http.routers.%v.rule=PathPrefix(`/%v`)", serviceRouteWs, r.ConsulConfig.ServiceName), // Traefik 路由规则
+		fmt.Sprintf("traefik.http.routers.%v.service=%v", serviceRouteWs, r.ConsulConfig.ServiceName),             // Traefik 路由规则
+		fmt.Sprintf("traefik.http.routers.%s.entrypoints=%s", serviceRouteWs, "web"),
+		fmt.Sprintf("traefik.http.services.%s.loadbalancer.server.port=%d", r.ConsulConfig.ServiceName, r.ConsulConfig.Port), // 服务端口
 
 		//配置跨域信息
 		fmt.Sprintf("traefik.http.middlewares.%v.headers.accesscontrolalloworiginlist=*", middleWareCors),
@@ -106,20 +102,28 @@ func (r *ConsulRegisterAndUnRegister) GetMicroServiceTags() (tagList []string) {
 	}...)
 
 	//如果支持websocket
+	serviceRouteWss := fmt.Sprintf("wss_%v", r.ConsulConfig.ServiceName)
+	tagList = append(tagList, []string{
+		fmt.Sprintf("traefik.http.routers.%v.rule=PathPrefix(`/%v`)", serviceRouteWss, r.ConsulConfig.ServiceName), // Traefik 路由规则
+		fmt.Sprintf("traefik.http.routers.%v.service=%v", serviceRouteWss, r.ConsulConfig.ServiceName),             // Traefik 路由规则
+		fmt.Sprintf("traefik.http.routers.%s.entrypoints=%s", serviceRouteWss, "websecure"),
+		fmt.Sprintf("traefik.http.routers.%s.tls=true", serviceRouteWss), // 绑定入口点
+	}...)
+	//如果支持websocket
 	if app_obj.RegistryServiceConfig.SupportWebsocket {
-		tagList = append(tagList, r.orgWss(websocketMiddleWareName, middleWareCors)...)
+		tagList = append(tagList, r.orgWss(middleWareCors)...)
 	}
 	return
 }
 
-func (r *ConsulRegisterAndUnRegister) orgWss(websocketMiddleWareName, middleWareCors string) (tagList []string) {
+func (r *ConsulRegisterAndUnRegister) orgWss(middleWareCors string) (tagList []string) {
 	serviceRouteWss := fmt.Sprintf("wss-%v", app_obj.App.AppName)
 	tagList = []string{
-		fmt.Sprintf("traefik.http.routers.%v.rule=PathPrefix(`/%v`)", serviceRouteWss, r.ConsulConfig.ServiceName),                            // Traefik 路由规则
-		fmt.Sprintf("traefik.http.routers.%v.service=%v", serviceRouteWss, r.ConsulConfig.ServiceName),                                        // Traefik 路由规则
-		fmt.Sprintf("traefik.http.routers.%s.entrypoints=%s", serviceRouteWss, "web,websecure"),                                               //支持80和443端口
-		fmt.Sprintf("traefik.http.routers.%s.middlewares=%v", serviceRouteWss, fmt.Sprintf("%v,%v", middleWareCors, websocketMiddleWareName)), //配置中间件信息
-		fmt.Sprintf("traefik.http.routers.%s.tls=true", serviceRouteWss),                                                                      // 绑定入口点
+		fmt.Sprintf("traefik.http.routers.%v.rule=PathPrefix(`/%v`)", serviceRouteWss, r.ConsulConfig.ServiceName), // Traefik 路由规则
+		fmt.Sprintf("traefik.http.routers.%v.service=%v", serviceRouteWss, r.ConsulConfig.ServiceName),             // Traefik 路由规则
+		fmt.Sprintf("traefik.http.routers.%s.entrypoints=%s", serviceRouteWss, "websecure"),
+		//fmt.Sprintf("traefik.http.routers.%s.middlewares=%v", serviceRouteWss, fmt.Sprintf("%v,%v", middleWareCors,websocketMiddleWareName)),
+		fmt.Sprintf("traefik.http.routers.%s.tls=true", serviceRouteWss), // 绑定入口点
 	}
 	return
 }
