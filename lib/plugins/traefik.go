@@ -6,11 +6,11 @@ package plugins
 
 import (
 	"fmt"
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"os"
 	"sync"
 
 	"github.com/juetun/base-wrapper/lib/app/app_start"
-	"github.com/juetun/base-wrapper/lib/app/micro_service"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
 	"gopkg.in/yaml.v2"
@@ -36,12 +36,12 @@ func loadRegistryConfig() (err error) {
 		return
 	}
 
-	if err = yaml.Unmarshal(yamlFile, &micro_service.RegistryServiceConfig); err != nil {
+	if err = yaml.Unmarshal(yamlFile, &app_obj.RegistryServiceConfig); err != nil {
 		base.Io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Load micro server registry err(%#v) \n", err)
 		return
 	}
 
-	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("registry server (%#v) \n", micro_service.RegistryServiceConfig)
+	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("registry server (%#v) \n", app_obj.RegistryServiceConfig)
 	//
 
 	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf(fmt.Sprintf("load micro server registry finished \n"))

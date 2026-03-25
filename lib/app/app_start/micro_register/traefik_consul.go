@@ -8,7 +8,6 @@ import (
 	consulapi "github.com/hashicorp/consul/api"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/app/app_start"
-	"github.com/juetun/base-wrapper/lib/app/micro_service"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/utils"
 	"net/http"
@@ -56,7 +55,7 @@ func NewConsulRegisterAndUnRegister() (r app_start.MicroOperateInterface) {
 				Host:        ip,
 				ServiceName: app_obj.App.AppName, // Traefik 会通过这个名称匹配服务
 				Port:        app_obj.App.AppPort,
-				ConsulAddr:  strings.Join(micro_service.RegistryServiceConfig.Consul.Endpoints, ","), // Consul 默认地址
+				ConsulAddr:  strings.Join(app_obj.RegistryServiceConfig.Consul.Endpoints, ","), // Consul 默认地址
 			},
 		}
 	)

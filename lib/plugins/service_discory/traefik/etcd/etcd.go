@@ -13,9 +13,7 @@ import (
 	"time"
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
-	"github.com/juetun/base-wrapper/lib/app/micro_service"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/base-wrapper/lib/plugins/service_discory"
 	"github.com/juetun/base-wrapper/lib/plugins/service_discory/traefik/discovery"
 	"github.com/juetun/base-wrapper/lib/utils"
 	"go.etcd.io/etcd/client/v3"
@@ -48,10 +46,10 @@ type TraefikEtcd struct {
 	Dir string
 }
 
-func NewTraefikEtcd(serverRegistry *service_discory.ServerRegistry, syslog *base.SystemOut) (res *TraefikEtcd) {
+func NewTraefikEtcd(serverRegistry *app_obj.ServerRegistry, syslog *base.SystemOut) (res *TraefikEtcd) {
 	res = &TraefikEtcd{}
-	var endpoints = make([]string, 0, len(serverRegistry.EtcdEndPoints))
-	for _, endpoint := range serverRegistry.Endpoints {
+	var endpoints = make([]string, 0, len(serverRegistry.ETCD.EtcdEndPoints))
+	for _, endpoint := range serverRegistry.ETCD.Endpoints {
 		endpoints = append(endpoints, endpoint)
 	}
 	res.Client, res.Err = clientv3.New(clientv3.Config{
@@ -60,7 +58,7 @@ func NewTraefikEtcd(serverRegistry *service_discory.ServerRegistry, syslog *base
 	})
 	res.ctx = context.Background()
 	res.Lease = clientv3.NewLease(res.Client)
-	res.Dir = serverRegistry.Dir
+	res.Dir = serverRegistry.ETCD.Dir
 	res.syslog = syslog
 	return
 }
@@ -214,8 +212,8 @@ func (r *TraefikEtcd) sliceToMap(data []string) (res map[string]string) {
 func (r *TraefikEtcd) getRouter(serviceName string, middlewaresNames ...string) (res map[string]discovery.HttpTraefikRouters, routerName string) {
 	routerName = fmt.Sprintf("go-%s", serviceName)
 	router := discovery.HttpTraefikRouters{
-		EntryPoints: r.sliceToMap(micro_service.ServiceConfig.EtcdEndPoints),
-		Rule:        fmt.Sprintf("Host(`%s`) && PathPrefix(`/%s`)", micro_service.ServiceConfig.Host, app_obj.App.AppName),
+		EntryPoints: r.sliceToMap(app_obj.RegistryServiceConfig.ETCD.EtcdEndPoints),
+		Rule:        fmt.Sprintf("Host(`%s`) && PathPrefix(`/%s`)", app_obj.RegistryServiceConfig.ETCD.Host, app_obj.App.AppName),
 		Service:     serviceName,
 		Middlewares: r.sliceToMap(middlewaresNames),
 	}
