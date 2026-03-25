@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
-	"github.com/juetun/base-wrapper/lib/app/app_start"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/utils"
 	"time"
@@ -145,7 +144,7 @@ func (r *ETCDRegisterAndUnRegister) UnRegisterMicro() {
 	return
 }
 
-func NewETCDRegisterAndUnRegister() (r app_start.MicroOperateInterface) {
+func NewETCDRegisterAndUnRegister() (r MicroOperateInterface) {
 	res := &ETCDRegisterAndUnRegister{}
 	res.ctx = context.Background()
 	return res

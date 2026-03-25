@@ -17,7 +17,6 @@ import (
 	"github.com/juetun/base-wrapper/lib/utils"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-
 	"net/http"
 	"os"
 	"os/signal"
@@ -45,7 +44,7 @@ type (
 		GinEngine *gin.Engine
 		syslog    *base.SystemOut
 		//FlagMicro bool // 如果是支持微服务
-		MicroOperate MicroOperateInterface
+		MicroOperate microService2.MicroOperateInterface
 	}
 	PermitUrlPath struct {
 		Method string `json:"method"`
@@ -95,7 +94,7 @@ func NewWebApplication(privateMiddleWares ...gin.HandlerFunc) *WebApplication {
 
 type RouterHandler func(r *gin.Engine) (err error)
 
-func (r *WebApplication) SetFlagMicro(micro MicroOperateInterface) (res *WebApplication) {
+func (r *WebApplication) SetFlagMicro(micro microService2.MicroOperateInterface) (res *WebApplication) {
 	res = r
 	r.MicroOperate = micro
 	return
@@ -218,7 +217,7 @@ func (r *WebApplication) Run(cTxs ...context.Context) (err error) {
 		r.startWithMicro(ctx)
 		return
 	}
-	
+
 	//普通启动
 	r.startGeneral()
 

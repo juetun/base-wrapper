@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/consul/api"
 	consulapi "github.com/hashicorp/consul/api"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
-	"github.com/juetun/base-wrapper/lib/app/app_start"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/utils"
 	"net/http"
@@ -20,6 +19,15 @@ var io = base.NewSystemOut().
 // 全局配置（可根据实际环境调整）
 
 type (
+	//微服务注册逻辑
+	MicroOperateInterface interface {
+		//将服务信息注册入注册中心
+		RegisterMicro(c *gin.Engine, cTxs ...context.Context) (ok bool, err error)
+
+		//将服务信息从注册中心拿掉
+		UnRegisterMicro()
+	}
+
 	//注册服务参数到consul
 	ConsulRegisterAndUnRegister struct {
 		client       *api.Client         `json:"-"`
@@ -46,7 +54,7 @@ func (r *ConsulRegisterAndUnRegister) UnRegisterMicro() {
 	return
 }
 
-func NewConsulRegisterAndUnRegister() (r app_start.MicroOperateInterface) {
+func NewConsulRegisterAndUnRegister() (r MicroOperateInterface) {
 	var (
 		err   error
 		ip, _ = utils.GetLocalIP() // 注意：如果 Traefik 在另一台机器，需改为本机内网 IP
