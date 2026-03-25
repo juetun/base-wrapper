@@ -252,9 +252,8 @@ func (r *WebApplication) startWithMicro(ctx context.Context) {
 	defer r.MicroOperate.UnRegisterMicro()
 
 	// 5. 启动 Gin 服务
-	var ip, _ = utils.GetLocalIP()
 	server := &http.Server{
-		Addr:    fmt.Sprintf("%s:%d", ip, app_obj.App.AppPort),
+		Addr:    fmt.Sprintf(":%d", app_obj.App.AppPort),
 		Handler: r.GinEngine,
 	}
 
@@ -278,7 +277,7 @@ func (r *WebApplication) startWithMicro(ctx context.Context) {
 	// 7. 启动 HTTP 服务
 	base.Io.
 		SetInfoType(base.LogLevelInfo).
-		SystemOutPrintf("Gin 服务启动成功，监听地址: %s:%d \n", ip, app_obj.App.AppPort)
+		SystemOutPrintf("Gin 服务启动成功，监听地址: :%d \n", app_obj.App.AppPort)
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		base.Io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("服务启动失败: %v", err)
 
