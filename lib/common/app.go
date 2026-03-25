@@ -134,13 +134,12 @@ func NewApplication() *app_obj.Application {
 	}
 	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("Env:'%s'(You can set environment variable with 'export \"GO_ENV=%s\")", env, strings.Join(app_obj.EnvList, "|"))
 	return &app_obj.Application{
-		AppSystemName:  "",
-		AppName:        "app",
-		AppVersion:     "v1.0",
-		AppApiVersion:  "v1",
-		AppPort:        8080,
-		AppEnv:         env,
-		AppGraceReload: 0,
-		AppNeedPProf:   false,
+		AppSystemName: "",
+		AppName:       "app",
+		AppVersion:    "v1.0",
+		AppApiVersion: "v1",
+		AppPort:       8080,
+		AppEnv:        env,
+		AppNeedPProf:  false,
 	}
 }
