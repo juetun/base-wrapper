@@ -14,7 +14,6 @@ package main
 
 import (
 	"github.com/juetun/base-wrapper/lib/app/app_start"
-	micro_service "github.com/juetun/base-wrapper/lib/app/app_start/micro_register"
 	_ "github.com/juetun/base-wrapper/lib/app/init" // 加载公共插件项
 	"github.com/juetun/base-wrapper/lib/authorization/model"
 	. "github.com/juetun/base-wrapper/lib/plugins" // 组件目录
@@ -37,7 +36,6 @@ var authorization Authorization
 // https://github.com/izghua/go-blog
 func main() {
 	app_start.NewPlugins(app_start.Authorization(&authorization)).Use(
-		PluginRegistry,
 		PluginClickHouse,
 		PluginOss,
 		PluginJwt, // 加载用户验证插件,必须放在Redis插件后
@@ -49,7 +47,6 @@ func main() {
 
 	// 启动GIN服务
 	_ = app_start.NewWebApplication().
-		SetFlagMicro(micro_service.NewConsulRegisterAndUnRegister()).
 		Run()
 
 }

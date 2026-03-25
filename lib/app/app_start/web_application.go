@@ -10,12 +10,14 @@ import (
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
+	microService2 "github.com/juetun/base-wrapper/lib/app/app_start/micro_register"
 	"github.com/juetun/base-wrapper/lib/app/middlewares"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/juetun/base-wrapper/lib/utils"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+
 	"net/http"
 	"os"
 	"os/signal"
@@ -189,16 +191,34 @@ func (r *WebApplication) getCtx(cTxs ...context.Context) (ctx context.Context) {
 	return
 }
 
+//微服务注册信息
+func (r *WebApplication) loadRegistryMicroSrv() {
+	if !app_obj.RegistryServiceConfig.OpenMicService {
+		return
+	}
+
+	//如果开启了微服务注册
+	switch app_obj.RegistryServiceConfig.MicServiceType {
+	case app_obj.RegisterCenterConsul: //注册中心为Consul
+		r.SetFlagMicro(microService2.NewConsulRegisterAndUnRegister())
+	case app_obj.RegisterCenterETCD: //注册中心为 ETCD
+		r.SetFlagMicro(microService2.NewETCDRegisterAndUnRegister())
+	}
+	return
+}
+
 // Run 开始加载Gin 服务
 func (r *WebApplication) Run(cTxs ...context.Context) (err error) {
+
 	ctx := r.getCtx(cTxs...)
-	appConfig := common.GetAppConfig()
 
 	// // 如果支持优雅重启（微服务启动）
-	if appConfig.AppGraceReload > 0 {
+	if app_obj.RegistryServiceConfig.OpenMicService {
+		r.loadRegistryMicroSrv()
 		r.startWithMicro(ctx)
 		return
 	}
+	
 	//普通启动
 	r.startGeneral()
 
