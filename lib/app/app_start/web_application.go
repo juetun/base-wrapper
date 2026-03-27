@@ -14,7 +14,6 @@ import (
 	"github.com/juetun/base-wrapper/lib/app/middlewares"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
-	"github.com/juetun/base-wrapper/lib/utils"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"net/http"
@@ -195,7 +194,7 @@ func (r *WebApplication) loadRegistryMicroSrv() {
 	if !app_obj.RegistryServiceConfig.OpenMicService {
 		return
 	}
-	
+
 	if r.MicroOperate == nil {
 		//如果开启了微服务注册
 		switch app_obj.RegistryServiceConfig.MicServiceType {
@@ -213,36 +212,35 @@ func (r *WebApplication) loadRegistryMicroSrv() {
 func (r *WebApplication) Run(cTxs ...context.Context) (err error) {
 
 	ctx := r.getCtx(cTxs...)
-
+	// 5. 启动 Gin 服务
+	var server = &http.Server{
+		Addr:    fmt.Sprintf(":%d", app_obj.App.AppPort),
+		Handler: r.GinEngine,
+	}
 	// // 如果支持优雅重启（微服务启动）
 	if app_obj.RegistryServiceConfig.OpenMicService {
 		r.loadRegistryMicroSrv()
-		r.startWithMicro(ctx)
+		r.startWithMicro(ctx, server)
 		return
 	}
 
 	//普通启动
-	r.startGeneral()
+	r.startGeneral(server)
 
 	return
 }
 
-func (r *WebApplication) startGeneral() {
-	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintln("General start ")
-	// 5. 启动 Gin 服务
-	var ip, _ = utils.GetLocalIP()
-	server := &http.Server{
-		Addr:    fmt.Sprintf("%s:%d", ip, app_obj.App.AppPort),
-		Handler: r.GinEngine,
-	}
-	r.syslog.SetInfoType(base.LogLevelError).SystemOutPrintf("未启动信息")
-	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		base.Io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("服务启动失败: %v", err)
+func (r *WebApplication) startGeneral(server *http.Server) {
+
+	r.syslog.SetInfoType(base.LogLevelInfo).SystemOutPrintf("开始普通启动信息%v \n", server.Addr)
+	var err error
+	if err = server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		base.Io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("服务启动失败: %v \n", err)
 	}
 	return
 }
 
-func (r *WebApplication) startWithMicro(ctx context.Context) {
+func (r *WebApplication) startWithMicro(ctx context.Context, server *http.Server) {
 	if r.MicroOperate == nil {
 		return
 	}
@@ -253,12 +251,6 @@ func (r *WebApplication) startWithMicro(ctx context.Context) {
 
 	// 确保程序退出时注销服务
 	defer r.MicroOperate.UnRegisterMicro()
-
-	// 5. 启动 Gin 服务
-	server := &http.Server{
-		Addr:    fmt.Sprintf(":%d", app_obj.App.AppPort),
-		Handler: r.GinEngine,
-	}
 
 	// 6. 优雅退出（监听系统信号）
 	go func() {
@@ -307,21 +299,26 @@ func (r *WebApplication) toolRouteRegister(appConfig *app_obj.Application, UrlPr
 }
 
 func (r *WebApplication) getHealthPath(suffix string) (pathString string) {
+
 	if HealthPrefixPathNotEmpty {
 		pathString = fmt.Sprintf("%v/%v", HealthPrefixPath, suffix)
 		return
 	}
+
 	if app_obj.RouteTypeDefaultIntranet == "" {
 		pathString = fmt.Sprintf("/%v/%v", app_obj.App.AppName, suffix)
 		return
 	}
 	pathString = fmt.Sprintf("/%v/%v/%v", app_obj.App.AppName, app_obj.RouteTypeDefaultIntranet, suffix)
 	return
+
 }
 
 func (r *WebApplication) registerDefaultRoute(UrlPrefix string) {
+
 	r.syslog.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintln("#注册健康检查路由...")
+
 	// 注册健康检查请求地址
 	r.GinEngine.GET(r.getHealthPath("health"), func(c *gin.Context) {
 		c.String(http.StatusOK, "success")
@@ -337,10 +334,12 @@ func (r *WebApplication) registerDefaultRoute(UrlPrefix string) {
 		// time.Sleep(5 * time.Second)
 		c.String(http.StatusOK, fmt.Sprintf("Welcome \"%s\" Server", UrlPrefix))
 	})
+
 	r.GinEngine.HEAD(r.getHealthPath("index"), func(c *gin.Context) {
 		// time.Sleep(5 * time.Second)
 		c.String(http.StatusOK, fmt.Sprintf("Welcome \"%s\" Server", UrlPrefix))
 	})
+	return
 }
 
 func (r *WebApplication) registerSwagger(appConfig *app_obj.Application) {
