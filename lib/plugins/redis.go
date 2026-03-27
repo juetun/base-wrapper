@@ -74,6 +74,7 @@ func initRedis(nameSpace, defaultNameSpace string, configs *Redis) {
 	var conf = redis.Options{
 		Addr:         configs.Addr,
 		DB:           configs.DB,
+		Username:     configs.Username,
 		PoolSize:     configs.PoolSize,
 		MinIdleConns: configs.MinIdleConns,
 		Password:     configs.Password,
@@ -104,6 +105,7 @@ type (
 	Redis struct {
 		NameSpace    string `json:"name_space"`
 		Addr         string `json:"addr" yaml:"addr"`
+		Username     string `json:"username" yaml:"username"`
 		DB           int    `json:"db" yaml:"db"`
 		Password     string `json:"password" yaml:"password"`
 		PoolSize     int    `json:"pool_size" yaml:"poolsize"`
