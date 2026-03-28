@@ -36,10 +36,11 @@ type (
 
 	// 服务配置
 	MicroServiceConfig struct {
-		ServiceName string // 服务名（Traefik 会通过这个名字发现服务）
-		Host        string // 服务监听地址
-		Port        int    // 服务端口
-		ConsulAddr  string // Consul 地址
+		ServiceNameNotPrefix string //无前缀的服务名
+		ServiceName          string // 服务名（Traefik 会通过这个名字发现服务）
+		Host                 string // 服务监听地址
+		Port                 int    // 服务端口
+		ConsulAddr           string // Consul 地址
 	}
 )
 
@@ -58,10 +59,11 @@ func NewConsulRegisterAndUnRegister() (r MicroOperateInterface) {
 		ip, _ = utils.GetLocalIP() // 注意：如果 Traefik 在另一台机器，需改为本机内网 IP
 		res   = &ConsulRegisterAndUnRegister{
 			ConsulConfig: &MicroServiceConfig{
-				Host:        ip,
-				ServiceName: app_obj.App.AppName, // Traefik 会通过这个名称匹配服务
-				Port:        app_obj.App.AppPort,
-				ConsulAddr:  strings.Join(app_obj.RegistryServiceConfig.Consul.Endpoints, ","), // Consul 默认地址
+				Host:                 ip,
+				ServiceNameNotPrefix: app_obj.App.AppName,
+				ServiceName:          fmt.Sprintf("%v-%v", app_obj.App.AppEnv, app_obj.App.AppName), // Traefik 会通过这个名称匹配服务
+				Port:                 app_obj.App.AppPort,
+				ConsulAddr:           strings.Join(app_obj.RegistryServiceConfig.Consul.Endpoints, ","), // Consul 默认地址
 			},
 		}
 	)
@@ -85,50 +87,72 @@ func (r *ConsulRegisterAndUnRegister) getMapAppConfig() (rules []*app_obj.Consul
 	return app_obj.RegistryServiceConfig.Consul.MapApp
 }
 
-func (r *ConsulRegisterAndUnRegister) orgRoutesRule(serviceRoute string) (res string) {
-
+func (r *ConsulRegisterAndUnRegister) parseMapAppRule() (mapAppRule map[string]*app_obj.ConsulAppRuleInfo) {
 	var (
-		rules      = app_obj.RegistryServiceConfig.Consul.MapApp
-		mapAppRule = make(map[string]*app_obj.ConsulAppRuleInfo, len(rules))
-		appRule    *app_obj.ConsulAppRuleInfo
-		ok         bool
-		ruleString strings.Builder
-		item       *app_obj.ConsulAppRuleInfo
+		rules = app_obj.RegistryServiceConfig.Consul.MapApp
+		item  *app_obj.ConsulAppRuleInfo
 	)
-
+	mapAppRule = make(map[string]*app_obj.ConsulAppRuleInfo, len(rules))
 	for _, item = range rules {
 		mapAppRule[item.MicroAppName] = item
 	}
-	if appRule, ok = mapAppRule[app_obj.App.AppName]; !ok {
-		res = fmt.Sprintf("traefik.http.routers.%v.rule=PathPrefix(`/%v`)", serviceRoute, r.ConsulConfig.ServiceName)
+	return
+}
+
+func (r *ConsulRegisterAndUnRegister) orgPathHost(appRule *app_obj.ConsulAppRuleInfo, ruleString *strings.Builder) {
+	hostLength := len(appRule.Host)
+
+	if hostLength <= 0 {
 		return
 	}
-	hostLength := len(appRule.Host)
-	if hostLength > 0 {
-		if hostLength == 1 {
-			ruleString.WriteString(fmt.Sprintf("Host(`%v`)", appRule.Host[0]))
-		} else {
-			ruleString.WriteString("(")
-			for k, item := range appRule.Host {
-				if item == "" {
-					continue
-				}
-				if k != 0 {
-					ruleString.WriteString("||")
-				}
-				ruleString.WriteString(fmt.Sprintf("Host(`%v`)", item))
-			}
-			ruleString.WriteString(")")
-		}
+
+	if hostLength == 1 {
+		ruleString.WriteString(fmt.Sprintf("Host(`%v`)", appRule.Host[0]))
+		return
 	}
 
-	if appRule.PathPrefix != "" {
-		if ruleString.Len() != 0 {
-			ruleString.WriteString("&&")
+	ruleString.WriteString("(")
+	for k, item := range appRule.Host {
+		if item == "" {
+			continue
 		}
-		ruleString.WriteString(fmt.Sprintf("PathPrefix(`%v`)", appRule.PathPrefix))
+		if k != 0 {
+			ruleString.WriteString("||")
+		}
+		ruleString.WriteString(fmt.Sprintf("Host(`%v`)", item))
+	}
+	ruleString.WriteString(")")
+
+	return
+}
+
+func (r *ConsulRegisterAndUnRegister) orgPathPrefix(appRule *app_obj.ConsulAppRuleInfo, ruleString *strings.Builder) {
+	if appRule.PathPrefix == "" {
+		return
+	}
+	if ruleString.Len() != 0 {
+		ruleString.WriteString("&&")
+	}
+	ruleString.WriteString(fmt.Sprintf("PathPrefix(`%v`)", appRule.PathPrefix))
+	return
+}
+
+func (r *ConsulRegisterAndUnRegister) orgRoutesRule(serviceRoute string) (res string) {
+
+	var (
+		appRule    *app_obj.ConsulAppRuleInfo
+		ok         bool
+		mapAppRule = r.parseMapAppRule()
+		ruleString strings.Builder
+	)
+
+	if appRule, ok = mapAppRule[app_obj.App.AppName]; !ok {
+		res = fmt.Sprintf("traefik.http.routers.%v.rule=PathPrefix(`/%v`)", serviceRoute, r.ConsulConfig.ServiceNameNotPrefix)
+		return
 	}
 
+	r.orgPathHost(appRule, &ruleString)
+	r.orgPathPrefix(appRule, &ruleString)
 	res = fmt.Sprintf("traefik.http.routers.%v.rule=%v", serviceRoute, ruleString.String())
 	return
 }
@@ -174,7 +198,6 @@ func (r *ConsulRegisterAndUnRegister) orgWss(middleWareCors string) (tagList []s
 	return
 }
 func (r *ConsulRegisterAndUnRegister) registerAction(cTxs ...context.Context) (err error) {
-	var checkUri = fmt.Sprintf("http://%v:%v/%v", r.ConsulConfig.Host, r.ConsulConfig.Port, app_obj.GetHealthPath("health"))
 
 	// 3. 构建服务注册信息
 	registration := &consulapi.AgentServiceRegistration{
@@ -183,7 +206,7 @@ func (r *ConsulRegisterAndUnRegister) registerAction(cTxs ...context.Context) (e
 		Address: r.ConsulConfig.Host,        // 服务地址
 		Port:    r.ConsulConfig.Port,        // 服务端口
 		Check: &consulapi.AgentServiceCheck{ // 健康检查配置（Consul 定期调用，确保服务存活）
-			HTTP:     checkUri, // 健康检查接口
+			HTTP:     fmt.Sprintf("http://%v:%v%v", r.ConsulConfig.Host, r.ConsulConfig.Port, app_obj.GetHealthPath("health")), // 健康检查接口
 			Method:   http.MethodHead,
 			Interval: "5s", // 检查间隔
 			Timeout:  "3s", // 超时时间
@@ -194,7 +217,12 @@ func (r *ConsulRegisterAndUnRegister) registerAction(cTxs ...context.Context) (e
 		// 自定义标签（可选，Traefik 可通过标签过滤服务）
 		Tags: r.GetMicroServiceTags(),
 	}
-	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("健康检查地址:%v(%v) \n", checkUri, registration.Check.Method)
+	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("健康检查地址:%v(%v) Interval:%v  Timeout:%v\n",
+		registration.Check.HTTP,
+		registration.Check.Method,
+		registration.Check.Interval,
+		registration.Check.Timeout,
+	)
 	// 4. 注册服务到 Consul
 	if err = r.client.Agent().ServiceRegister(registration); err != nil {
 		base.Io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("注册服务到 Consul 失败: %v", err)
