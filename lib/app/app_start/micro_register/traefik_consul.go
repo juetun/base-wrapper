@@ -9,15 +9,13 @@ import (
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/utils"
+	"github.com/robfig/cron/v3"
 	"net/http"
 	"strings"
+	"time"
 )
 
-var io = base.NewSystemOut().
-	SetInfoType(base.LogLevelInfo)
-
 // 全局配置（可根据实际环境调整）
-
 type (
 	//微服务注册逻辑
 	MicroOperateInterface interface {
@@ -72,7 +70,7 @@ func NewConsulRegisterAndUnRegister() (r MicroOperateInterface) {
 	consulConfig := api.DefaultConfig()
 	consulConfig.Address = res.ConsulConfig.ConsulAddr
 	if res.client, err = api.NewClient(consulConfig); err != nil {
-		io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Failed to create Consul client: %v", err.Error())
+		base.Io.SetInfoType(base.LogLevelFatal).SystemOutFatalf("Failed to create Consul client: %v", err.Error())
 		return res
 	}
 	return res
@@ -175,11 +173,8 @@ func (r *ConsulRegisterAndUnRegister) orgWss(middleWareCors string) (tagList []s
 	}
 	return
 }
-
-func (r *ConsulRegisterAndUnRegister) RegisterMicro(c *gin.Engine, cTxs ...context.Context) (ok bool, err error) {
-	// 1. 初始化 Consul 客户端配置
-
-	var checkUri = fmt.Sprintf("http://%v:%v/%v/%v/heart_beat", r.ConsulConfig.Host, r.ConsulConfig.Port, r.ConsulConfig.ServiceName, app_obj.RouteTypeDefaultIntranet)
+func (r *ConsulRegisterAndUnRegister) registerAction(cTxs ...context.Context) (err error) {
+	var checkUri = fmt.Sprintf("http://%v:%v/%v", r.ConsulConfig.Host, r.ConsulConfig.Port, app_obj.GetHealthPath("health"))
 
 	// 3. 构建服务注册信息
 	registration := &consulapi.AgentServiceRegistration{
@@ -206,6 +201,35 @@ func (r *ConsulRegisterAndUnRegister) RegisterMicro(c *gin.Engine, cTxs ...conte
 		return
 	}
 	base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("服务 %s 已成功注册到 Consul (地址: %s:%d)\n", r.ConsulConfig.ServiceName, r.ConsulConfig.Host, r.ConsulConfig.Port)
+
+	return
+}
+
+func (r *ConsulRegisterAndUnRegister) RegisterMicro(c *gin.Engine, cTxs ...context.Context) (ok bool, err error) {
+
+	if err = r.registerAction(cTxs...); err != nil {
+		return
+	}
+
+	//设置注册微服务更新时间
+	app_obj.SetLastRegisterTime()
+	time.AfterFunc(3*time.Second, func() {
+		base.Io.SetInfoType(base.LogLevelInfo).SystemOutPrintf("延迟4秒启动%v检测微服务心跳任务\n", app_obj.App.AppName)
+		c := cron.New()
+		// 每隔2秒执行一次任务，可以使用 Cron 表达式来定义更复杂的调度规则，例如 "*/4 * * * * *" 每4秒执行一次。
+		c.AddFunc("*/4 * * * * *", func() {
+
+			//如果consul不主动发健康检查请求,侧服务器尝试再次注册服务
+			if time.Now().Unix()-app_obj.GetLastRegisterTime() < 10 { //如果心跳检测时间小于10秒,不主动发起请求
+				return
+			}
+
+			//重新注册服务
+			_ = r.registerAction(cTxs...)
+
+		}) // 注意：这里的 Cron 表达式在不同的环境下可能有细微差别，例如在某些系统上可能需要使用 "0/2 * * * * *"。请根据实际环境调整。
+		c.Start()
+	})
 	ok = true
 	return
 }

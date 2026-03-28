@@ -10,6 +10,8 @@ package app_obj
 
 import (
 	"encoding/json"
+	"fmt"
+	"time"
 )
 
 const (
@@ -58,6 +60,7 @@ var (
 
 	App                   *Application
 	RegistryServiceConfig ServerRegistry
+	LastRegisterTime      int64 //最近一次注册是时间
 )
 
 const (
@@ -75,24 +78,26 @@ const (
 // Application 应用基本的配置结构体
 type (
 	Application struct {
-		CronPort             int             `json:"cron_port" yaml:"cron_port"`                       // 定时任务客户端端口
-		AppAlias             string          `json:"app_alias" yaml:"alias"`                           // 服务器别名
-		AppSystemName        string          `json:"app_system_name" yaml:"system_name"`               // 系统名称
-		AppEnv               string          `json:"app_env" yaml:"env"`                               // 当前运行环境
-		AppName              string          `json:"app_name" yaml:"name"`                             // 应用名称
-		AppVersion           string          `json:"app_version" yaml:"version"`                       // 应用版本以前缀v 开头
-		AppApiVersion        string          `json:"app_api_version" yaml:"app_api_version"`           // 应用的API的版本号，用于api接口路由参数拼接
-		AppPort              int             `json:"app_port" yaml:"port"`                             // 应用监听的端口
-		AppNeedPProf         bool            `json:"app_need_p_prof" yaml:"app_need_p_prof"`           // 是否需要内存分析
-		AppSignDebug         bool            `json:"app_sign_debug" yaml:"app_sign_debug"`             // 是否支持签名调试
-		AppTemplateDirectory string          `json:"app_template_directory" yaml:"template_directory"` // temp模板默认目录
-		AppRouterPrefix      AppRouterPrefix `json:"app_router_prefix" yaml:"app_router_prefix"`       // 路由前缀
-		NotValidateSign      []UrlFormat     `json:"not_validate_sign"  yaml:"not_validate_sign"`      //不需要签名验证的Uri
-		NotSendHeader        []UrlFormat     `json:"not_send_header"  yaml:"not_send_header"`          //不需要设置headerInfo的Uri
-		AppAdminToken        string          `json:"app_admin_token" yaml:"app_admin_token"`           // 客服后台接口多的token值
-		Administrator        string          `json:"administrator" yaml:"administrator"`               //代码管理员信息
-		AppRunTimerTask      bool            `json:"app_run_timer_task" yaml:"app_run_timer_task"`     //是否支持定时任务
-		UseDefaultShopId     bool            `json:"use_default_shop_id" yaml:"use_default_shop_id"`   //测试环境调试数据使用的默认店铺ID
+		CronPort                 int             `json:"cron_port" yaml:"cron_port"`                                       // 定时任务客户端端口
+		AppAlias                 string          `json:"app_alias" yaml:"alias"`                                           // 服务器别名
+		AppSystemName            string          `json:"app_system_name" yaml:"system_name"`                               // 系统名称
+		AppEnv                   string          `json:"app_env" yaml:"env"`                                               // 当前运行环境
+		AppName                  string          `json:"app_name" yaml:"name"`                                             // 应用名称
+		AppVersion               string          `json:"app_version" yaml:"version"`                                       // 应用版本以前缀v 开头
+		AppApiVersion            string          `json:"app_api_version" yaml:"app_api_version"`                           // 应用的API的版本号，用于api接口路由参数拼接
+		AppPort                  int             `json:"app_port" yaml:"port"`                                             // 应用监听的端口
+		AppNeedPProf             bool            `json:"app_need_p_prof" yaml:"app_need_p_prof"`                           // 是否需要内存分析
+		AppSignDebug             bool            `json:"app_sign_debug" yaml:"app_sign_debug"`                             // 是否支持签名调试
+		AppTemplateDirectory     string          `json:"app_template_directory" yaml:"template_directory"`                 // temp模板默认目录
+		AppRouterPrefix          AppRouterPrefix `json:"app_router_prefix" yaml:"app_router_prefix"`                       // 路由前缀
+		NotValidateSign          []UrlFormat     `json:"not_validate_sign"  yaml:"not_validate_sign"`                      //不需要签名验证的Uri
+		NotSendHeader            []UrlFormat     `json:"not_send_header"  yaml:"not_send_header"`                          //不需要设置headerInfo的Uri
+		AppAdminToken            string          `json:"app_admin_token" yaml:"app_admin_token"`                           // 客服后台接口多的token值
+		Administrator            string          `json:"administrator" yaml:"administrator"`                               //代码管理员信息
+		AppRunTimerTask          bool            `json:"app_run_timer_task" yaml:"app_run_timer_task"`                     //是否支持定时任务
+		UseDefaultShopId         bool            `json:"use_default_shop_id" yaml:"use_default_shop_id"`                   //测试环境调试数据使用的默认店铺ID
+		HealthPrefixPath         string          `json:"health_prefix_path" yaml:"health_prefix_path"`                     //健康检查前缀
+		HealthPrefixPathNotEmpty bool            `json:"health_prefix_path_not_empty" yaml:"health_prefix_path_not_empty"` //健康检查 true-健康检查不会加上服务路径
 	}
 	ServerRegistry struct {
 		OpenMicService   bool   `json:"open_mic_service" yaml:"openmicrservice"`  //是否开启微服务
@@ -129,6 +134,30 @@ type (
 	}
 )
 
+//获取心跳检测更新时间
+func GetLastRegisterTime() (res int64) {
+	return LastRegisterTime
+}
+
+//设置心跳检测更新时间
+func SetLastRegisterTime() {
+	LastRegisterTime = time.Now().Unix()
+	return
+}
+
+func GetHealthPath(suffix string) (pathString string) {
+	if App.HealthPrefixPathNotEmpty {
+		pathString = fmt.Sprintf("%v/%v", App.HealthPrefixPath, suffix)
+		return
+	}
+
+	if RouteTypeDefaultIntranet == "" {
+		pathString = fmt.Sprintf("/%v/%v", App.AppName, suffix)
+		return
+	}
+	pathString = fmt.Sprintf("/%v/%v/%v", App.AppName, RouteTypeDefaultIntranet, suffix)
+	return
+}
 func (r *Application) ToString() string {
 	v, _ := json.Marshal(r)
 	return string(v)

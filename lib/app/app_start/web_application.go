@@ -26,16 +26,14 @@ import (
 )
 
 var (
-	HealthPrefixPathNotEmpty bool //健康检查 true-健康检查不会加上服务路径
-	HealthPrefixPath         string
-	HandleFunc               = make([]HandleRouter, 0)        // 路由函数切片
-	HandleFuncIntranet       = make([]HandleRouter, 0)        // 内网路由函数切片
-	HandleFuncOuterNet       = make([]HandleRouter, 0)        // 外网路由函数切片
-	HandleFuncAdminNet       = make([]HandleRouter, 0)        // 外网路由函数切片
-	HandleFuncPage           = make([]HandleRouter, 0)        // 外网路由函数切片
-	RoutePathInitCallBack    RouterPath                       //注册路由时调用
-	PermitAdminUrlPath       = make([]*PermitUrlPath, 0, 200) //收集应用内路由信息
-	AdminNetHandlerFunc      = make([]gin.HandlerFunc, 0, 5)  //管理后台操作中间件
+	HandleFunc            = make([]HandleRouter, 0)        // 路由函数切片
+	HandleFuncIntranet    = make([]HandleRouter, 0)        // 内网路由函数切片
+	HandleFuncOuterNet    = make([]HandleRouter, 0)        // 外网路由函数切片
+	HandleFuncAdminNet    = make([]HandleRouter, 0)        // 外网路由函数切片
+	HandleFuncPage        = make([]HandleRouter, 0)        // 外网路由函数切片
+	RoutePathInitCallBack RouterPath                       //注册路由时调用
+	PermitAdminUrlPath    = make([]*PermitUrlPath, 0, 200) //收集应用内路由信息
+	AdminNetHandlerFunc   = make([]gin.HandlerFunc, 0, 5)  //管理后台操作中间件
 )
 
 type (
@@ -298,44 +296,30 @@ func (r *WebApplication) toolRouteRegister(appConfig *app_obj.Application, UrlPr
 
 }
 
-func (r *WebApplication) getHealthPath(suffix string) (pathString string) {
-
-	if HealthPrefixPathNotEmpty {
-		pathString = fmt.Sprintf("%v/%v", HealthPrefixPath, suffix)
-		return
-	}
-
-	if app_obj.RouteTypeDefaultIntranet == "" {
-		pathString = fmt.Sprintf("/%v/%v", app_obj.App.AppName, suffix)
-		return
-	}
-	pathString = fmt.Sprintf("/%v/%v/%v", app_obj.App.AppName, app_obj.RouteTypeDefaultIntranet, suffix)
-	return
-
-}
-
 func (r *WebApplication) registerDefaultRoute(UrlPrefix string) {
 
 	r.syslog.SetInfoType(base.LogLevelInfo).
 		SystemOutPrintln("#注册健康检查路由...")
 
 	// 注册健康检查请求地址
-	r.GinEngine.GET(r.getHealthPath("health"), func(c *gin.Context) {
+	r.GinEngine.GET(app_obj.GetHealthPath("health"), func(c *gin.Context) {
+		app_obj.SetLastRegisterTime() //设置心跳检测的时间
 		c.String(http.StatusOK, "success")
 	})
 
-	r.GinEngine.HEAD(r.getHealthPath("health"), func(c *gin.Context) {
+	r.GinEngine.HEAD(app_obj.GetHealthPath("health"), func(c *gin.Context) {
+		app_obj.SetLastRegisterTime() //设置心跳检测的时间
 		c.String(http.StatusOK, "success")
 		return
 	})
 
 	// 注册默认路径
-	r.GinEngine.GET(r.getHealthPath("index"), func(c *gin.Context) {
+	r.GinEngine.GET(app_obj.GetHealthPath("index"), func(c *gin.Context) {
 		// time.Sleep(5 * time.Second)
 		c.String(http.StatusOK, fmt.Sprintf("Welcome \"%s\" Server", UrlPrefix))
 	})
 
-	r.GinEngine.HEAD(r.getHealthPath("index"), func(c *gin.Context) {
+	r.GinEngine.HEAD(app_obj.GetHealthPath("index"), func(c *gin.Context) {
 		// time.Sleep(5 * time.Second)
 		c.String(http.StatusOK, fmt.Sprintf("Welcome \"%s\" Server", UrlPrefix))
 	})
