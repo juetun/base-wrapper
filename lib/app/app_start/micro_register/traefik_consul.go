@@ -187,8 +187,7 @@ func (r *ConsulRegisterAndUnRegister) orgWss(middleWareCors string) (tagList []s
 	serviceRouteWss := fmt.Sprintf("wss-%v", app_obj.App.AppName)
 	tagList = []string{
 		r.orgRoutesRule(serviceRouteWss),
-		fmt.Sprintf("traefik.http.routers.%v.rule=PathPrefix(`/%v`)", serviceRouteWss, r.ConsulConfig.ServiceNameNotPrefix), // Traefik 路由规则
-		fmt.Sprintf("traefik.http.routers.%v.service=%v", serviceRouteWss, r.ConsulConfig.ServiceName),                      // Traefik 路由规则
+ 		fmt.Sprintf("traefik.http.routers.%v.service=%v", serviceRouteWss, r.ConsulConfig.ServiceName),                      // Traefik 路由规则
 		fmt.Sprintf("traefik.http.routers.%s.entrypoints=%s", serviceRouteWss, "websecure"),                                 // 支持websocket
 		fmt.Sprintf("traefik.http.routers.%s.middlewares=%s", serviceRouteWss, middleWareCors),                              // 设置中间件
 		//fmt.Sprintf("traefik.http.routers.%s.middlewares=%v", serviceRouteWss, fmt.Sprintf("%v,%v", middleWareCors,websocketMiddleWareName)),
