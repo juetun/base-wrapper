@@ -5,7 +5,6 @@ import (
 	"time"
 )
 
-
 const (
 	CacheDataTypeHashString  uint8 = iota + 1 //字符串
 	CacheDataTypeHashHash                     //哈希
@@ -38,13 +37,15 @@ var (
 		},
 	}
 )
+
 type (
 	CacheProperty struct {
-		Key           string        `json:"key"`       // key
-		Expire        time.Duration `json:"expire"`    // 过期时间
-		MicroApp      string        `json:"micro_app"` // 服务
-		CacheDataType uint8         `json:"cache_data_type"`
-		Desc          string        `json:"desc"` // 缓存使用场景描述
+		Key           string        `json:"key"`             // key
+		Expire        time.Duration `json:"expire"`          // 过期时间
+		MicroApp      string        `json:"micro_app"`       // 服务
+		CacheDataType uint8         `json:"cache_data_type"` // 缓存数据类型
+		DelKey        string        `json:"del_key"`         // 清除数据值
+		Desc          string        `json:"desc"`            // 缓存使用场景描述
 	}
 )
 
