@@ -74,12 +74,11 @@ func (r *CacheActionBase) SetToCache(id interface{}, data interface{}, expireTim
 }
 
 func (r *CacheActionBase) GetCacheClient(clients ...*redis.Client) (client *redis.Client) {
-	var clientTmp *redis.Client
 	if len(clients) > 0 {
-		clientTmp = clients[0]
+		client = clients[0]
 	}
-	if clientTmp == nil {
-		clientTmp = r.Context.CacheClient
+	if client == nil {
+		client = r.Context.CacheClient
 	}
 	return
 }
