@@ -135,8 +135,8 @@ func ArgGetByStringIdsOptionExpireTimeRand(expireTimeRand bool) ArgGetByStringId
 	}
 }
 
-func ArgGetByStringIdsOptionInitCount(initCount int) ArgGetByNumberIdsOption {
-	return func(arg *ArgGetByNumberIds) {
+func ArgGetByStringIdsOptionInitCount(initCount int) ArgGetByStringIdsOption {
+	return func(arg *ArgGetByStringIds) {
 		arg.InitCount = initCount
 	}
 }
